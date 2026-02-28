@@ -16,6 +16,7 @@ import {
     Clock,
     FileText,
     Sparkles,
+    Bot,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -252,6 +253,14 @@ const MedicalDashboard = () => {
                         >
                             <BookOpen className="h-4 w-4 text-amber-400" />
                             Consultar Protocolos
+                        </Button>
+                        <Button
+                            variant="default"
+                            className="w-full justify-start gap-3 h-12 bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-0 shadow-lg shadow-indigo-500/20"
+                            onClick={() => navigate('/medical/ia')}
+                        >
+                            <Bot className="h-4 w-4" />
+                            Decifrador de Casos (IA)
                         </Button>
                     </div>
                 </Card>

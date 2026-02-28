@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
@@ -25,13 +24,22 @@ import {
     MessageSquare,
     Activity,
     PenTool,
+    Square,
+    Volume2
 } from "lucide-react";
 
 const TranscricaoPage = () => {
     const [audioFile, setAudioFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [status, setStatus] = useState<'idle' | 'processing' | 'done'>('idle');
-    const [manualMode, setManualMode] = useState(false);
+    const [inputMode, setInputMode] = useState<'upload' | 'record' | 'manual'>('upload');
+
+    // Recording State
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingTime, setRecordingTime] = useState(0);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<BlobPart[]>([]);
+    const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Mock de resultado estruturado
     const mockResult = {
@@ -40,6 +48,13 @@ const TranscricaoPage = () => {
         historico: 'Paciente feminina, 38 anos. Sem antecedentes neurológicos. Uso prévio de ibuprofeno com alívio parcial. Trabalha 10h/dia em escritório com uso prolongado de computador.',
         conduta: 'Solicitação de hemograma completo, perfil tireoidiano e vitamina D. Orientação ergonômica. Avaliação de magnésio sérico. Retorno em 15 dias com exames.',
     };
+
+    // Cleanup timer on unmount
+    useEffect(() => {
+        return () => {
+            if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+        };
+    }, []);
 
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
@@ -60,6 +75,56 @@ const TranscricaoPage = () => {
         setTimeout(() => setStatus('done'), 3000);
     };
 
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = mediaRecorder;
+            audioChunksRef.current = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunksRef.current.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                const file = new File([audioBlob], `Gravacao_${new Date().toLocaleTimeString().replace(/:/g, '')}.webm`, { type: 'audio/webm' });
+                setAudioFile(file);
+                stream.getTracks().forEach(track => track.stop());
+                setRecordingTime(0);
+            };
+
+            mediaRecorder.start(1000); // chunk every second
+            setIsRecording(true);
+            setAudioFile(null); // clear previous file when starting new recording
+
+            timerIntervalRef.current = setInterval(() => {
+                setRecordingTime(prev => prev + 1);
+            }, 1000);
+        } catch (err) {
+            console.error("Erro ao acessar o microfone", err);
+            alert("Não foi possível acessar o microfone. Verifique as permissões de áudio do seu navegador.");
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
+        }
+    };
+
     return (
         <div className="p-6 max-w-screen-2xl mx-auto space-y-8 animate-in fade-in duration-700">
             {/* Header */}
@@ -68,7 +133,7 @@ const TranscricaoPage = () => {
                     Transcrição Clínica
                 </h1>
                 <p className="text-muted-foreground">
-                    Upload de áudio de consulta com transcrição estruturada e extração automática de informações clínicas.
+                    Grave a consulta diretamente ou faça upload do áudio para transcrição estruturada e extração clínica.
                 </p>
             </header>
 
@@ -89,36 +154,44 @@ const TranscricaoPage = () => {
                 {/* Upload / Input Column */}
                 <div className="space-y-6">
                     {/* Toggle Mode */}
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <Button
-                            variant={!manualMode ? "default" : "outline"}
-                            onClick={() => setManualMode(false)}
-                            className={`gap-2 ${!manualMode ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white' : ''}`}
+                            variant={inputMode === 'upload' ? "default" : "outline"}
+                            onClick={() => setInputMode('upload')}
+                            className={`gap-2 ${inputMode === 'upload' ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white' : ''}`}
                             size="sm"
                         >
-                            <Mic className="h-4 w-4" /> Upload de Áudio
+                            <Upload className="h-4 w-4" /> Upload de Áudio
                         </Button>
                         <Button
-                            variant={manualMode ? "default" : "outline"}
-                            onClick={() => setManualMode(true)}
-                            className={`gap-2 ${manualMode ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white' : ''}`}
+                            variant={inputMode === 'record' ? "default" : "outline"}
+                            onClick={() => setInputMode('record')}
+                            className={`gap-2 ${inputMode === 'record' ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white' : ''}`}
                             size="sm"
                         >
-                            <PenTool className="h-4 w-4" /> Transcrição Manual
+                            <Mic className="h-4 w-4" /> Gravar Consulta
+                        </Button>
+                        <Button
+                            variant={inputMode === 'manual' ? "default" : "outline"}
+                            onClick={() => setInputMode('manual')}
+                            className={`gap-2 ${inputMode === 'manual' ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white' : ''}`}
+                            size="sm"
+                        >
+                            <PenTool className="h-4 w-4" /> Digitação Manual
                         </Button>
                     </div>
 
-                    {!manualMode ? (
+                    {inputMode === 'upload' && (
                         /* Audio Upload Zone */
                         <Card
                             className={`bento-card p-8 border-2 border-dashed transition-all cursor-pointer ${isDragging
-                                    ? 'border-violet-400 bg-violet-500/5'
-                                    : 'border-white/10 hover:border-violet-400/50'
+                                ? 'border-violet-400 bg-violet-500/5'
+                                : 'border-white/10 hover:border-violet-400/50'
                                 }`}
                             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                             onDragLeave={() => setIsDragging(false)}
                             onDrop={handleDrop}
-                            onClick={() => document.getElementById('audio-input')?.click()}
+                            onClick={() => !audioFile && document.getElementById('audio-input')?.click()}
                         >
                             <input
                                 id="audio-input"
@@ -164,7 +237,92 @@ const TranscricaoPage = () => {
                                 )}
                             </div>
                         </Card>
-                    ) : (
+                    )}
+
+                    {inputMode === 'record' && (
+                        /* Voice Recording Zone */
+                        <Card className="bento-card p-8 border-2 border-white/10 text-center space-y-6">
+
+                            {!isRecording && !audioFile && (
+                                <>
+                                    <div className="mx-auto p-4 bg-rose-500/10 rounded-full inline-flex">
+                                        <Mic className="h-12 w-12 text-rose-400" />
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-foreground">Iniciar Gravação da Consulta</p>
+                                        <p className="text-sm text-muted-foreground mt-1">Clique abaixo para capturar o áudio diretamente do seu microfone.</p>
+                                    </div>
+                                    <div className="flex justify-center">
+                                        <Button
+                                            onClick={startRecording}
+                                            className="h-14 px-8 rounded-full gap-2 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 shadow-lg shadow-rose-500/20 text-base"
+                                        >
+                                            <Mic className="h-5 w-5" /> Iniciar Gravação
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
+
+                            {isRecording && (
+                                <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
+                                    <div className="relative mx-auto w-32 h-32 flex items-center justify-center">
+                                        <div className="absolute inset-0 rounded-full border-4 border-rose-500/30 animate-ping" style={{ animationDuration: '2s' }} />
+                                        <div className="absolute inset-2 rounded-full border-4 border-rose-500/50 animate-pulse" />
+                                        <div className="relative z-10 w-20 h-20 bg-rose-500 rounded-full flex items-center justify-center shadow-lg shadow-rose-500/50">
+                                            <Volume2 className="h-8 w-8 text-white animate-pulse" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p className="font-bold text-3xl text-foreground font-mono">{formatTime(recordingTime)}</p>
+                                        <p className="text-sm text-rose-400 font-medium animate-pulse mt-1">Gravando agora...</p>
+                                    </div>
+
+                                    <div className="flex justify-center">
+                                        <Button
+                                            variant="destructive"
+                                            onClick={stopRecording}
+                                            className="h-14 px-8 rounded-full gap-2 bg-white text-rose-600 hover:bg-rose-50 border-2 border-rose-100 shadow-lg text-base"
+                                        >
+                                            <Square className="h-5 w-5 fill-current" /> Parar e Salvar
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {!isRecording && audioFile && inputMode === 'record' && (
+                                <div className="space-y-6 animate-in fade-in duration-500">
+                                    <div className="p-4 bg-emerald-500/10 rounded-2xl inline-flex">
+                                        <CheckCircle2 className="h-10 w-10 text-emerald-400" />
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-foreground">Gravação Finalizada com Sucesso</p>
+                                        <p className="text-sm text-muted-foreground mt-1">
+                                            Áudio pronto: {formatTime(recordingTime)} ({(audioFile.size / 1024 / 1024).toFixed(2)} MB)
+                                        </p>
+                                    </div>
+                                    <div className="flex justify-center gap-3">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setAudioFile(null)}
+                                            className="h-10"
+                                        >
+                                            Descartar
+                                        </Button>
+                                        <Button
+                                            onClick={handleProcessar}
+                                            className="h-10 bg-emerald-600 hover:bg-emerald-500 text-white gap-2"
+                                        >
+                                            <Sparkles className="h-4 w-4" /> Processar Agora
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
+                        </Card>
+                    )}
+
+                    {inputMode === 'manual' && (
                         /* Manual Transcription */
                         <Card className="bento-card p-6 space-y-4">
                             <Label className="text-sm font-semibold">Transcrição Manual da Consulta</Label>
@@ -190,24 +348,26 @@ const TranscricaoPage = () => {
                         </Select>
                     </Card>
 
-                    {/* Process button */}
-                    <Button
-                        onClick={handleProcessar}
-                        disabled={status === 'processing' || (!audioFile && !manualMode)}
-                        className="w-full gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/20 h-12 text-base"
-                    >
-                        {status === 'processing' ? (
-                            <>
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                Processando transcrição...
-                            </>
-                        ) : (
-                            <>
-                                <Sparkles className="h-5 w-5" />
-                                Processar Transcrição
-                            </>
-                        )}
-                    </Button>
+                    {/* Process button (hide if still recording or if recording success screen has its own button) */}
+                    {!(inputMode === 'record' && (isRecording || audioFile)) && (
+                        <Button
+                            onClick={handleProcessar}
+                            disabled={status === 'processing' || (!audioFile && inputMode !== 'manual')}
+                            className="w-full gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/20 h-12 text-base"
+                        >
+                            {status === 'processing' ? (
+                                <>
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                    Processando transcrição...
+                                </>
+                            ) : (
+                                <>
+                                    <Sparkles className="h-5 w-5" />
+                                    Processar Transcrição
+                                </>
+                            )}
+                        </Button>
+                    )}
                 </div>
 
                 {/* Results Column */}
@@ -221,7 +381,7 @@ const TranscricaoPage = () => {
                         <Card className="bento-card p-12 text-center">
                             <Stethoscope className="h-16 w-16 mx-auto text-muted-foreground/20 mb-4" />
                             <p className="text-muted-foreground">
-                                Faça upload de um áudio ou transcreva manualmente para ver a extração estruturada aqui.
+                                Faça upload de um áudio, grave a consulta ou transcreva manualmente para ver a extração estruturada aqui.
                             </p>
                         </Card>
                     )}

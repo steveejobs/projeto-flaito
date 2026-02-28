@@ -62,6 +62,7 @@ import PacienteDetalhe from "./modules/medicina/pacientes/PacienteDetalhe";
 import TranscricaoPage from "./modules/medicina/transcricao/TranscricaoPage";
 import AnaliseClinicaPage from "./modules/medicina/analise/AnaliseClinicaPage";
 import ProtocolosPage from "./modules/medicina/protocolos/ProtocolosPage";
+import DecifradorCasosPage from "./modules/medicina/ia/DecifradorCasosPage";
 
 // Placeholder pages
 import KpisPage from "./pages/placeholders/KpisPage";
@@ -146,6 +147,16 @@ const App = () => (
                         <RoleProtectedRoute minRole="MEMBER">
                           <ModuleProtectedRoute module="MEDICAL">
                             <MedicalDashboard />
+                          </ModuleProtectedRoute>
+                        </RoleProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/medical/ia"
+                      element={
+                        <RoleProtectedRoute minRole="MEMBER">
+                          <ModuleProtectedRoute module="MEDICAL">
+                            <DecifradorCasosPage />
                           </ModuleProtectedRoute>
                         </RoleProtectedRoute>
                       }

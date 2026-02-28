@@ -18,13 +18,13 @@ const Index = () => {
 
     const processInvite = async () => {
       setProcessingInvite(true);
-      
+
       // 1. Try URL token first
       const inviteToken = searchParams.get('invite');
       if (inviteToken) {
         const { data, error } = await supabase.rpc('accept_office_invite', { p_token: inviteToken });
         const result = data as { success?: boolean; error?: string } | null;
-        
+
         if (error) {
           console.error('Error accepting invite:', error);
         } else if (result?.success) {
@@ -68,14 +68,14 @@ const Index = () => {
 
     processInvite();
   }, [user, loading, searchParams, navigate, processingInvite]);
-  
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="text-center space-y-6">
         <div className="flex justify-center">
           <Scale className="h-16 w-16 text-primary" />
         </div>
-        <h1 className="text-4xl font-bold">Lexos</h1>
+        <h1 className="text-4xl font-bold">Projeto Flaito</h1>
         <p className="text-xl text-muted-foreground">
           Gestão jurídica inteligente, pensada para escritórios que buscam
           organização, estratégia e performance.
