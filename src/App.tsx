@@ -56,7 +56,7 @@ import PublicClientCapture from "./pages/PublicClientCapture";
 import AcceptInvite from "./pages/AcceptInvite";
 
 // Medical Module Pages
-import MedicalDashboard from "./modules/medical/pages/MedicalDashboard";
+import MedicalDashboard from "./modules/medicina/MedicalDashboard";
 import PacientesPage from "./modules/medicina/pacientes/PacientesPage";
 import PacienteDetalhe from "./modules/medicina/pacientes/PacienteDetalhe";
 import TranscricaoPage from "./modules/medicina/transcricao/TranscricaoPage";
@@ -111,7 +111,7 @@ const App = () => (
               <ChatContextProvider>
                 <Routes>
                   {/* ====== ROTAS PÚBLICAS (SEM LAYOUT) ====== */}
-                  <Route path="/" element={<Index />} />
+                  <Route path="/" element={<Navigate to="/login" replace />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Signup />} />
                   <Route path="/captacao/:officeSlug" element={<PublicClientCapture />} />
