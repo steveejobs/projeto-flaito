@@ -1,0 +1,115 @@
+project_id = "uxrakfbedmkiqhidruxx"
+
+[functions.createSignedUploadUrl]
+verify_jwt = false
+
+[functions.createSignedDownloadUrl]
+verify_jwt = false
+
+[functions.nija-extract-image]
+verify_jwt = false
+
+[functions.nija-prescricao]
+verify_jwt = false
+
+[functions.nija-strategy-compare]
+verify_jwt = false
+
+[functions.nija-generate-petition]
+verify_jwt = false
+
+[functions.nija-generate-piece]
+verify_jwt = false
+
+[functions.nija-full-analysis]
+verify_jwt = false
+
+[functions.nija-auto-petition]
+verify_jwt = false
+
+[functions.lexos-chat-assistant]
+verify_jwt = false
+
+[functions.lexos-generate-document]
+verify_jwt = false
+
+[functions.lexos-render-document]
+verify_jwt = false
+
+[functions.lexos-nija-timebar]
+verify_jwt = false
+
+[functions.lexos-extract-text]
+verify_jwt = false
+
+[functions.cep-proxy]
+verify_jwt = false
+
+[functions.lexos-extract-document-data]
+verify_jwt = false
+
+[functions.delete-case-hard]
+verify_jwt = false
+
+[functions.knowledge-ai-suggest]
+verify_jwt = false
+
+[functions.precedents-worker]
+verify_jwt = false
+
+[functions.asaas-create-payment]
+verify_jwt = false
+
+[functions.asaas-webhook]
+verify_jwt = false
+
+[functions.gcal_sync_events]
+verify_jwt = false
+
+[functions.public-client-registration]
+verify_jwt = false
+
+[functions.cleanup-orphan-files]
+verify_jwt = false
+
+[functions.lexos-audit-snapshot]
+verify_jwt = false
+
+[functions.hard-delete-orphan-documents]
+verify_jwt = false
+
+[functions.lexos-html-to-pdf]
+verify_jwt = false
+
+[functions.zapier-plaud]
+verify_jwt = false
+
+[functions.plaud-ingest]
+verify_jwt = false
+
+[functions.plaud-analyze-worker]
+verify_jwt = false
+
+[functions.create-client-kit]
+verify_jwt = false
+
+[functions.kit-worker]
+verify_jwt = false
+
+[functions.admin-run-kit-worker]
+verify_jwt = true
+
+[functions.lexos-rebuild-engine]
+verify_jwt = false
+
+[functions.lexos-governance-run]
+verify_jwt = false
+
+[functions.purge-kit-storage]
+verify_jwt = false
+
+[functions.zapsign-webhook]
+verify_jwt = false
+
+[functions.zapsign-send-document]
+verify_jwt = false

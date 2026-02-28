@@ -1,0 +1,9 @@
+// Re-export all client feature components
+export { ClientCasesPanel } from './ClientCasesPanel';
+export { ClientDataPanel } from './ClientDataPanel';
+export { ClientDocumentKit } from './ClientDocumentKit';
+export { ClientFilesCard } from './ClientFilesCard';
+export { ClientFormDialog } from './ClientFormDialog';
+export { ClientInteractionPanel } from './ClientInteractionPanel';
+export { ClientProtocolDownload } from './ClientProtocolDownload';
+export { ClientSignaturePanel } from './ClientSignaturePanel';

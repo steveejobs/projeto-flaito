@@ -1,0 +1,85 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   DASHBOARD PREMIUM ANIMATIONS
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Card hover - elevação sutil */
+.dashboard-card {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Fade-in on load */
+@keyframes dashboardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-fade-in {
+  animation: dashboardFadeIn 220ms ease-out;
+}
+
+/* Staggered children */
+.dashboard-fade-in > * {
+  animation: dashboardFadeIn 220ms ease-out both;
+}
+
+.dashboard-fade-in > *:nth-child(1) { animation-delay: 0ms; }
+.dashboard-fade-in > *:nth-child(2) { animation-delay: 50ms; }
+.dashboard-fade-in > *:nth-child(3) { animation-delay: 100ms; }
+.dashboard-fade-in > *:nth-child(4) { animation-delay: 150ms; }
+.dashboard-fade-in > *:nth-child(5) { animation-delay: 200ms; }
+.dashboard-fade-in > *:nth-child(6) { animation-delay: 250ms; }
+.dashboard-fade-in > *:nth-child(7) { animation-delay: 300ms; }

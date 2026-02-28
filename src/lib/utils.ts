@@ -1,0 +1,27 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+/**
+ * Converte um nome para Title Case (capitaliza cada palavra),
+ * mantendo preposições brasileiras em minúsculo.
+ */
+export function toTitleCase(name: string | null | undefined): string {
+  if (!name) return '';
+  const prepositions = ['de', 'da', 'do', 'das', 'dos', 'e', 'di'];
+  return name
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word, index) => {
+      if (index > 0 && prepositions.includes(word)) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}
