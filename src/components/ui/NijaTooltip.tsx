@@ -8,7 +8,7 @@ export function NijaTooltip() {
         <Info className="h-4 w-4 cursor-pointer text-muted-foreground" />
       </TooltipTrigger>
       <TooltipContent className="max-w-xs text-xs">
-        O NIJA é o módulo inteligente do LEXOS que analisa automaticamente documentos e identifica erros, nulidades, riscos, prescrição e estratégias jurídicas.
+        O NIJA é o módulo inteligente do Projeto Flaito que analisa automaticamente documentos e identifica erros, nulidades, riscos, prescrição e estratégias jurídicas.
       </TooltipContent>
     </Tooltip>
   );

@@ -6,7 +6,7 @@ type Props = {
   style?: React.CSSProperties;
 };
 
-export default function LexosMark({ className, title = "LEXOS", style }: Props) {
+export default function LexosMark({ className, title = "Projeto Flaito", style }: Props) {
   return (
     <svg
       className={className}

@@ -41,12 +41,12 @@ export default function Onboarding() {
       const { data, error } = await supabase.rpc('get_office_onboarding_status');
       if (error) throw error;
       setSteps(data || []);
-      
+
       // Check if all steps completed
       if (data && data.length > 0 && data.every((s: OnboardingStep) => s.completed)) {
         toast({
           title: 'Onboarding concluído!',
-          description: 'Bem-vindo ao Lexos. Você já pode usar todas as funcionalidades.',
+          description: 'Bem-vindo ao Projeto Flaito. Você já pode usar todas as funcionalidades.',
           duration: 4000,
         });
         navigate('/dashboard');
@@ -72,12 +72,12 @@ export default function Onboarding() {
     try {
       const { error } = await supabase.rpc('complete_onboarding_step', { p_step: stepKey });
       if (error) throw error;
-      
+
       toast({
         title: 'Passo concluído!',
         description: `"${STEP_LABELS[stepKey]?.title || stepKey}" foi marcado como concluído.`,
       });
-      
+
       await fetchSteps();
     } catch (err) {
       console.error('Error completing step:', err);
@@ -110,13 +110,13 @@ export default function Onboarding() {
             Configure seu Escritório
           </h1>
           <p className="text-muted-foreground">
-            Complete os passos abaixo para começar a usar o Lexos
+            Complete os passos abaixo para começar a usar o Projeto Flaito
           </p>
           <div className="mt-4 text-sm text-muted-foreground">
             {completedCount} de {totalCount} passos concluídos
           </div>
           <div className="mt-2 w-full bg-muted rounded-full h-2">
-            <div 
+            <div
               className="bg-primary h-2 rounded-full transition-all duration-300"
               style={{ width: totalCount > 0 ? `${(completedCount / totalCount) * 100}%` : '0%' }}
             />
@@ -125,14 +125,14 @@ export default function Onboarding() {
 
         <div className="space-y-4">
           {steps.map((step) => {
-            const label = STEP_LABELS[step.step_key] || { 
-              title: step.step_key, 
-              description: 'Complete este passo para continuar' 
+            const label = STEP_LABELS[step.step_key] || {
+              title: step.step_key,
+              description: 'Complete este passo para continuar'
             };
-            
+
             return (
-              <Card 
-                key={step.step_key} 
+              <Card
+                key={step.step_key}
                 className={step.completed ? 'border-green-200 bg-green-50/50 dark:bg-green-950/20' : ''}
               >
                 <CardHeader className="pb-2">

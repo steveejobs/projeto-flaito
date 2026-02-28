@@ -40,7 +40,7 @@ export function NijaAutoPetitionButton({ caseId }: Props) {
           .select("id, reading_status")
           .eq("case_id", caseId)
           .is("deleted_at", null);
-        
+
         setDocuments((data ?? []) as DocumentWithStatus[]);
       } catch (e) {
         console.error("[NijaAutoPetition] Error fetching docs:", e);
@@ -120,7 +120,7 @@ export function NijaAutoPetitionButton({ caseId }: Props) {
             <DialogDescription>
               Revise, complemente os dados marcados como [DADO A COMPLETAR PELO
               ADVOGADO] e depois cole na sua peça ou crie um documento no
-              LEXOS.
+              Projeto Flaito.
             </DialogDescription>
           </DialogHeader>
 

@@ -11,6 +11,7 @@ import {
   Eye,
   Search,
   Brain,
+  Bot,
   FolderTree,
   Wrench,
   ChevronRight,
@@ -29,6 +30,7 @@ import {
   HardDrive,
   Mic,
   Star,
+  Stethoscope,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -134,14 +136,18 @@ const MENU_TREE: MenuGroup[] = [
   },
   {
     key: 'medical',
-    label: 'Módulo Médico',
-    icon: Users,
+    label: 'Medicina',
+    icon: Stethoscope,
     minRole: 'MEMBER',
     defaultOpen: true,
     module: 'MEDICAL',
     items: [
-      { title: 'Pacientes', url: '/medical/patients', icon: Users, minRole: 'MEMBER', keywords: ['pacientes', 'clientes', 'medico'] },
-      { title: 'Prontuários', url: '/medical/records', icon: ClipboardList, minRole: 'MEMBER', keywords: ['historico', 'clinico', 'prontuario'] },
+      { title: 'Dashboard Clínico', url: '/medical/dashboard', icon: LayoutDashboard, minRole: 'MEMBER', keywords: ['inicio', 'home', 'visao', 'geral', 'medico', 'clinica'] },
+      { title: 'Decifrador IA', url: '/medical/ia', icon: Bot, minRole: 'MEMBER', keywords: ['ia', 'artificial', 'diagnostico', 'diferencial', 'interacao'] },
+      { title: 'Pacientes', url: '/medical/patients', icon: Users, minRole: 'MEMBER', keywords: ['pacientes', 'cadastro', 'historico', 'prontuario'] },
+      { title: 'Transcrição Clínica', url: '/medical/transcricao', icon: Mic, minRole: 'MEMBER', keywords: ['audio', 'transcricao', 'consulta', 'gravacao'] },
+      { title: 'Análise Clínica', url: '/medical/analise', icon: Brain, minRole: 'MEMBER', keywords: ['analise', 'nutricao', 'integrativa', 'neurologia', 'ia'] },
+      { title: 'Protocolos', url: '/medical/protocolos', icon: ClipboardList, minRole: 'MEMBER', keywords: ['protocolos', 'tratamento', 'evidencia', 'biblioteca'] },
     ],
   },
 

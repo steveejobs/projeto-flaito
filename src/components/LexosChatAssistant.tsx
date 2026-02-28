@@ -41,7 +41,7 @@ const QUICK_ACTIONS: { mode: LexosChatMode; label: string; icon: React.ReactNode
   { mode: "checklist", label: "Checklist", icon: <ListChecks className="h-3 w-3" />, prompt: "Gere um checklist de tarefas para este contexto." },
 ];
 
-const WELCOME_MESSAGE = `Sou a **Inteligência Artificial oficial do LEXOS**, o cérebro institucional do sistema de gestão jurídica.
+const WELCOME_MESSAGE = `Sou a **Inteligência Artificial oficial do Projeto Flaito**, o cérebro institucional do sistema de gestão jurídica.
 
 Estou preparado para auxiliar com:
 - Análise de prazos e prescrição
@@ -112,7 +112,7 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
   const loadExistingThread = async () => {
     try {
       setLoadingHistory(true);
-      
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
@@ -265,7 +265,7 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
 
   const sendMessage = useCallback(async (messageText: string, mode: LexosChatMode = "chat") => {
     const trimmedMessage = messageText.trim();
-    
+
     if (!trimmedMessage || loadingRef.current) {
       return;
     }
@@ -273,7 +273,7 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
     loadingRef.current = true;
     setLoading(true);
     setStreamingText("");
-    
+
     const userMessage = trimmedMessage;
     setInput("");
 
@@ -285,7 +285,7 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
       if (!session?.access_token) {
         loadingRef.current = false;
         setLoading(false);
-        toast({ title: "LEXOS Assistant", description: "Sessão expirada. Faça login novamente.", variant: "destructive" });
+        toast({ title: "Flaito Assistant", description: "Sessão expirada. Faça login novamente.", variant: "destructive" });
         return;
       }
 
@@ -318,7 +318,7 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
           msg = "Muitas requisições em pouco tempo. Aguarde alguns segundos e tente novamente.";
         }
 
-        toast({ title: "LEXOS Assistant", description: msg, variant: "destructive" });
+        toast({ title: "Flaito Assistant", description: msg, variant: "destructive" });
         loadingRef.current = false;
         setLoading(false);
         return;
@@ -326,7 +326,7 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
 
       if (data?.error) {
         const msg = `${data.error}${data.details ? " | " + data.details : ""}`;
-        toast({ title: "LEXOS Assistant", description: msg, variant: "destructive" });
+        toast({ title: "Flaito Assistant", description: msg, variant: "destructive" });
         loadingRef.current = false;
         setLoading(false);
         return;
@@ -337,7 +337,7 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
       }
 
       const responseText = data?.message || "Não foi possível processar sua solicitação no momento.";
-      
+
       // Start streaming animation
       simulateStreaming(responseText, () => {
         const assistantMessage: Message = {
@@ -355,7 +355,7 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
     } catch (err: any) {
       const msg = err?.message || "Erro ao processar solicitação";
       console.error("[LEXOS-AI] Error:", err);
-      toast({ title: "LEXOS Assistant", description: msg, variant: "destructive" });
+      toast({ title: "Flaito Assistant", description: msg, variant: "destructive" });
       setMessages((prev) => prev.slice(0, -1));
       loadingRef.current = false;
       setLoading(false);
@@ -410,7 +410,7 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
         {children}
       </blockquote>
     ),
-    code: ({ inline, children }: any) => 
+    code: ({ inline, children }: any) =>
       inline ? (
         <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono">{children}</code>
       ) : (
@@ -433,7 +433,7 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
           variant="outline"
           size="icon"
           className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 z-50 transition-transform hover:scale-105"
-          title="LEXOS Assistant - IA Institucional"
+          title="Flaito Assistant - IA Institucional"
         >
           <Scale className="h-6 w-6" />
         </Button>
@@ -447,7 +447,7 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
                 <Scale className="h-5 w-5 text-primary" />
               </div>
               <div className="flex flex-col">
-                <span className="text-base font-semibold">LEXOS Assistant</span>
+                <span className="text-base font-semibold">Flaito Assistant</span>
                 <span className="text-[11px] text-muted-foreground font-normal">Inteligência Artificial Institucional</span>
               </div>
             </SheetTitle>
@@ -506,7 +506,7 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
                 <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-6 shadow-lg">
                   <Scale className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-base font-semibold text-foreground mb-3">LEXOS Assistant</h3>
+                <h3 className="text-base font-semibold text-foreground mb-3">Flaito Assistant</h3>
                 <div className="text-sm text-muted-foreground max-w-[320px] text-left rounded-2xl p-4 bg-[#F5F5F5] dark:bg-muted/50 shadow-sm">
                   <ReactMarkdown components={markdownComponents} rehypePlugins={[rehypeHighlight]}>
                     {WELCOME_MESSAGE}
@@ -526,11 +526,10 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
                       </div>
                     )}
                     <div
-                      className={`max-w-[85%] sm:max-w-[750px] rounded-2xl px-4 py-3 text-sm shadow-sm ${
-                        msg.role === "user"
+                      className={`max-w-[85%] sm:max-w-[750px] rounded-2xl px-4 py-3 text-sm shadow-sm ${msg.role === "user"
                           ? "bg-[#DCF8C6] dark:bg-emerald-800/80 text-foreground rounded-br-md"
                           : "bg-[#F5F5F5] dark:bg-muted/70 text-foreground rounded-bl-md"
-                      }`}
+                        }`}
                     >
                       {msg.role === "assistant" ? (
                         <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -634,9 +633,9 @@ export function LexosChatAssistant({ caseId, clientId }: LexosChatAssistantProps
                 className="w-full resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
               />
             </div>
-            <Button 
-              onClick={() => sendMessage(input)} 
-              disabled={loading || !input.trim()} 
+            <Button
+              onClick={() => sendMessage(input)}
+              disabled={loading || !input.trim()}
               size="icon"
               className="h-11 w-11 rounded-xl bg-primary hover:bg-primary/90 shadow-md transition-all hover:shadow-lg disabled:opacity-50"
             >

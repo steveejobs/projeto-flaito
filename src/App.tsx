@@ -55,6 +55,14 @@ import MemberProfile from "./pages/MemberProfile";
 import PublicClientCapture from "./pages/PublicClientCapture";
 import AcceptInvite from "./pages/AcceptInvite";
 
+// Medical Module Pages
+import MedicalDashboard from "./modules/medical/pages/MedicalDashboard";
+import PacientesPage from "./modules/medicina/pacientes/PacientesPage";
+import PacienteDetalhe from "./modules/medicina/pacientes/PacienteDetalhe";
+import TranscricaoPage from "./modules/medicina/transcricao/TranscricaoPage";
+import AnaliseClinicaPage from "./modules/medicina/analise/AnaliseClinicaPage";
+import ProtocolosPage from "./modules/medicina/protocolos/ProtocolosPage";
+
 // Placeholder pages
 import KpisPage from "./pages/placeholders/KpisPage";
 import CasesPaymentsPage from "./pages/placeholders/CasesPaymentsPage";
@@ -130,6 +138,69 @@ const App = () => (
                         </RoleProtectedRoute>
                       }
                     />
+
+                    {/* ====== MÓDULO MÉDICO ====== */}
+                    <Route
+                      path="/medical/dashboard"
+                      element={
+                        <RoleProtectedRoute minRole="MEMBER">
+                          <ModuleProtectedRoute module="MEDICAL">
+                            <MedicalDashboard />
+                          </ModuleProtectedRoute>
+                        </RoleProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/medical/patients"
+                      element={
+                        <RoleProtectedRoute minRole="MEMBER">
+                          <ModuleProtectedRoute module="MEDICAL">
+                            <PacientesPage />
+                          </ModuleProtectedRoute>
+                        </RoleProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/medical/patients/:id"
+                      element={
+                        <RoleProtectedRoute minRole="MEMBER">
+                          <ModuleProtectedRoute module="MEDICAL">
+                            <PacienteDetalhe />
+                          </ModuleProtectedRoute>
+                        </RoleProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/medical/transcricao"
+                      element={
+                        <RoleProtectedRoute minRole="MEMBER">
+                          <ModuleProtectedRoute module="MEDICAL">
+                            <TranscricaoPage />
+                          </ModuleProtectedRoute>
+                        </RoleProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/medical/analise"
+                      element={
+                        <RoleProtectedRoute minRole="MEMBER">
+                          <ModuleProtectedRoute module="MEDICAL">
+                            <AnaliseClinicaPage />
+                          </ModuleProtectedRoute>
+                        </RoleProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/medical/protocolos"
+                      element={
+                        <RoleProtectedRoute minRole="MEMBER">
+                          <ModuleProtectedRoute module="MEDICAL">
+                            <ProtocolosPage />
+                          </ModuleProtectedRoute>
+                        </RoleProtectedRoute>
+                      }
+                    />
+
                     <Route
                       path="/alerts"
                       element={
