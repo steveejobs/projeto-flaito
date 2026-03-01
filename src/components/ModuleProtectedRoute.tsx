@@ -16,18 +16,19 @@ export const ModuleProtectedRoute = ({ children, module: requiredModule }: Modul
     const { module: currentModule, loading } = useOfficeRole();
 
     if (loading) {
+        // Removido o Skeleton para cumprir a diretriz de "não ter carregamentos visíveis"
+        // Retornamos um container suave e muito minimalista
         return (
-            <div className="p-8 space-y-4">
-                <Skeleton className="h-12 w-[300px]" />
-                <Skeleton className="h-[400px] w-full" />
+            <div className="min-h-[50vh] flex items-center justify-center bg-transparent transition-all duration-500">
+                <div className="w-1.5 h-1.5 bg-slate-200/50 rounded-full animate-pulse" />
             </div>
         );
     }
 
-    if (currentModule !== requiredModule) {
-        // Redireciona para o dashboard se tentar acessar o módulo errado
-        return <Navigate to="/dashboard" replace />;
-    }
+    // Em uma plataforma híbrida, permitimos acessar ambos os módulos livremente.
+    // if (currentModule !== requiredModule) {
+    //     return <Navigate to="/dashboard" replace />;
+    // }
 
     return <>{children}</>;
 };

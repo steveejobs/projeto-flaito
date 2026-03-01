@@ -10,13 +10,12 @@ import {
     Brain,
     BookOpen,
     ArrowRight,
-    TrendingUp,
-    ClipboardList,
-    Shield,
-    Clock,
-    FileText,
     Sparkles,
     Bot,
+    Clock,
+    HeartPulse,
+    ClipboardList,
+    Pill
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DashboardHeader } from "@/components/dashboard";
@@ -27,229 +26,284 @@ const MedicalDashboard = () => {
     const quickModules = [
         {
             title: 'Pacientes',
-            description: 'Cadastro, histórico e acompanhamento de pacientes.',
+            description: 'Cadastro, prontuários e acompanhamento clínico.',
             icon: Users,
             url: '/medical/patients',
-            gradient: 'from-blue-600/20 to-cyan-600/20',
-            iconColor: 'text-blue-400',
-            borderColor: 'hover:border-blue-500/30',
+            gradient: 'from-blue-500/10 to-cyan-500/10',
+            iconColor: 'text-blue-500',
+            bgIcon: 'bg-blue-50'
         },
         {
             title: 'Transcrição Clínica',
             description: 'Upload de áudio e transcrição estruturada de consultas.',
             icon: Mic,
             url: '/medical/transcricao',
-            gradient: 'from-violet-600/20 to-purple-600/20',
-            iconColor: 'text-violet-400',
-            borderColor: 'hover:border-violet-500/30',
+            gradient: 'from-violet-500/10 to-purple-500/10',
+            iconColor: 'text-violet-500',
+            bgIcon: 'bg-violet-50'
         },
         {
             title: 'Análise Clínica',
             description: 'Motor multidisciplinar — Nutrição, Integrativa, Neuro.',
             icon: Brain,
             url: '/medical/analise',
-            gradient: 'from-emerald-600/20 to-teal-600/20',
-            iconColor: 'text-emerald-400',
-            borderColor: 'hover:border-emerald-500/30',
+            gradient: 'from-emerald-500/10 to-teal-500/10',
+            iconColor: 'text-emerald-500',
+            bgIcon: 'bg-emerald-50'
         },
         {
             title: 'Protocolos',
             description: 'Biblioteca de protocolos clínicos com evidência científica.',
             icon: BookOpen,
             url: '/medical/protocolos',
-            gradient: 'from-amber-600/20 to-orange-600/20',
-            iconColor: 'text-amber-400',
-            borderColor: 'hover:border-amber-500/30',
+            gradient: 'from-amber-500/10 to-orange-500/10',
+            iconColor: 'text-amber-500',
+            bgIcon: 'bg-amber-50'
         },
     ];
 
-    const recentActivities = [
-        { icon: Stethoscope, text: 'Consulta realizada — Maria Silva Santos', time: '2h atrás', color: 'text-blue-400' },
-        { icon: Mic, text: 'Transcrição concluída — Consulta #1042', time: '3h atrás', color: 'text-violet-400' },
-        { icon: Brain, text: 'Análise integrativa gerada — João P. Oliveira', time: '5h atrás', color: 'text-emerald-400' },
-        { icon: ClipboardList, text: 'Anotação adicionada — Ana Beatriz Costa', time: '1d atrás', color: 'text-amber-400' },
-        { icon: FileText, text: 'Exame anexado — Carlos Eduardo Lima', time: '2d atrás', color: 'text-cyan-400' },
+    const todayAppointments: any[] = [
+        { id: "1", patient: "Maria Oliveira", time: "09:00", type: "Primeira Vez", status: "espera" },
+        { id: "4", patient: "Roberto Costa", time: "14:00", type: "Primeira Vez", status: "em_atendimento" },
+        { id: "2", patient: "Carlos Silva", time: "10:00", type: "Retorno", status: "agendado" },
+    ];
+
+    const smartAlerts: any[] = [
+        { id: '1', patient: 'Ana Souza', title: 'Exame de Creatinina alterado', icon: Activity, color: 'text-amber-600', bg: 'bg-amber-100' },
+        { id: '2', patient: 'Roberto Costa', title: 'Interação Medicamentosa Leve', icon: Pill, color: 'text-rose-600', bg: 'bg-rose-100' }
     ];
 
     return (
-        <div className="p-4 md:p-6 lg:p-8 space-y-8 animate-in fade-in duration-700 max-w-[1600px] mx-auto min-h-screen bg-background text-foreground">
-            {/* 1. Dashboard Header (Hero Typography) */}
-            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both">
+        <div className="p-2 md:p-3 lg:p-4 space-y-3 dashboard-fade-in max-w-[1400px] mx-auto min-h-screen bg-slate-50/50 text-slate-700 selection:bg-teal-500/30">
+            {/* 1. Dashboard Header */}
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: '50ms' }}>
                 <DashboardHeader type="MEDICAL" />
             </section>
 
-            {/* Disclaimer - Bento Style */}
-            <Card className="p-4 border-white/5 bg-blue-500/5 backdrop-blur-md rounded-2xl flex gap-3 items-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-                <Shield className="h-5 w-5 text-blue-400 shrink-0" />
-                <p className="text-sm text-blue-400/90 font-medium">
-                    <span className="font-bold underline decoration-blue-400/30 underline-offset-4">Sistema Assistivo</span> — Todas as análises são suporte à decisão clínica. Não substituem avaliação profissional.
-                </p>
-            </Card>
-
-            {/* 2. KPI Grid (Tactile Maximalism) */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-                <Card className="dashboard-card p-6 flex items-center gap-5 bg-background/40 backdrop-blur-xl border-white/5 hover:border-blue-500/20 transition-all group">
-                    <div className="p-4 bg-blue-500/10 rounded-2xl group-hover:scale-110 transition-transform">
-                        <Users className="w-7 h-7 text-blue-400" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Pacientes</p>
-                        <div className="flex items-end gap-2">
-                            <h3 className="text-3xl font-black text-foreground">128</h3>
-                            <span className="text-xs text-emerald-400 font-bold flex items-center gap-0.5 mb-1.5">
-                                <TrendingUp className="h-3.5 w-3.5" /> +12%
-                            </span>
+            {/* Focus / Next Critical Step - Clean Bento Style */}
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: '100ms' }}>
+                <Card className="relative overflow-hidden rounded-2xl border bg-white shadow-sm transition-all hover:shadow-md group p-4 md:p-5">
+                    <div className="relative z-10 flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
+                        <div className="space-y-1.5">
+                            <div className="flex items-center gap-1.5 mb-1">
+                                <span className="flex h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse" />
+                                <span className="text-[9px] font-bold text-teal-600 uppercase tracking-[0.2em]">Consultório Ativo</span>
+                            </div>
+                            <h2 className="text-lg md:text-xl font-extrabold text-slate-800 tracking-tight leading-tight max-w-xl">
+                                Bom dia, Dr. <br /> <span className="text-slate-500 font-medium">Você não tem pacientes agendados para hoje.</span>
+                            </h2>
                         </div>
-                    </div>
-                </Card>
 
-                <Card className="dashboard-card p-6 flex items-center gap-5 bg-background/40 backdrop-blur-xl border-white/5 hover:border-cyan-500/20 transition-all group">
-                    <div className="p-4 bg-cyan-500/10 rounded-2xl group-hover:scale-110 transition-transform">
-                        <Calendar className="w-7 h-7 text-cyan-400" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Consultas Hoje</p>
-                        <div className="flex items-end gap-2">
-                            <h3 className="text-3xl font-black text-foreground">5</h3>
-                            <span className="text-xs text-muted-foreground font-medium mb-1.5">confirmadas</span>
-                        </div>
-                    </div>
-                </Card>
-
-                <Card className="dashboard-card p-6 flex items-center gap-5 bg-background/40 backdrop-blur-xl border-white/5 hover:border-emerald-500/20 transition-all group">
-                    <div className="p-4 bg-emerald-500/10 rounded-2xl group-hover:scale-110 transition-transform">
-                        <Brain className="w-7 h-7 text-emerald-400" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Análises IA</p>
-                        <div className="flex items-end gap-2">
-                            <h3 className="text-3xl font-black text-foreground">47</h3>
-                            <span className="text-xs text-emerald-400 font-bold flex items-center gap-0.5 mb-1.5">
-                                <TrendingUp className="h-3.5 w-3.5" /> +8
-                            </span>
-                        </div>
-                    </div>
-                </Card>
-
-                <Card className="dashboard-card p-6 flex items-center gap-5 bg-background/40 backdrop-blur-xl border-white/5 hover:border-purple-500/20 transition-all group">
-                    <div className="p-4 bg-purple-500/10 rounded-2xl group-hover:scale-110 transition-transform">
-                        <BookOpen className="w-7 h-7 text-purple-400" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Protocolos</p>
-                        <h3 className="text-3xl font-black text-foreground">23</h3>
-                    </div>
-                </Card>
-            </div>
-
-            {/* Quick Access Modules - Bento Layout */}
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
-                <h2 className="text-xl font-black text-foreground mb-6 uppercase tracking-tighter flex items-center gap-2">
-                    <div className="h-1.5 w-6 bg-blue-500 rounded-full" />
-                    Módulos Clínicos
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {quickModules.map((mod) => {
-                        const Icon = mod.icon;
-                        return (
-                            <Card
-                                key={mod.title}
-                                className={`dashboard-card p-8 cursor-pointer transition-all duration-300 bg-background/40 backdrop-blur-xl border-white/5 ${mod.borderColor} group relative overflow-hidden`}
-                                onClick={() => navigate(mod.url)}
+                        <div className="flex-shrink-0">
+                            <Button
+                                className="flex items-center justify-center gap-1.5 h-9 px-5 rounded-xl text-xs font-bold shadow-sm bg-teal-600 hover:bg-teal-700 transition-all hover:scale-[1.02] active:scale-[0.98] text-white"
+                                onClick={() => navigate('/medical/patients')}
                             >
-                                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${mod.gradient} opacity-0 group-hover:opacity-10 transition-opacity rounded-bl-full`} />
-                                <div className="flex items-start gap-6 relative z-10">
-                                    <div className={`p-4 rounded-2xl bg-gradient-to-br ${mod.gradient} shrink-0 group-hover:scale-110 transition-transform shadow-lg`}>
-                                        <Icon className={`h-8 w-8 ${mod.iconColor}`} />
+                                <Calendar className="w-4 h-4" />
+                                Ver Agenda Diária
+                            </Button>
+                        </div>
+                    </div>
+                </Card>
+            </section>
+
+            {/* 2. KPI Grid (Clean Metrics) */}
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: '150ms' }}>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <Card className="p-4 flex items-center gap-3 bg-white rounded-2xl border border-slate-200/60 shadow-sm transition-all hover:shadow-md hover:border-blue-200 group">
+                        <div className="p-2.5 bg-blue-50 rounded-xl group-hover:scale-110 group-hover:bg-blue-100 transition-all">
+                            <Users className="w-5 h-5 text-blue-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Pacientes Ativos</p>
+                            <h3 className="text-xl font-black text-slate-700 tracking-tight">0</h3>
+                        </div>
+                    </Card>
+
+                    <Card className="p-4 flex items-center gap-3 bg-white rounded-2xl border border-slate-200/60 shadow-sm transition-all hover:shadow-md hover:border-teal-200 group">
+                        <div className="p-2.5 bg-teal-50 rounded-xl group-hover:scale-110 group-hover:bg-teal-100 transition-all">
+                            <Stethoscope className="w-5 h-5 text-teal-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Consultas Mês</p>
+                            <h3 className="text-xl font-black text-slate-700 tracking-tight">0</h3>
+                        </div>
+                    </Card>
+
+                    <Card className="p-4 flex items-center gap-3 bg-white rounded-2xl border border-slate-200/60 shadow-sm transition-all hover:shadow-md hover:border-violet-200 group">
+                        <div className="p-2.5 bg-violet-50 rounded-xl group-hover:scale-110 group-hover:bg-violet-100 transition-all">
+                            <Mic className="w-5 h-5 text-violet-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Transcrições</p>
+                            <h3 className="text-xl font-black text-slate-700 tracking-tight">0</h3>
+                        </div>
+                    </Card>
+
+                    <Card className="p-4 flex items-center gap-3 bg-white rounded-2xl border border-slate-200/60 shadow-sm transition-all hover:shadow-md hover:border-amber-200 group">
+                        <div className="p-2.5 bg-amber-50 rounded-xl group-hover:scale-110 group-hover:bg-amber-100 transition-all">
+                            <HeartPulse className="w-5 h-5 text-amber-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Exames Críticos</p>
+                            <h3 className="text-xl font-black text-slate-700 tracking-tight">0</h3>
+                        </div>
+                    </Card>
+                </div>
+            </section>
+
+            {/* Bento Grid Layout - Medical Focus */}
+            <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                {/* Agenda Hoje */}
+                <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both md:col-span-1 xl:col-span-1 flex flex-col" style={{ animationDelay: '250ms' }}>
+                    <Card className="flex-1 p-5 bg-white border border-slate-200/60 shadow-sm rounded-2xl flex flex-col">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-teal-600" />
+                                Agenda Hoje
+                            </h3>
+                            <span className="text-xs font-semibold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">0 Pacientes</span>
+                        </div>
+                        <div className="space-y-3 flex-1 flex flex-col justify-center">
+                            {todayAppointments.length > 0 ? todayAppointments.map((apt) => (
+                                <div key={apt.id} className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all cursor-pointer">
+                                    <div className="min-w-[48px] text-center">
+                                        <p className="text-sm font-black text-slate-700">{apt.time}</p>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between">
-                                            <h3 className="text-2xl font-bold text-foreground group-hover:text-blue-400 transition-colors tracking-tight">
+                                    <div className="flex-1">
+                                        <p className="text-sm font-bold text-slate-800">{apt.patient}</p>
+                                        <p className="text-xs text-slate-500 font-medium">{apt.type}</p>
+                                    </div>
+                                    <div>
+                                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${apt.status === 'confirmado' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                                            {apt.status}
+                                        </span>
+                                    </div>
+                                </div>
+                            )) : (
+                                <div className="flex flex-col items-center justify-center p-6 text-center">
+                                    <div className="p-3 bg-slate-50 rounded-full mb-3">
+                                        <Calendar className="w-6 h-6 text-slate-300" />
+                                    </div>
+                                    <p className="text-sm font-semibold text-slate-600 mb-1">Nenhum paciente hoje</p>
+                                    <p className="text-xs text-slate-400 max-w-[200px]">Você não possui consultas agendadas para o dia de hoje.</p>
+                                </div>
+                            )}
+                        </div>
+                        <Button variant="ghost" className="w-full mt-2 text-xs font-bold text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-xl" onClick={() => navigate('/medical/agenda')}>
+                            Ver Agenda Completa <ArrowRight className="w-3 h-3 ml-1" />
+                        </Button>
+                    </Card>
+                </section>
+
+                {/* Alertas Médicos Inteligentes */}
+                <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both md:col-span-1 xl:col-span-1 flex flex-col" style={{ animationDelay: '350ms' }}>
+                    <Card className="flex-1 p-5 bg-white border border-slate-200/60 shadow-sm rounded-2xl flex flex-col">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-amber-500" />
+                                Alertas Inteligentes
+                            </h3>
+                        </div>
+                        <div className="space-y-3 flex-1 flex flex-col justify-center">
+                            {smartAlerts.length > 0 ? smartAlerts.map((alert) => {
+                                const Icon = alert.icon;
+                                return (
+                                    <div key={alert.id} className="flex items-start gap-3 p-3 rounded-xl border border-slate-100 hover:shadow-sm transition-all cursor-pointer bg-white">
+                                        <div className={`p-2 rounded-lg ${alert.bg}`}>
+                                            <Icon className={`w-4 h-4 ${alert.color}`} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-bold text-slate-800">{alert.patient}</p>
+                                            <p className="text-xs text-slate-500 font-medium">{alert.title}</p>
+                                        </div>
+                                        <ArrowRight className="w-3.5 h-3.5 text-slate-300 mt-1" />
+                                    </div>
+                                )
+                            }) : (
+                                <div className="flex flex-col items-center justify-center p-6 text-center">
+                                    <div className="p-3 bg-slate-50 rounded-full mb-3">
+                                        <Sparkles className="w-6 h-6 text-slate-300" />
+                                    </div>
+                                    <p className="text-sm font-semibold text-slate-600 mb-1">Nenhum alerta ativo</p>
+                                    <p className="text-xs text-slate-400 max-w-[200px]">Tudo certo por aqui! Não há alertas clínicos pendentes.</p>
+                                </div>
+                            )}
+                        </div>
+                        <Button variant="ghost" className="w-full mt-2 text-xs font-bold text-slate-500 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl">
+                            Visualizar Todos
+                        </Button>
+                    </Card>
+                </section>
+
+                {/* Decifrador IA / Copilot Action */}
+                <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both md:col-span-2 xl:col-span-1 flex flex-col" style={{ animationDelay: '450ms' }}>
+                    <Card className="flex-1 p-5 bg-gradient-to-br from-teal-500 to-emerald-600 border-0 shadow-md rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                        {/* Decorative Background Elements */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 group-hover:scale-110 transition-transform duration-700" />
+
+                        <div className="relative z-10">
+                            <div className="p-3 bg-white/20 w-fit rounded-xl backdrop-blur-sm mb-4">
+                                <Bot className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-xl font-black text-white leading-tight mb-2">
+                                Copiloto Médico IA
+                            </h3>
+                            <p className="text-sm text-teal-50 font-medium opacity-90 mb-6">
+                                Utilize nossa inteligência artificial para decifrar exames complexos, traçar diagnósticos diferenciais e analisar interações medicamentosas.
+                            </p>
+                        </div>
+
+                        <div className="relative z-10 gap-2 flex flex-col">
+                            <Button
+                                className="w-full bg-white text-teal-700 hover:bg-slate-50 font-bold shadow-sm rounded-xl h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                onClick={() => navigate('/medical/ia')}
+                            >
+                                Decifrador de Casos Clínicos
+                            </Button>
+                            <Button
+                                className="w-full bg-teal-600/30 text-white hover:bg-teal-600/50 backdrop-blur-sm font-bold rounded-xl h-10 transition-all"
+                                onClick={() => navigate('/medical/analise')}
+                            >
+                                Segunda Opinião Rápida
+                            </Button>
+                        </div>
+                    </Card>
+                </section>
+
+                {/* Módulos Clínicos - Expandido */}
+                <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both md:col-span-2 xl:col-span-3 flex flex-col" style={{ animationDelay: '550ms' }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {quickModules.map((mod) => {
+                            const Icon = mod.icon;
+                            return (
+                                <Card
+                                    key={mod.title}
+                                    className="p-4 cursor-pointer transition-all duration-300 bg-white border border-slate-200/60 shadow-sm hover:border-teal-200 hover:shadow-md group relative overflow-hidden rounded-2xl"
+                                    onClick={() => navigate(mod.url)}
+                                >
+                                    <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${mod.gradient} opacity-0 group-hover:opacity-100 transition-opacity rounded-bl-full`} />
+                                    <div className="flex flex-col gap-3 relative z-10">
+                                        <div className={`p-2.5 rounded-xl w-fit ${mod.bgIcon} group-hover:scale-110 transition-transform`}>
+                                            <Icon className={`h-4 w-4 ${mod.iconColor}`} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors tracking-tight mb-1">
                                                 {mod.title}
                                             </h3>
-                                            <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all" />
+                                            <p className="text-xs text-slate-500 font-medium leading-relaxed">{mod.description}</p>
                                         </div>
-                                        <p className="text-base text-muted-foreground mt-2 font-medium leading-relaxed">{mod.description}</p>
                                     </div>
-                                </div>
-                            </Card>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* Bottom Grid - Bento Mixed */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400">
-                {/* Recent Activity */}
-                <Card className="dashboard-card p-8 lg:col-span-8 bg-background/40 backdrop-blur-xl border-white/5">
-                    <h3 className="text-sm font-black text-foreground uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                        <Activity className="h-5 w-5 text-blue-400" />
-                        Fluxo de Atividade
-                    </h3>
-                    <div className="space-y-4">
-                        {recentActivities.map((act, i) => {
-                            const Icon = act.icon;
-                            return (
-                                <div key={i} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all border border-transparent hover:border-white/5 group">
-                                    <div className="p-3 bg-white/5 rounded-xl group-hover:bg-blue-500/10 transition-colors">
-                                        <Icon className={`h-5 w-5 ${act.color}`} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-base font-medium text-foreground truncate">{act.text}</p>
-                                    </div>
-                                    <span className="text-xs font-bold text-muted-foreground/60 shrink-0 flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full">
-                                        <Clock className="h-3.5 w-3.5" /> {act.time}
-                                    </span>
-                                </div>
+                                    <ArrowRight className="absolute bottom-4 right-4 h-4 w-4 text-slate-300 opacity-0 group-hover:opacity-100 group-hover:-translate-x-1 transition-all" />
+                                </Card>
                             );
                         })}
                     </div>
-                </Card>
-
-                {/* Quick Actions - Glass Column */}
-                <Card className="dashboard-card p-8 lg:col-span-4 bg-background/40 backdrop-blur-xl border-white/5">
-                    <h3 className="text-sm font-black text-foreground uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                        <Sparkles className="h-5 w-5 text-amber-400" />
-                        Comandos Rápidos
-                    </h3>
-                    <div className="space-y-4">
-                        <Button
-                            variant="outline"
-                            className="w-full justify-start gap-4 h-14 rounded-2xl border-white/5 bg-white/5 hover:bg-blue-500/10 hover:border-blue-500/20 text-base font-bold transition-all group"
-                            onClick={() => navigate('/medical/patients')}
-                        >
-                            <Users className="h-5 w-5 text-blue-400 group-hover:scale-110 transition-transform" />
-                            Cadastrar Paciente
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="w-full justify-start gap-4 h-14 rounded-2xl border-white/5 bg-white/5 hover:bg-violet-500/10 hover:border-violet-500/20 text-base font-bold transition-all group"
-                            onClick={() => navigate('/medical/transcricao')}
-                        >
-                            <Mic className="h-5 w-5 text-violet-400 group-hover:scale-110 transition-transform" />
-                            Nova Transcrição
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="w-full justify-start gap-4 h-14 rounded-2xl border-white/5 bg-white/5 hover:bg-emerald-500/10 hover:border-emerald-500/20 text-base font-bold transition-all group"
-                            onClick={() => navigate('/medical/analise')}
-                        >
-                            <Brain className="h-5 w-5 text-emerald-400 group-hover:scale-110 transition-transform" />
-                            Análise Clínica
-                        </Button>
-                        <Button
-                            variant="default"
-                            className="w-full justify-start gap-4 h-16 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-0 shadow-xl shadow-blue-500/30 font-black text-lg transition-all hover:scale-[1.02] active:scale-[0.98] group"
-                            onClick={() => navigate('/medical/ia')}
-                        >
-                            <Bot className="h-6 w-6 group-hover:animate-bounce" />
-                            IA Decifradora
-                        </Button>
-                    </div>
-                </Card>
+                </section>
             </div>
         </div>
     );
 };
 
 export default MedicalDashboard;
+

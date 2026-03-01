@@ -26,24 +26,23 @@ interface SmartAlertsCardProps {
 export function SmartAlertsCard({ alerts, loading, getAlertIcon, getAlertLabel }: SmartAlertsCardProps) {
   return (
     <Card className="bento-card relative overflow-hidden group">
-      {/* Background Decorativo Sutil */}
-      <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl mix-blend-screen pointer-events-none group-hover:bg-amber-500/10 transition-colors duration-700" />
+      {/* Decorative effect removed to reduce blur */}
 
       <CardHeader className="pb-4 border-b border-border/40 relative z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center shadow-inner border border-amber-500/20">
-              <AlertCircle className="h-5 w-5 text-amber-500" />
+            <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center shadow-inner border border-amber-500/20">
+              <AlertCircle className="h-4 w-4 text-amber-500" />
             </div>
             <div>
-              <CardTitle className="text-xl font-bold tracking-tight">Alertas Inteligentes</CardTitle>
-              <CardDescription className="text-xs font-medium uppercase tracking-wider mt-0.5">Prazos e compromissos críticos</CardDescription>
+              <CardTitle className="text-lg font-bold tracking-tight">Alertas Inteligentes</CardTitle>
+              <CardDescription className="text-[10px] font-semibold uppercase tracking-widest mt-0.5 text-muted-foreground/60">Prazos e compromissos críticos</CardDescription>
             </div>
           </div>
-          <Button variant="ghost" size="sm" asChild className="btn-tactile hover:bg-white/5 border border-transparent hover:border-white/10">
+          <Button variant="ghost" size="sm" asChild className="text-xs h-8 px-3 hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors">
             <Link to="/alerts">
               <span className="font-semibold tracking-wide">Ver todos</span>
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Link>
           </Button>
         </div>
@@ -75,34 +74,34 @@ export function SmartAlertsCard({ alerts, loading, getAlertIcon, getAlertLabel }
               <Link
                 key={alert.id}
                 to={alert.link}
-                className="flex items-center gap-4 p-4 rounded-xl glass-panel hover:bg-white/5 transition-all duration-300 group/alert transform hover:-translate-y-0.5"
+                className="flex items-center gap-3 p-3 rounded-lg glass-panel hover:bg-white/5 transition-all duration-300 group/alert transform hover:-translate-y-0.5"
               >
-                <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 shadow-inner border ${alert.severity === 'alta' ? 'bg-destructive/10 border-destructive/20' : 'bg-amber-500/10 border-amber-500/20'
+                <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 shadow-inner border ${alert.severity === 'alta' ? 'bg-destructive/10 border-destructive/20' : 'bg-amber-500/10 border-amber-500/20'
                   }`}>
                   <div className="transform transition-transform group-hover/alert:scale-110">
                     {getAlertIcon(alert.type)}
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-base font-semibold text-foreground truncate">{alert.title}</p>
+                  <p className="text-sm font-semibold text-foreground truncate">{alert.title}</p>
                   {alert.subtitle && (
-                    <p className="text-sm text-muted-foreground truncate">{alert.subtitle}</p>
+                    <p className="text-xs text-muted-foreground truncate">{alert.subtitle}</p>
                   )}
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex flex-col items-end gap-0.5">
                     <Badge
                       variant={alert.severity === 'alta' ? 'destructive' : 'secondary'}
-                      className="text-[10px] uppercase font-bold tracking-widest px-2 py-0 border-white/10 shadow-sm"
+                      className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0 border-white/10 shadow-sm"
                     >
                       {alert.severity === 'alta' ? 'Alta' : 'Média'}
                     </Badge>
-                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider hidden sm:block">
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider hidden sm:block">
                       {getAlertLabel(alert.type)}
                     </span>
                   </div>
-                  <div className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center opacity-0 group-hover/alert:opacity-100 transition-all duration-300 transform -translate-x-2 group-hover/alert:translate-x-0">
-                    <ExternalLink className="h-4 w-4 text-foreground/70" />
+                  <div className="h-6 w-6 rounded-full bg-white/5 flex items-center justify-center opacity-0 group-hover/alert:opacity-100 transition-all duration-300 transform -translate-x-1 group-hover/alert:translate-x-0">
+                    <ExternalLink className="h-3.5 w-3.5 text-foreground/70" />
                   </div>
                 </div>
               </Link>

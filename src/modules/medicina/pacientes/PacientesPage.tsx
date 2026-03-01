@@ -105,9 +105,9 @@ const MOCK_PACIENTES: Paciente[] = [
 ];
 
 const statusColors: Record<string, string> = {
-    ativo: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-    inativo: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-    arquivado: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30',
+    ativo: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    inativo: 'bg-amber-50 text-amber-700 border-amber-200',
+    arquivado: 'bg-slate-100 text-slate-600 border-slate-200',
 };
 
 const PacientesPage = () => {
@@ -126,28 +126,28 @@ const PacientesPage = () => {
     });
 
     return (
-        <div className="p-6 max-w-screen-2xl mx-auto space-y-8 animate-in fade-in duration-700">
+        <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto space-y-6 animate-in fade-in duration-700 bg-[#FAFAFA] min-h-screen text-slate-800 font-inter">
             {/* Header */}
             <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent">
+                    <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-800">
                         Pacientes
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-sm text-slate-500 font-medium">
                         Gestão completa de pacientes — cadastro, histórico e acompanhamento.
                     </p>
                 </div>
                 <Dialog open={cadastroOpen} onOpenChange={setCadastroOpen}>
                     <DialogTrigger asChild>
-                        <Button className="gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/20">
+                        <Button className="gap-2 h-11 px-5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-sm transition-all hover:scale-105 active:scale-95 text-sm font-bold">
                             <UserPlus className="h-4 w-4" />
                             Novo Paciente
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+                    <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto bg-white border border-gray-100 shadow-xl rounded-2xl p-6">
                         <DialogHeader>
-                            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                                <UserPlus className="h-5 w-5 text-blue-400" />
+                            <DialogTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <UserPlus className="h-5 w-5 text-teal-600" />
                                 Cadastrar Paciente
                             </DialogTitle>
                         </DialogHeader>
@@ -208,11 +208,11 @@ const PacientesPage = () => {
                                 />
                             </div>
                         </div>
-                        <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-                            <Button variant="outline" onClick={() => setCadastroOpen(false)}>
+                        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+                            <Button variant="outline" onClick={() => setCadastroOpen(false)} className="rounded-xl border-gray-200 text-slate-700 hover:bg-slate-50">
                                 Cancelar
                             </Button>
-                            <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
+                            <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-sm">
                                 Salvar Paciente
                             </Button>
                         </div>
@@ -221,24 +221,24 @@ const PacientesPage = () => {
             </header>
 
             {/* Filters */}
-            <Card className="bento-card p-4">
-                <div className="flex flex-col md:flex-row gap-3">
+            <Card className="p-4 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                <div className="flex flex-col md:flex-row gap-4">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input
                             placeholder="Buscar por nome, CPF ou e-mail..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="pl-10"
+                            className="pl-10 h-11 rounded-xl border-gray-200 bg-slate-50 focus-visible:ring-teal-500 hover:border-gray-300 transition-colors"
                         />
                     </div>
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-full md:w-[180px]">
-                            <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <SelectTrigger className="w-full md:w-[200px] h-11 rounded-xl border-gray-200 bg-slate-50 hover:border-gray-300 transition-colors text-slate-700 font-medium">
+                            <Filter className="h-4 w-4 mr-2 text-slate-400" />
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="todos">Todos</SelectItem>
+                        <SelectContent className="rounded-xl border-gray-100 shadow-lg">
+                            <SelectItem value="todos">Todos os Status</SelectItem>
                             <SelectItem value="ativo">Ativos</SelectItem>
                             <SelectItem value="inativo">Inativos</SelectItem>
                             <SelectItem value="arquivado">Arquivados</SelectItem>
@@ -248,78 +248,78 @@ const PacientesPage = () => {
             </Card>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="bento-card p-4 flex items-center gap-3">
-                    <div className="p-2.5 bg-blue-500/10 rounded-xl">
-                        <Users className="h-5 w-5 text-blue-400" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                <Card className="p-5 flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-md transition-all group">
+                    <div className="p-3 bg-blue-50 rounded-xl group-hover:scale-110 transition-transform">
+                        <Users className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
-                        <p className="text-xs text-muted-foreground">Total</p>
-                        <p className="text-2xl font-bold">{MOCK_PACIENTES.length}</p>
+                        <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-1">Total</p>
+                        <p className="text-2xl font-black text-slate-800 tracking-tight">{MOCK_PACIENTES.length}</p>
                     </div>
                 </Card>
-                <Card className="bento-card p-4 flex items-center gap-3">
-                    <div className="p-2.5 bg-emerald-500/10 rounded-xl">
-                        <Users className="h-5 w-5 text-emerald-400" />
+                <Card className="p-5 flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-md transition-all group">
+                    <div className="p-3 bg-emerald-50 rounded-xl group-hover:scale-110 transition-transform">
+                        <Users className="h-5 w-5 text-emerald-600" />
                     </div>
                     <div>
-                        <p className="text-xs text-muted-foreground">Ativos</p>
-                        <p className="text-2xl font-bold">{MOCK_PACIENTES.filter(p => p.status === 'ativo').length}</p>
+                        <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-1">Ativos</p>
+                        <p className="text-2xl font-black text-slate-800 tracking-tight">{MOCK_PACIENTES.filter(p => p.status === 'ativo').length}</p>
                     </div>
                 </Card>
-                <Card className="bento-card p-4 flex items-center gap-3">
-                    <div className="p-2.5 bg-amber-500/10 rounded-xl">
-                        <Users className="h-5 w-5 text-amber-400" />
+                <Card className="p-5 flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-md transition-all group">
+                    <div className="p-3 bg-amber-50 rounded-xl group-hover:scale-110 transition-transform">
+                        <Users className="h-5 w-5 text-amber-600" />
                     </div>
                     <div>
-                        <p className="text-xs text-muted-foreground">Inativos</p>
-                        <p className="text-2xl font-bold">{MOCK_PACIENTES.filter(p => p.status === 'inativo').length}</p>
+                        <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-1">Inativos</p>
+                        <p className="text-2xl font-black text-slate-800 tracking-tight">{MOCK_PACIENTES.filter(p => p.status === 'inativo').length}</p>
                     </div>
                 </Card>
-                <Card className="bento-card p-4 flex items-center gap-3">
-                    <div className="p-2.5 bg-cyan-500/10 rounded-xl">
-                        <Calendar className="h-5 w-5 text-cyan-400" />
+                <Card className="p-5 flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-md transition-all group">
+                    <div className="p-3 bg-cyan-50 rounded-xl group-hover:scale-110 transition-transform">
+                        <Calendar className="h-5 w-5 text-cyan-600" />
                     </div>
                     <div>
-                        <p className="text-xs text-muted-foreground">Consultas Hoje</p>
-                        <p className="text-2xl font-bold">3</p>
+                        <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-1">Consultas Hoje</p>
+                        <p className="text-2xl font-black text-slate-800 tracking-tight">3</p>
                     </div>
                 </Card>
             </div>
 
             {/* Table */}
-            <Card className="bento-card overflow-hidden">
+            <Card className="bg-white border border-gray-100 shadow-sm overflow-hidden rounded-2xl">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-white/5">
-                                <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                    <button className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        <thead className="bg-slate-50/50">
+                            <tr className="border-b border-gray-100">
+                                <th className="text-left p-4 text-xs font-semibold text-slate-500 uppercase tracking-widest">
+                                    <button className="flex items-center gap-1 hover:text-slate-800 transition-colors">
                                         Paciente <ArrowUpDown className="h-3 w-3" />
                                     </button>
                                 </th>
-                                <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden md:table-cell">CPF</th>
-                                <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">Contato</th>
-                                <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">Última Consulta</th>
-                                <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                                <th className="text-right p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ações</th>
+                                <th className="text-left p-4 text-xs font-semibold text-slate-500 uppercase tracking-widest hidden md:table-cell">CPF</th>
+                                <th className="text-left p-4 text-xs font-semibold text-slate-500 uppercase tracking-widest hidden lg:table-cell">Contato</th>
+                                <th className="text-left p-4 text-xs font-semibold text-slate-500 uppercase tracking-widest hidden lg:table-cell">Última Consulta</th>
+                                <th className="text-left p-4 text-xs font-semibold text-slate-500 uppercase tracking-widest">Status</th>
+                                <th className="text-right p-4 text-xs font-semibold text-slate-500 uppercase tracking-widest">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filtered.map((pac) => (
                                 <tr
                                     key={pac.id}
-                                    className="border-b border-white/5 hover:bg-white/[0.02] transition-colors cursor-pointer group"
+                                    className="border-b border-gray-50 hover:bg-slate-50 transition-colors cursor-pointer group"
                                     onClick={() => navigate(`/medical/patients/${pac.id}`)}
                                 >
                                     <td className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center text-blue-400 font-semibold text-sm">
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-10 w-10 rounded-full bg-teal-50 flex items-center justify-center text-teal-700 font-bold text-sm shadow-sm">
                                                 {pac.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}
                                             </div>
                                             <div>
-                                                <p className="font-medium text-foreground">{pac.nome}</p>
-                                                <p className="text-xs text-muted-foreground">
+                                                <p className="font-bold text-slate-800">{pac.nome}</p>
+                                                <p className="text-xs text-slate-500 font-medium mt-0.5">
                                                     {pac.sexo === 'M' ? 'Masculino' : pac.sexo === 'F' ? 'Feminino' : 'Outro'} • {
                                                         new Date().getFullYear() - new Date(pac.data_nascimento).getFullYear()
                                                     } anos
@@ -327,18 +327,18 @@ const PacientesPage = () => {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="p-4 text-sm text-muted-foreground hidden md:table-cell">{pac.cpf}</td>
+                                    <td className="p-4 text-sm text-slate-600 font-medium hidden md:table-cell">{pac.cpf}</td>
                                     <td className="p-4 hidden lg:table-cell">
-                                        <div className="space-y-1">
-                                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                                <Phone className="h-3 w-3" /> {pac.telefone}
+                                        <div className="space-y-1.5">
+                                            <p className="text-xs text-slate-600 font-medium flex items-center gap-2">
+                                                <Phone className="h-3.5 w-3.5 text-slate-400" /> {pac.telefone}
                                             </p>
-                                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                                <Mail className="h-3 w-3" /> {pac.email}
+                                            <p className="text-xs text-slate-600 font-medium flex items-center gap-2">
+                                                <Mail className="h-3.5 w-3.5 text-slate-400" /> {pac.email}
                                             </p>
                                         </div>
                                     </td>
-                                    <td className="p-4 text-sm text-muted-foreground hidden lg:table-cell">
+                                    <td className="p-4 text-sm text-slate-600 font-medium hidden lg:table-cell">
                                         {pac.ultima_consulta
                                             ? new Date(pac.ultima_consulta).toLocaleDateString('pt-BR')
                                             : '—'}
@@ -352,7 +352,7 @@ const PacientesPage = () => {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-teal-600 hover:bg-teal-50"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 navigate(`/medical/patients/${pac.id}`);
@@ -367,9 +367,9 @@ const PacientesPage = () => {
                     </table>
                 </div>
                 {filtered.length === 0 && (
-                    <div className="p-12 text-center text-muted-foreground">
-                        <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                        <p className="text-lg font-medium">Nenhum paciente encontrado</p>
+                    <div className="p-16 text-center text-slate-500">
+                        <Users className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                        <p className="text-lg font-bold text-slate-700">Nenhum paciente encontrado</p>
                         <p className="text-sm mt-1">Tente ajustar os filtros ou cadastre um novo paciente.</p>
                     </div>
                 )}

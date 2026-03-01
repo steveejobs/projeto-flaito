@@ -40,9 +40,10 @@ export const RoleProtectedRoute = forwardRef<HTMLDivElement, RoleProtectedRouteP
     }, [location.pathname]);
 
     if (isLoading) {
+      // Remover bg-background que causava a tela preta e suavizar o loader
       return (
-        <div ref={ref} className="min-h-screen flex items-center justify-center bg-background">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <div ref={ref} className="min-h-[50vh] flex items-center justify-center bg-transparent">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-300 dark:border-slate-700" />
         </div>
       );
     }

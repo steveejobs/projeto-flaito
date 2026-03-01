@@ -10,7 +10,7 @@ import { useOfficeSession } from '@/hooks/useOfficeSession';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
+import { LegalSidebar } from '@/components/layout/LegalSidebar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -34,7 +34,7 @@ interface AppLayoutProps {
 
 const RETRY_DELAY_MS = 3000;
 
-export function AppLayout({ children }: AppLayoutProps) {
+export function LegalLayout({ children }: AppLayoutProps) {
   const { user, session, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -156,7 +156,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     <OfficeUISettingsProvider>
       <SidebarProvider>
         <div className="min-h-screen flex w-full">
-          <AppSidebar />
+          <LegalSidebar />
           <div className="flex-1 flex flex-col">
             {/* Header */}
             <header className="h-16 border-b border-white/5 bg-background/60 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50 transition-all duration-300">

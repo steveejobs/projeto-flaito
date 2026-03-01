@@ -162,8 +162,11 @@ const PacienteDetalhe = () => {
                 {/* Consultas Tab */}
                 <TabsContent value="consultas" className="space-y-4">
                     <div className="flex justify-end">
-                        <Button className="gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
-                            <Plus className="h-4 w-4" /> Nova Consulta
+                        <Button
+                            className="gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
+                            onClick={() => navigate(`/medical/atendimento/${paciente.id}`)}
+                        >
+                            <Plus className="h-4 w-4" /> Nova Consulta Single-Screen
                         </Button>
                     </div>
                     {consultas.map((c) => (

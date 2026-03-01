@@ -42,6 +42,7 @@ import { useDevPanel } from '@/contexts/DevPanelContext';
 import { useAuth } from '@/contexts/AuthContext';
 import LexosMark from '@/components/brand/LexosMark';
 import { supabase } from '@/integrations/supabase/client';
+import { ModuleSwitcher } from './ModuleSwitcher';
 import {
   Sidebar,
   SidebarContent,
@@ -134,22 +135,7 @@ const MENU_TREE: MenuGroup[] = [
       { title: 'Plaud Inbox', url: '/plaud-inbox', icon: Mic, minRole: 'MEMBER', keywords: ['audio', 'gravacao', 'transcricao', 'reuniao'] },
     ],
   },
-  {
-    key: 'medical',
-    label: 'Medicina',
-    icon: Stethoscope,
-    minRole: 'MEMBER',
-    defaultOpen: true,
-    module: 'MEDICAL',
-    items: [
-      { title: 'Dashboard Clínico', url: '/medical/dashboard', icon: LayoutDashboard, minRole: 'MEMBER', keywords: ['inicio', 'home', 'visao', 'geral', 'medico', 'clinica'] },
-      { title: 'Decifrador IA', url: '/medical/ia', icon: Bot, minRole: 'MEMBER', keywords: ['ia', 'artificial', 'diagnostico', 'diferencial', 'interacao'] },
-      { title: 'Pacientes', url: '/medical/patients', icon: Users, minRole: 'MEMBER', keywords: ['pacientes', 'cadastro', 'historico', 'prontuario'] },
-      { title: 'Transcrição Clínica', url: '/medical/transcricao', icon: Mic, minRole: 'MEMBER', keywords: ['audio', 'transcricao', 'consulta', 'gravacao'] },
-      { title: 'Análise Clínica', url: '/medical/analise', icon: Brain, minRole: 'MEMBER', keywords: ['analise', 'nutricao', 'integrativa', 'neurologia', 'ia'] },
-      { title: 'Protocolos', url: '/medical/protocolos', icon: ClipboardList, minRole: 'MEMBER', keywords: ['protocolos', 'tratamento', 'evidencia', 'biblioteca'] },
-    ],
-  },
+
 
   {
     key: 'clientes',
@@ -266,7 +252,7 @@ function SidebarSkeleton() {
 // Normalize text for search (lowercase, remove accents)
 const norm = (s: string) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-export function AppSidebar() {
+export function LegalSidebar() {
   const { state, setOpenMobile, isMobile } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
@@ -520,11 +506,11 @@ export function AppSidebar() {
                   devPanel.toggle();
                   if (isMobile) setOpenMobile(false);
                 }}
-                className={`flex-1 flex items-center gap-3 rounded-md transition-colors hover:bg-sidebar-accent px-4 py-3.5 min-h-[52px] md:px-3 md:py-2 md:min-h-0 cursor-pointer ${indent > 0 ? `pl-${indent + 4}` : ''} ${devPanel.isOpen ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' : ''
+                className={`flex-1 flex items-center gap-3 rounded-md transition-colors hover:bg-sidebar-accent px-3 py-2.5 min-h-[44px] md:px-2 md:py-1.5 md:min-h-0 cursor-pointer ${indent > 0 ? `pl-${indent + 4}` : ''} ${devPanel.isOpen ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' : ''
                   }`}
               >
-                <item.icon className="h-5 w-5 md:h-4 md:w-4 shrink-0 text-destructive" />
-                <span className={collapsed ? 'sr-only' : 'text-base md:text-sm'}>
+                <item.icon className="h-4 w-4 shrink-0 text-destructive" />
+                <span className={collapsed ? 'sr-only' : 'text-sm'}>
                   {devPanel.isOpen ? 'Ocultar Painel DEV' : 'Mostrar Painel DEV'}
                 </span>
               </SidebarMenuButton>
@@ -542,11 +528,11 @@ export function AppSidebar() {
                   to={item.url}
                   end
                   onClick={handleNavClick}
-                  className={`flex items-center gap-3 rounded-md transition-colors hover:bg-sidebar-accent px-4 py-3.5 min-h-[52px] md:px-3 md:py-2 md:min-h-0 ${indent > 0 ? `pl-${indent + 4}` : ''}`}
+                  className={`flex items-center gap-3 rounded-md transition-colors hover:bg-sidebar-accent px-3 py-2.5 min-h-[44px] md:px-2 md:py-1.5 md:min-h-0 ${indent > 0 ? `pl-${indent + 4}` : ''}`}
                   activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
                 >
-                  <item.icon className="h-5 w-5 md:h-4 md:w-4 shrink-0" />
-                  <span className={collapsed ? 'sr-only' : 'text-base md:text-sm flex-1'}>
+                  <item.icon className="h-4 w-4 shrink-0 opacity-80" />
+                  <span className={collapsed ? 'sr-only' : 'text-sm flex-1'}>
                     {item.title}
                   </span>
                 </NavLink>
@@ -635,13 +621,13 @@ export function AppSidebar() {
         <SidebarGroup>
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel
-              className={`flex items-center justify-between cursor-pointer hover:bg-sidebar-accent/50 rounded-md px-4 py-3 min-h-[48px] md:px-2 md:py-1.5 md:min-h-0 ${collapsed ? 'justify-center' : ''
+              className={`flex items-center justify-between cursor-pointer hover:bg-sidebar-accent/50 rounded-md px-3 py-2 min-h-[40px] md:px-2 md:py-1 md:min-h-0 ${collapsed ? 'justify-center' : ''
                 }`}
             >
               <div className="flex items-center gap-2">
-                <Icon className="h-5 w-5 md:h-4 md:w-4 shrink-0 text-sidebar-foreground/70" />
+                <Icon className="h-4 w-4 shrink-0 text-sidebar-foreground/50" />
                 {!collapsed && (
-                  <span className="text-sm md:text-xs font-semibold uppercase tracking-wide">
+                  <span className="text-xs font-bold uppercase tracking-widest text-sidebar-foreground/60">
                     {group.label}
                   </span>
                 )}
@@ -669,7 +655,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       {/* Logo Header */}
       <SidebarHeader className="border-b border-sidebar-border bg-gradient-to-b from-sidebar-accent/30 to-transparent">
-        <div className={`flex items-center gap-3 px-4 py-4 ${collapsed ? 'flex-col justify-center' : ''}`}>
+        <div className={`flex items-center gap-3 px-4 py-3 ${collapsed ? 'flex-col justify-center' : ''}`}>
           <Dialog open={overviewOpen} onOpenChange={setOverviewOpen}>
             <DialogTrigger asChild>
               <button
@@ -677,7 +663,7 @@ export function AppSidebar() {
                 title="Ver visão geral do sistema"
               >
                 <LexosMark
-                  className={`${collapsed ? 'h-10 w-10' : 'h-14 w-14'} rounded-lg shadow-sm shrink-0`}
+                  className={`${collapsed ? 'h-8 w-8' : 'h-10 w-10'} rounded-md shadow-sm shrink-0`}
                   style={{
                     transform: `scale(var(--sidebar-logo-scale, 1))`,
                     transformOrigin: 'center center'
@@ -685,11 +671,11 @@ export function AppSidebar() {
                 />
                 {!collapsed && (
                   <div className="flex flex-col min-w-0 flex-1 text-left">
-                    <span className="font-bold text-lg text-sidebar-foreground leading-tight">
+                    <span className="font-extrabold text-base text-sidebar-foreground leading-tight tracking-tight">
                       Lexos
                     </span>
-                    <span className="text-xs text-sidebar-foreground/60 font-medium tracking-wide">
-                      Sistema Jurídico Inteligente
+                    <span className="text-[10px] text-sidebar-foreground/50 font-bold tracking-widest uppercase">
+                      Inteligência Legal
                     </span>
                   </div>
                 )}
@@ -764,6 +750,8 @@ export function AppSidebar() {
           </Dialog>
         </div>
       </SidebarHeader>
+
+      <ModuleSwitcher />
 
       {/* Search Input */}
       {!collapsed && (

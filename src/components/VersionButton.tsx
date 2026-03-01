@@ -33,14 +33,9 @@ export function VersionButton({ collapsed = false }: VersionButtonProps) {
     <Button
       variant="ghost"
       size="sm"
-      className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+      className="w-full justify-center text-muted-foreground hover:text-foreground"
     >
       <Info className="h-4 w-4 shrink-0" />
-      {!collapsed && (
-        <span className="truncate text-xs">
-          {label} • {lastUpdateFormatted}
-        </span>
-      )}
     </Button>
   );
 

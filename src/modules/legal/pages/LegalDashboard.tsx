@@ -121,6 +121,9 @@ export function LegalDashboard() {
   const [loadingAiLogs, setLoadingAiLogs] = useState(true);
   const [loadingHighRisk, setLoadingHighRisk] = useState(true);
 
+  // Flag to indicate we tried fetching office
+  const [officeChecked, setOfficeChecked] = useState(false);
+
   // Check onboarding on mount
   useEffect(() => {
     async function checkOnboarding() {
@@ -139,20 +142,36 @@ export function LegalDashboard() {
     async function fetchOffice() {
       if (!user?.id) return;
 
-      const { data, error } = await supabase.rpc('get_my_active_office');
-      if (error) {
-        console.error('Error fetching active office:', error);
-        return;
-      }
+      try {
+        const { data, error } = await supabase.rpc('get_my_active_office');
+        if (error) {
+          console.error('Error fetching active office:', error);
+          return;
+        }
 
-      const membership = Array.isArray(data) ? data[0] : data;
-      if (membership?.office_id) {
-        setOfficeId(membership.office_id);
+        const membership = Array.isArray(data) ? data[0] : data;
+        if (membership?.office_id) {
+          setOfficeId(membership.office_id);
+        }
+      } finally {
+        setOfficeChecked(true);
       }
     }
 
     fetchOffice();
   }, [user?.id]);
+
+  // When office is checked but no office was found, turn off loading
+  useEffect(() => {
+    if (officeChecked && !officeId) {
+      setLoadingKpis(false);
+      setLoadingDeadlines(false);
+      setLoadingAgenda(false);
+      setLoadingCases(false);
+      setLoadingAiLogs(false);
+      setLoadingHighRisk(false);
+    }
+  }, [officeChecked, officeId]);
 
   // Fetch KPIs
   useEffect(() => {
@@ -596,11 +615,41 @@ export function LegalDashboard() {
   // ─────────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-8 dashboard-fade-in max-w-[1600px] mx-auto min-h-screen bg-background text-foreground selection:bg-primary/30">
+    <div className="p-2 md:p-3 lg:p-4 space-y-3 dashboard-fade-in max-w-[1400px] mx-auto min-h-screen bg-background text-foreground selection:bg-primary/30">
 
       {/* 1. Dashboard Header (Hero Typography) */}
       <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: '50ms' }}>
         <DashboardHeader />
+      </section>
+
+      {/* Focus / Next Critical Step - Bento Style */}
+      <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: '100ms' }}>
+        <div className="dashboard-card relative overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md group p-4 md:p-5">
+          {/* Decorative blur removed */}
+
+          <div className="relative z-10 flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className="flex h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Sem Foco Imediato</span>
+              </div>
+              <h2 className="text-lg md:text-xl font-extrabold tracking-tight leading-tight max-w-xl">
+                Pronto para iniciar <br /> <span className="text-muted-foreground">sua jornada jurídica.</span>
+              </h2>
+              <p className="text-xs text-muted-foreground font-medium">Você não possui prazos fatais iminentes ou urgências ativas no momento.</p>
+            </div>
+
+            <div className="flex-shrink-0">
+              <button
+                onClick={() => navigate('/cases')}
+                className="flex items-center justify-center gap-1.5 h-8 px-4 rounded-lg text-xs font-bold shadow-sm bg-primary hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-[0.98] text-primary-foreground"
+              >
+                <AlertCircle className="w-3.5 h-3.5" />
+                Explorar Casos
+              </button>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* 2. KPI Grid (Tactile Maximalism) */}
@@ -608,62 +657,70 @@ export function LegalDashboard() {
         <KpiGrid kpis={kpis} loading={loadingKpis} />
       </section>
 
-      <div className="grid gap-6 grid-cols-1 xl:grid-cols-12">
-        {/* Main Column - Left (Bento Grid) */}
-        <div className="xl:col-span-8 flex flex-col gap-6">
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: '250ms' }}>
+      {/* Bento Grid Dashboard Layout */}
+      <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+        {/* Alertas - Expandido horizontalmente */}
+        <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both md:col-span-2 xl:col-span-2 flex flex-col" style={{ animationDelay: '250ms' }}>
+          <div className="flex-1 [&>div]:h-full">
             <SmartAlertsCard
               alerts={smartAlerts}
               loading={loadingDeadlines || loadingAgenda || loadingHighRisk}
               getAlertIcon={getAlertIcon}
               getAlertLabel={getAlertLabel}
             />
-          </section>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both h-full" style={{ animationDelay: '350ms' }}>
-              <PrioritiesCard
-                deadlines={deadlines}
-                agendaItems={agendaItems}
-                loadingDeadlines={loadingDeadlines}
-                loadingAgenda={loadingAgenda}
-                formatDeadlineDate={formatDeadlineDate}
-              />
-            </section>
-
-            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both h-full" style={{ animationDelay: '450ms' }}>
-              <CasesQuickViewCard
-                kpis={kpis}
-                casesByStatus={casesByStatus}
-                loadingCases={loadingCases}
-                getStatusLabel={getStatusLabel}
-              />
-            </section>
           </div>
-        </div>
+        </section>
 
-        {/* Sidebar Column - Right (Bento Grid) */}
-        <div className="xl:col-span-4 flex flex-col gap-6">
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both flex-1" style={{ animationDelay: '550ms' }}>
+        {/* Nija - Destaque lateral central */}
+        <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both md:col-span-1 xl:col-span-1 flex flex-col" style={{ animationDelay: '550ms' }}>
+          <div className="flex-1 [&>div]:h-full">
             <NijaProductivityCard
               aiLogsCount={aiLogsCount}
               loading={loadingAiLogs}
               isAdmin={isAdmin}
             />
-          </section>
+          </div>
+        </section>
 
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: '650ms' }}>
+        {/* Prioridades - Altura menor ou adaptável */}
+        <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both md:col-span-1 xl:col-span-1 flex flex-col" style={{ animationDelay: '350ms' }}>
+          <div className="flex-1 [&>div]:h-full">
+            <PrioritiesCard
+              deadlines={deadlines}
+              agendaItems={agendaItems}
+              loadingDeadlines={loadingDeadlines}
+              loadingAgenda={loadingAgenda}
+              formatDeadlineDate={formatDeadlineDate}
+            />
+          </div>
+        </section>
+
+        {/* Panorama de Casos - Expandido */}
+        <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both md:col-span-2 xl:col-span-2 flex flex-col" style={{ animationDelay: '450ms' }}>
+          <div className="flex-1 [&>div]:h-full">
+            <CasesQuickViewCard
+              kpis={kpis}
+              casesByStatus={casesByStatus}
+              loadingCases={loadingCases}
+              getStatusLabel={getStatusLabel}
+            />
+          </div>
+        </section>
+
+        {/* Gráfico Tendência - Largura total */}
+        <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both md:col-span-2 xl:col-span-3 flex flex-col" style={{ animationDelay: '650ms' }}>
+          <div className="flex-1 [&>div]:h-full">
             <CasesTrendChart
               casesByStatus={casesByStatus}
               loading={loadingCases}
               getStatusLabel={getStatusLabel}
             />
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
 
       {/* Bottom Action Bar */}
-      <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both pt-4" style={{ animationDelay: '750ms' }}>
+      <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both pt-3" style={{ animationDelay: '750ms' }}>
         <QuickLinksBar isAdmin={isAdmin} />
       </section>
     </div>

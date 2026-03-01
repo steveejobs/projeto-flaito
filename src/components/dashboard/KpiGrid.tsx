@@ -28,28 +28,28 @@ export function KpiGrid({ kpis, loading }: KpiGridProps) {
       {/* Alertas Críticos */}
       <Link to="/alerts" className="block transform transition-transform duration-300 hover:scale-[1.02]">
         <Card className="bento-card cursor-pointer h-full group">
-          <CardContent className="p-5 flex flex-col h-full justify-between">
+          <CardContent className="p-4 flex flex-col h-full justify-between">
             {loading ? (
               <div className="space-y-3">
-                <Skeleton className="h-10 w-10 rounded-xl" />
-                <Skeleton className="h-8 w-16" />
-                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-8 rounded-lg" />
+                <Skeleton className="h-6 w-12" />
+                <Skeleton className="h-3 w-20" />
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className={`h-12 w-12 rounded-xl flex items-center justify-center transition-colors duration-300 ${(kpis?.criticalAlerts ?? 0) > 0 ? 'bg-destructive/15 group-hover:bg-destructive/25' : 'bg-muted/50 group-hover:bg-muted'}`}>
-                  <Bell className={`h-6 w-6 ${(kpis?.criticalAlerts ?? 0) > 0 ? 'text-destructive group-hover:animate-pulse' : 'text-muted-foreground'}`} />
+              <div className="space-y-3">
+                <div className={`h-10 w-10 rounded-lg flex items-center justify-center transition-colors duration-300 ${(kpis?.criticalAlerts ?? 0) > 0 ? 'bg-destructive/15 group-hover:bg-destructive/25' : 'bg-muted/50 group-hover:bg-muted'}`}>
+                  <Bell className={`h-5 w-5 ${(kpis?.criticalAlerts ?? 0) > 0 ? 'text-destructive group-hover:animate-pulse' : 'text-muted-foreground'}`} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-4xl font-extrabold text-foreground tracking-tight drop-shadow-sm">
+                    <span className="text-3xl font-bold text-foreground tracking-tight drop-shadow-sm">
                       {kpis?.criticalAlerts ?? 0}
                     </span>
                     {(kpis?.criticalAlerts ?? 0) > 0 && (
-                      <Badge variant="destructive" className="animate-pulse shadow-sm shadow-destructive/20 border-white/10 uppercase tracking-widest text-[10px] font-bold">Urgente</Badge>
+                      <Badge variant="destructive" className="animate-pulse shadow-sm shadow-destructive/20 border-white/10 uppercase tracking-widest text-[9px] font-bold">Urgente</Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Alertas Críticos</p>
+                  <p className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-widest">Alertas Críticos</p>
                 </div>
               </div>
             )}
@@ -60,22 +60,22 @@ export function KpiGrid({ kpis, loading }: KpiGridProps) {
       {/* Compromissos Hoje */}
       <Link to="/agenda">
         <Card className="bento-card cursor-pointer h-full">
-          <CardContent className="p-5">
+          <CardContent className="p-4">
             {loading ? (
               <div className="space-y-3">
-                <Skeleton className="h-10 w-10 rounded-xl" />
-                <Skeleton className="h-8 w-16" />
-                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-8 rounded-lg" />
+                <Skeleton className="h-6 w-12" />
+                <Skeleton className="h-3 w-20" />
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                   <Calendar className="h-5 w-5 text-emerald-600" />
                 </div>
-                <span className="text-3xl font-bold text-foreground">
+                <span className="text-3xl font-bold text-foreground block mb-1">
                   {kpis?.todayAppointments ?? 0}
                 </span>
-                <p className="text-sm text-muted-foreground font-medium">Compromissos Hoje</p>
+                <p className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-widest">Compromissos Hoje</p>
               </div>
             )}
           </CardContent>
@@ -85,20 +85,20 @@ export function KpiGrid({ kpis, loading }: KpiGridProps) {
       {/* Pagamentos Pendentes */}
       <Link to="/agenda/payments">
         <Card className="bento-card cursor-pointer h-full">
-          <CardContent className="p-5">
+          <CardContent className="p-4">
             {loading ? (
               <div className="space-y-3">
-                <Skeleton className="h-10 w-10 rounded-xl" />
-                <Skeleton className="h-8 w-16" />
-                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-8 rounded-lg" />
+                <Skeleton className="h-6 w-12" />
+                <Skeleton className="h-3 w-20" />
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
                   <CreditCard className="h-5 w-5 text-amber-600" />
                 </div>
-                <span className="text-3xl font-bold text-foreground">—</span>
-                <p className="text-sm text-muted-foreground font-medium">Pagamentos Pendentes</p>
+                <span className="text-3xl font-bold text-foreground block mb-1">—</span>
+                <p className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-widest">Pagamentos Pendentes</p>
               </div>
             )}
           </CardContent>
@@ -108,28 +108,28 @@ export function KpiGrid({ kpis, loading }: KpiGridProps) {
       {/* Casos em Risco */}
       <Link to="/cases?risk=alto" className="block transform transition-transform duration-300 hover:scale-[1.02]">
         <Card className={`bento-card cursor-pointer h-full group ${hasHighRisk ? 'ring-1 ring-destructive/40 bg-gradient-to-br from-destructive/5 to-transparent' : ''}`}>
-          <CardContent className="p-5 flex flex-col h-full justify-between">
+          <CardContent className="p-4 flex flex-col h-full justify-between">
             {loading ? (
               <div className="space-y-3">
-                <Skeleton className="h-10 w-10 rounded-xl" />
-                <Skeleton className="h-8 w-16" />
-                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-8 rounded-lg" />
+                <Skeleton className="h-6 w-12" />
+                <Skeleton className="h-3 w-20" />
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className={`h-12 w-12 rounded-xl flex items-center justify-center transition-colors duration-300 ${hasHighRisk ? 'bg-destructive/15 group-hover:bg-destructive/25' : 'bg-muted/50 group-hover:bg-muted'}`}>
-                  <ShieldAlert className={`h-6 w-6 ${hasHighRisk ? 'text-destructive group-hover:animate-pulse' : 'text-muted-foreground'}`} />
+              <div className="space-y-3">
+                <div className={`h-10 w-10 rounded-lg flex items-center justify-center transition-colors duration-300 ${hasHighRisk ? 'bg-destructive/15 group-hover:bg-destructive/25' : 'bg-muted/50 group-hover:bg-muted'}`}>
+                  <ShieldAlert className={`h-5 w-5 ${hasHighRisk ? 'text-destructive group-hover:animate-pulse' : 'text-muted-foreground'}`} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-4xl font-extrabold tracking-tight drop-shadow-sm ${hasHighRisk ? 'text-destructive' : 'text-foreground'}`}>
+                    <span className={`text-3xl font-bold tracking-tight drop-shadow-sm ${hasHighRisk ? 'text-destructive' : 'text-foreground'}`}>
                       {kpis?.highRiskCases ?? 0}
                     </span>
                     {hasHighRisk && (
-                      <Badge variant="destructive" className="shadow-sm shadow-destructive/20 border-white/10 text-[10px] uppercase font-bold tracking-widest">Nija AI</Badge>
+                      <Badge variant="destructive" className="shadow-sm shadow-destructive/20 border-white/10 text-[9px] uppercase font-bold tracking-widest">Nija AI</Badge>
                     )}
                   </div>
-                  <p className={`text-sm font-medium uppercase tracking-wider ${hasHighRisk ? 'text-destructive/80' : 'text-muted-foreground'}`}>Casos em Risco</p>
+                  <p className={`text-xs font-semibold uppercase tracking-widest ${hasHighRisk ? 'text-destructive/80' : 'text-muted-foreground/80'}`}>Casos em Risco</p>
                 </div>
               </div>
             )}
@@ -140,23 +140,23 @@ export function KpiGrid({ kpis, loading }: KpiGridProps) {
       {/* Meus Casos */}
       <Link to="/cases?scope=mine" className="block transform transition-transform duration-300 hover:scale-[1.02]">
         <Card className="bento-card cursor-pointer h-full group">
-          <CardContent className="p-5 flex flex-col h-full justify-between">
+          <CardContent className="p-4 flex flex-col h-full justify-between">
             {loading ? (
               <div className="space-y-3">
-                <Skeleton className="h-10 w-10 rounded-xl" />
-                <Skeleton className="h-8 w-16" />
-                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-8 rounded-lg" />
+                <Skeleton className="h-6 w-12" />
+                <Skeleton className="h-3 w-20" />
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="h-12 w-12 rounded-xl bg-primary/15 group-hover:bg-primary/25 flex items-center justify-center transition-colors duration-300">
-                  <Briefcase className="h-6 w-6 text-primary" />
+              <div className="space-y-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/15 group-hover:bg-primary/25 flex items-center justify-center transition-colors duration-300">
+                  <Briefcase className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <span className="block text-4xl font-extrabold text-foreground tracking-tight drop-shadow-sm mb-1">
+                  <span className="block text-3xl font-bold text-foreground tracking-tight drop-shadow-sm mb-1">
                     {kpis?.myCases ?? 0}
                   </span>
-                  <p className="text-sm text-primary/80 font-bold uppercase tracking-wider">Meus Casos</p>
+                  <p className="text-xs text-primary/80 font-bold uppercase tracking-widest">Meus Casos</p>
                 </div>
               </div>
             )}

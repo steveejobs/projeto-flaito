@@ -9,7 +9,8 @@ import { OfficeBrandingProvider } from "@/contexts/OfficeBrandingContext";
 import { DevPanelProvider } from "@/contexts/DevPanelContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
-import AppShell from "@/components/AppShell";
+import LegalShell from "@/components/layout/LegalShell";
+import MedicalShell from "@/components/layout/MedicalShell";
 import { ModuleProtectedRoute } from "@/components/ModuleProtectedRoute";
 
 
@@ -22,7 +23,7 @@ import Cases from "./modules/legal/Cases";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Dashboard from "./pages/Dashboard";
+import LegalDashboard from "./modules/legal/pages/LegalDashboard";
 
 
 import MeuEscritorio from "./pages/MeuEscritorio";
@@ -55,10 +56,11 @@ import MemberProfile from "./pages/MemberProfile";
 import PublicClientCapture from "./pages/PublicClientCapture";
 import AcceptInvite from "./pages/AcceptInvite";
 
-// Medical Module Pages
 import MedicalDashboard from "./modules/medicina/MedicalDashboard";
+import AgendaMedicaPage from "./modules/medicina/agenda/AgendaMedicaPage";
 import PacientesPage from "./modules/medicina/pacientes/PacientesPage";
 import PacienteDetalhe from "./modules/medicina/pacientes/PacienteDetalhe";
+import AtendimentoMedicoPage from "./modules/medicina/pacientes/AtendimentoMedicoPage";
 import TranscricaoPage from "./modules/medicina/transcricao/TranscricaoPage";
 import AnaliseClinicaPage from "./modules/medicina/analise/AnaliseClinicaPage";
 import ProtocolosPage from "./modules/medicina/protocolos/ProtocolosPage";
@@ -127,20 +129,22 @@ const App = () => (
                     }
                   />
 
-                  {/* ====== APP LOGADO COM LAYOUT PERSISTENTE (AppShell) ====== */}
-                  <Route element={<AppShell />}>
+                  {/* ====== APP LOGADO COM LAYOUT PERSISTENTE (LegalShell) ====== */}
+                  <Route element={<LegalShell />}>
                     {/* DASHBOARD */}
                     <Route
                       path="/dashboard"
                       element={
                         <RoleProtectedRoute minRole="MEMBER">
-                          <Dashboard />
-
+                          <LegalDashboard />
                         </RoleProtectedRoute>
                       }
                     />
 
-                    {/* ====== MÓDULO MÉDICO ====== */}
+                  </Route>
+
+                  {/* ====== MÓDULO MÉDICO ====== */}
+                  <Route element={<MedicalShell />}>
                     <Route
                       path="/medical/dashboard"
                       element={
@@ -162,6 +166,16 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="/medical/agenda"
+                      element={
+                        <RoleProtectedRoute minRole="MEMBER">
+                          <ModuleProtectedRoute module="MEDICAL">
+                            <AgendaMedicaPage />
+                          </ModuleProtectedRoute>
+                        </RoleProtectedRoute>
+                      }
+                    />
+                    <Route
                       path="/medical/patients"
                       element={
                         <RoleProtectedRoute minRole="MEMBER">
@@ -177,6 +191,16 @@ const App = () => (
                         <RoleProtectedRoute minRole="MEMBER">
                           <ModuleProtectedRoute module="MEDICAL">
                             <PacienteDetalhe />
+                          </ModuleProtectedRoute>
+                        </RoleProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/medical/atendimento/:id"
+                      element={
+                        <RoleProtectedRoute minRole="MEMBER">
+                          <ModuleProtectedRoute module="MEDICAL">
+                            <AtendimentoMedicoPage />
                           </ModuleProtectedRoute>
                         </RoleProtectedRoute>
                       }
@@ -211,7 +235,9 @@ const App = () => (
                         </RoleProtectedRoute>
                       }
                     />
+                  </Route>
 
+                  <Route element={<LegalShell />}>
                     <Route
                       path="/alerts"
                       element={

@@ -40,21 +40,20 @@ export function PrioritiesCard({
 }: PrioritiesCardProps) {
   return (
     <Card className="bento-card relative overflow-hidden group">
-      {/* Subtle Background Decoration */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl mix-blend-screen pointer-events-none group-hover:bg-primary/10 transition-colors duration-700" />
+      {/* Decorative effect removed to reduce blur */}
 
-      <CardHeader className="pb-4 border-b border-border/40 relative z-10">
+      <CardHeader className="pb-2 border-b border-white/5 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shadow-inner border border-primary/20">
-            <Clock className="h-5 w-5 text-primary" />
+          <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center shadow-inner border border-primary/20">
+            <Clock className="h-3.5 w-3.5 text-primary" />
           </div>
           <div>
-            <CardTitle className="text-xl font-bold tracking-tight">Prioridades</CardTitle>
-            <CardDescription className="text-xs font-medium uppercase tracking-wider mt-0.5">Próximos 7 dias</CardDescription>
+            <CardTitle className="text-base font-bold tracking-tight">Prioridades</CardTitle>
+            <CardDescription className="text-[9px] font-semibold uppercase tracking-widest mt-0.5 text-muted-foreground/60">Próximos 7 dias</CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-4 pt-4 space-y-6 relative z-10">
+      <CardContent className="p-3 pt-3 space-y-4 relative z-10">
         {/* Prazos */}
         <div>
           <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
@@ -70,15 +69,15 @@ export function PrioritiesCard({
             <p className="text-sm text-muted-foreground py-4 text-center glass-panel rounded-xl">Nenhum prazo pendente</p>
           ) : (
             <ScrollArea className="h-[180px] pr-3 -mr-3">
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {deadlines.slice(0, 5).map((d) => (
                   <Link
                     key={d.id}
                     to={d.case_id ? `/cases?caseId=${d.case_id}` : '/alerts'}
-                    className="flex items-center justify-between p-3 rounded-xl glass-panel hover:bg-white/5 transition-all duration-300 group/item transform hover:-translate-y-0.5 border-l-2 border-l-destructive/50"
+                    className="flex items-center justify-between p-2 rounded-lg glass-panel hover:bg-white/5 transition-all duration-300 group/item transform hover:-translate-y-0.5 border-l-2 border-l-destructive/50"
                   >
-                    <span className="text-sm font-semibold truncate flex-1 tracking-tight text-foreground/90 group-hover/item:text-foreground transition-colors">{d.title}</span>
-                    <Badge variant="outline" className="text-[10px] ml-3 shrink-0 uppercase tracking-widest font-bold border-white/10 shadow-sm bg-background/50 backdrop-blur-md">
+                    <span className="text-xs font-medium truncate flex-1 tracking-tight text-foreground/90 group-hover/item:text-foreground transition-colors">{d.title}</span>
+                    <Badge variant="outline" className="text-[9px] ml-3 shrink-0 uppercase tracking-widest font-bold border-white/10 shadow-sm bg-background/50">
                       {formatDeadlineDate(d.due_date)}
                     </Badge>
                   </Link>
@@ -103,15 +102,15 @@ export function PrioritiesCard({
             <p className="text-sm text-muted-foreground py-4 text-center glass-panel rounded-xl">Nenhum compromisso próximo</p>
           ) : (
             <ScrollArea className="h-[180px] pr-3 -mr-3">
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {agendaItems.slice(0, 5).map((a) => (
                   <Link
                     key={a.id}
                     to="/agenda"
-                    className="flex items-center justify-between p-3 rounded-xl glass-panel hover:bg-white/5 transition-all duration-300 group/item transform hover:-translate-y-0.5 border-l-2 border-l-emerald-500/50"
+                    className="flex items-center justify-between p-2 rounded-lg glass-panel hover:bg-white/5 transition-all duration-300 group/item transform hover:-translate-y-0.5 border-l-2 border-l-emerald-500/50"
                   >
-                    <span className="text-sm font-semibold truncate flex-1 tracking-tight text-foreground/90 group-hover/item:text-foreground transition-colors">{a.title}</span>
-                    <Badge variant="outline" className="text-[10px] ml-3 shrink-0 uppercase tracking-widest font-bold border-white/10 shadow-sm bg-background/50 backdrop-blur-md">
+                    <span className="text-xs font-medium truncate flex-1 tracking-tight text-foreground/90 group-hover/item:text-foreground transition-colors">{a.title}</span>
+                    <Badge variant="outline" className="text-[9px] ml-3 shrink-0 uppercase tracking-widest font-bold border-white/10 shadow-sm bg-background/50">
                       {isToday(new Date(a.date)) ? 'Hoje' : format(new Date(a.date), 'dd/MM')}
                       {a.time && ` ${a.time}`}
                     </Badge>
