@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FileText, Loader2, FileWarning } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { canAnalyzeDocuments, getBlockingReason, type ReadingStatus } from "@/nija";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface DocumentWithStatus {
   id: string;
@@ -123,6 +124,16 @@ export function NijaAutoPetitionButton({ caseId }: Props) {
               Projeto Flaito.
             </DialogDescription>
           </DialogHeader>
+
+          <Alert variant="destructive" className="mt-4 bg-amber-50 border-amber-200 text-amber-800">
+            <FileWarning className="h-4 w-4" />
+            <AlertTitle className="font-bold">Revisão Humana Exigida</AlertTitle>
+            <AlertDescription className="text-xs">
+              O texto gerado pode conter alucinações jurídicas ou citar precedentes inexistentes. 
+              <strong> Você DEVE revisar integralmente a fundamentação e validar qualquer jurisprudência </strong> 
+              em fontes oficiais antes do protocolo.
+            </AlertDescription>
+          </Alert>
 
           <div className="mt-2 space-y-2">
             <Textarea
