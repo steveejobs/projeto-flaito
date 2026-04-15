@@ -293,11 +293,7 @@ export function CaptureAddressStep({
         <Button
           type="button"
           onClick={handleContinue}
-          className="flex-1 hover:opacity-90 active:scale-[0.98] transition-all duration-200"
-          style={{
-            backgroundColor: "var(--brand-primary)",
-            color: "#000",
-          }}
+          className="flex-1 bg-white text-black hover:bg-white/90 active:scale-[0.98] transition-all duration-200 font-bold h-12 rounded-xl border-none shadow-xl"
         >
           Continuar
         </Button>

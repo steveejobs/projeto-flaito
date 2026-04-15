@@ -9,15 +9,18 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import type { EprocExtractionResult, NijaAnalyzerResponse } from "@/nija";
+import type { EprocExtractionResult } from "@/types/nija-contracts";
+import type { NijaAnalyzerResponse } from "@/nija/core/analyzer";
 import { 
   generateMinutaFromExtraction, 
   exportMinutaToDocx, 
   copyMinutaToClipboard,
-  exportTimelineToDocx,
+} from "@/nija/export/templateGenerator";
+import { exportTimelineToDocx } from "@/nija/export/timelineExporter";
+import { 
   exportAnalysisToDocx, 
   copyAnalysisToClipboard,
-} from "@/nija";
+} from "@/nija/export/analysisExporter";
 import { 
   CheckCircle2, 
   AlertTriangle, 
@@ -52,6 +55,9 @@ interface NijaPostExtractionPanelProps {
   onRunAIAnalysis?: () => void;
   aiAnalysisLoading?: boolean;
   aiAnalysisResult?: any; // Full AI analysis result from edge function
+  // Maestro Mode
+  isMaestroMode?: boolean;
+  onMaestroModeChange?: (val: boolean) => void;
 }
 
 export function NijaPostExtractionPanel({
@@ -69,6 +75,8 @@ export function NijaPostExtractionPanel({
   onRunAIAnalysis,
   aiAnalysisLoading = false,
   aiAnalysisResult,
+  isMaestroMode = true,
+  onMaestroModeChange,
 }: NijaPostExtractionPanelProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -215,24 +223,50 @@ export function NijaPostExtractionPanel({
                   <Brain className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Enriquecer com Análise IA</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sm">Enriquecer com Análise IA</p>
+                    <Badge variant="outline" className="text-[10px] uppercase tracking-wider py-0 px-1.5 h-4 border-primary/30 text-primary">
+                      {isMaestroMode ? "Premium" : "Standard"}
+                    </Badge>
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    Detectar vícios, riscos, prescrição e estratégias com inteligência artificial
+                    {isMaestroMode 
+                      ? "Pipeline de 9 estágios + Simulação Judicial (Juiz IA)" 
+                      : "Geração rápida de minuta e análise de vícios padrão"}
                   </p>
                 </div>
               </div>
-              <Button 
-                onClick={onRunAIAnalysis} 
-                disabled={aiAnalysisLoading}
-                className="gap-2 bg-primary hover:bg-primary/90"
-              >
-                {aiAnalysisLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-                Analisar com IA
-              </Button>
+              
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                {/* Selector de Modo */}
+                <div className="flex items-center bg-background/50 border border-border p-1 rounded-lg">
+                  <button
+                    onClick={() => onMaestroModeChange?.(false)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${!isMaestroMode ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Rápido
+                  </button>
+                  <button
+                    onClick={() => onMaestroModeChange?.(true)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${isMaestroMode ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Maestro
+                  </button>
+                </div>
+
+                <Button 
+                  onClick={onRunAIAnalysis} 
+                  disabled={aiAnalysisLoading}
+                  className="gap-2 bg-primary hover:bg-primary/90"
+                >
+                  {aiAnalysisLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  {isMaestroMode ? "Rodar Maestro" : "Analisar Agora"}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

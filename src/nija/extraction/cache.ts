@@ -16,8 +16,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeForPostgresText, sanitizeJsonForPostgres } from "@/lib/sanitizeForPostgres";
-import type { EprocExtractionResult } from "@/nija/extraction/mode";
-import type { DetectedProcessSystem } from "@/nija/connectors/eproc/detector";
+import type { EprocExtractionResult, DetectedProcessSystem } from "@/types/nija-contracts";
 
 const EXTRACTOR_VERSION = "v1";
 
@@ -90,7 +89,7 @@ export async function getCachedExtraction(
       .eq("office_id", officeId)
       .eq("extraction_hash", extractionHash)
       .limit(1)
-      .maybeSingle();
+      .maybeSingle() as any;
 
     if (error) {
       console.warn("[ExtractionCache] Error fetching cache:", error);
@@ -110,7 +109,7 @@ export async function getCachedExtraction(
         .from("documents")
         .select("extraction_report")
         .eq("id", data.document_id)
-        .maybeSingle();
+        .maybeSingle() as any;
 
       if (!docError && docData?.extraction_report) {
         result = docData.extraction_report as unknown as EprocExtractionResult;

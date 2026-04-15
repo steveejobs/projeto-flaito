@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useOfficeRole } from "@/hooks/useOfficeRole";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +32,8 @@ interface Message {
 const DecifradorCasosPage = () => {
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    const { user } = useAuth();
+    const { officeId } = useOfficeRole();
     const [messages, setMessages] = useState<Message[]>([
         {
             id: '1',
@@ -47,7 +52,7 @@ const DecifradorCasosPage = () => {
         scrollToBottom();
     }, [messages, isTyping]);
 
-    const handleSend = () => {
+    const handleSend = async () => {
         if (!input.trim()) return;
 
         const userMsg: Message = { id: Date.now().toString(), role: 'user', content: input };
@@ -55,50 +60,44 @@ const DecifradorCasosPage = () => {
         setInput('');
         setIsTyping(true);
 
-        // Simulando raciocínio clínico da IA
-        setTimeout(() => {
-            let aiResponse: Message;
+        try {
+            const { data, error } = await supabase.functions.invoke('medical-agent-analysis', {
+                body: {
+                    officeId: officeId || '',
+                    pacienteId: null,
+                    inputText: input,
+                    tipoAnalise: 'chat',
+                    agentType: 'decoder'
+                }
+            });
 
-            const lowerInput = input.toLowerCase();
+            if (error) throw new Error(error.message || "Erro na comunicação com a IA.");
+            if (!data || !data.resultado) throw new Error("A IA retornou um formato inesperado.");
 
-            if (lowerInput.includes('paciente') && lowerInput.includes('sintoma')) {
-                // Diagnóstico Diferencial Mock
-                aiResponse = {
-                    id: (Date.now() + 1).toString(),
-                    role: 'ai',
-                    content: 'Com base nos sintomas descritos (Fadiga, perda de peso, febre vespertina e sudorese noturna), aqui está a análise de Diagnóstico Diferencial:',
-                    type: 'differential',
-                    data: [
-                        { condicao: 'Tuberculose Pulmonar', prob: 'Alta', descricao: 'Investigar história epidemiológica rastro de contatos. Pedir Rx Tórax e BAAR.' },
-                        { condicao: 'Linfoma (Hodgkin / Não-Hodgkin)', prob: 'Moderada', descricao: 'Sintomas B clássicos. Avaliar linfonodomegalias e hemograma.' },
-                        { condicao: 'Endocardite Infecciosa', prob: 'Baixa', descricao: 'Auscultar sopros, investigar uso de drogas IV ou procedimentos dentários recentes.' }
-                    ]
-                };
-            } else if (lowerInput.includes('interação') || lowerInput.includes('remédio')) {
-                // Interação Medicamentosa Mock
-                aiResponse = {
-                    id: (Date.now() + 1).toString(),
-                    role: 'ai',
-                    content: 'Atenção aos seguintes riscos de interação medicamentosa encontrados na prescrição:',
-                    type: 'interaction',
-                    data: [
-                        { drogaA: 'Fluoxetina', drogaB: 'Tramadol', gravidade: 'Alta', risco: 'Risco aumentado de Síndrome Serotoninérgica ou convulsões.' },
-                        { drogaA: 'Omeprazol', drogaB: 'Clopidogrel', gravidade: 'Moderada', risco: 'Omeprazol pode reduzir a eficácia antiplaquetária do Clopidogrel (inibição da CYP2C19).' }
-                    ]
-                };
-            } else {
-                // Resposta Textual Genérica
-                aiResponse = {
-                    id: (Date.now() + 1).toString(),
-                    role: 'ai',
-                    type: 'text',
-                    content: 'Interessante. Baseado nos guidelines atuais, recomendo a solicitação inicial de exames laboratoriais amplos (Hemograma, PCR, VHS, perfil hepático e renal) antes de fecharmos a conduta.\n\nQuer que eu monte uma sugestão de protocolo de investigação?'
-                };
-            }
+            const result = data.resultado;
+
+            const aiResponse: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'ai',
+                type: result.type || 'text',
+                content: result.content || (result.type === 'text' ? '' : 'Baseado na análise, identifiquei os seguintes pontos:'),
+                data: result.data || undefined
+            };
 
             setMessages(prev => [...prev, aiResponse]);
+            
+        } catch (error: any) {
+            console.error("Chat Error:", error);
+            const errorMsg: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'ai',
+                type: 'text',
+                content: `🚨 **Erro de Conexão com o Agente:** ${error.message}. Por favor, verifique suas configurações de API ou tente novamente.`
+            };
+            setMessages(prev => [...prev, errorMsg]);
+        } finally {
             setIsTyping(false);
-        }, 2000);
+        }
     };
 
     return (

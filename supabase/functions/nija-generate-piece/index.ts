@@ -2,7 +2,10 @@
 // Edge function para geração de minutas estruturadas (NIJA-PEÇAS V4) com base nos vícios detectados
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { NIJA_CORE_PROMPT } from "../_shared/nija-core-prompt.ts";
+import { resolveVariables, RootContext } from "../_shared/variableResolver.ts";
+import { requireOfficeMembership } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -64,34 +67,37 @@ interface NijaPieceRequest {
   lawyerName?: string;
   oabNumber?: string;
   actingSide?: "REU" | "AUTOR";
+  instrucoesAdicionais?: string;
 }
 
-// Função para normalizar placeholders na peça gerada
-function normalizePlaceholders(
+async function resolveAllPlaceholders(
+  supabase: any,
   text: string,
-  data: {
-    clientName?: string;
-    opponentName?: string;
-    cnjNumber?: string;
-    courtName?: string;
-    city?: string;
-    lawyerName?: string;
-    oabNumber?: string;
+  context: RootContext,
+  legacyData: any
+): Promise<string> {
+  let resolved = await resolveVariables(supabase, text, context, legacyData);
+  
+  const legacyMap: Record<string, string> = {
+    'NOME DO CLIENTE': legacyData.clientName || "—",
+    'NOME DA PARTE CONTRÁRIA': legacyData.opponentName || "—",
+    'NÚMERO DO PROCESSO': legacyData.cnjNumber || "—",
+    'VARA': legacyData.courtName || "—",
+    'JUÍZO': legacyData.courtName || "—",
+    'CIDADE': legacyData.city || "—",
+    'ADVOGADO': legacyData.lawyerName || "—",
+    'OAB': legacyData.oabNumber || "—"
+  };
+
+  for (const [key, val] of Object.entries(legacyMap)) {
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\[${escapedKey}\\]`, 'gi');
+    resolved = resolved.replace(regex, val);
   }
-): string {
-  return text
-    .replace(/\[NOME DO CLIENTE\]/gi, data.clientName || "DADO A COMPLETAR PELO ADVOGADO")
-    .replace(/\[NOME DA PARTE CONTRÁRIA\]/gi, data.opponentName || "DADO A COMPLETAR PELO ADVOGADO")
-    .replace(/\[NÚMERO DO PROCESSO\]/gi, data.cnjNumber || "DADO A COMPLETAR PELO ADVOGADO")
-    .replace(/\[VARA\]/gi, data.courtName || "DADO A COMPLETAR PELO ADVOGADO")
-    .replace(/\[JUÍZO\]/gi, data.courtName || "DADO A COMPLETAR PELO ADVOGADO")
-    .replace(/\[CIDADE\]/gi, data.city || "DADO A COMPLETAR PELO ADVOGADO")
-    .replace(/\[ADVOGADO\]/gi, data.lawyerName || "DADO A COMPLETAR PELO ADVOGADO")
-    .replace(/\[OAB\]/gi, data.oabNumber || "DADO A COMPLETAR PELO ADVOGADO")
-    .replace(/DADO A COMPLETAR PELO ADVOGADO/g, (match) => match);
+
+  return resolved;
 }
 
-// Tipo da resposta esperada da IA
 interface NijaGeneratedPiece {
   tipoPeca: string;
   tituloSugestao: string;
@@ -106,7 +112,8 @@ interface NijaGeneratedPiece {
   sugerirNomeArquivo?: string;
 }
 
-const SYSTEM_PROMPT = `${NIJA_CORE_PROMPT}
+function buildSystemPrompt(internalDocsStr: string): string {
+  let prompt = `${NIJA_CORE_PROMPT}
 
 ==================================================
 ### MÓDULO NIJA-PEÇAS: GERADOR DE MINUTAS ###
@@ -116,52 +123,35 @@ Você é o NIJA-PEÇAS, redator jurídico oficial do LEXOS. Sua função é cria
 
 REGRAS ABSOLUTAS (NUNCA DESCUMPRIR):
 
-1. NUNCA utilizar ou exibir rótulos internos do motor, como:
-   - "Ato:", "Vício:", "ARQUIVO_PROCESSO", "CONTESTACAO", "SENTENCA", "ATO_DETECTADO"
-   - "tecnico", "criteriosAplicados", "motivoDeteccao", "offset"
-   - qualquer nome de enum, código, label do motor, tags internas ou identificadores
+1. NUNCA utilizar ou exibir rótulos internos do motor, como: "Ato:", "Vício:", etc.
+2. Transforme SEMPRE essas informações técnicas em linguagem jurídica NATURAL.
+3. SE ALGUM DADO NÃO FOR INFORMADO, use: "DADO A COMPLETAR PELO ADVOGADO".
+4. NUNCA escrever avisos automáticos se houver base tese correspondente.
+5. Use estrutura jurídica clássica.
+6. Mantenha o tom jurídico robusto e persuasivo.
 
-2. Transforme SEMPRE essas informações técnicas em linguagem jurídica NATURAL:
-   - "Ato: ARQUIVO_PROCESSO" → "decisão que determinou o arquivamento"
-   - "Ato: CONTESTACAO" → "contestação apresentada"
-   - "Vício: ausência de fundamentação" → "houve ausência de fundamentação na decisão"
-   - "trecho identificado" → escreva naturalmente: "conforme se verifica no trecho: '...'"
+8. GUARDRAILS CONTRA ALUCINAÇÃO JURÍDICA:
+   - É ESTRITAMENTE PROIBIDO inventar números de leis ou jurisprudências que não existam.`;
 
-3. SE ALGUM DADO NÃO FOR INFORMADO (processo, vara, nome da parte, advogado):
-   - Nunca usar colchetes técnicos
-   - Use: "DADO A COMPLETAR PELO ADVOGADO"
+  if (internalDocsStr && internalDocsStr.trim().length > 0) {
+    prompt += `
 
-4. NUNCA escrever avisos do tipo "A peça deve ser revisada…", "Gerado automaticamente…"
+==================================================
+=== BASE JURÍDICA OBRIGATÓRIA (ACERVO INTERNO) ===
+==================================================
+Foram localizados os seguintes documentos na base interna do escritório que DEVEM guiar a fundamentação:
 
-5. Use estrutura jurídica clássica: Endereçamento, Qualificação, Síntese dos Fatos, Fundamentos Jurídicos, Pedidos, Provas, Fechamento
+${internalDocsStr}`;
+  } else {
+    prompt += `
+\nNenhuma tese interna correspondente foi localizada. Use fundamentação baseada em leis notórias.`;
+  }
 
-6. Todas as análises, fundamentos e vícios detectados devem vir em linguagem jurídica limpa, SEM revelar funcionamento interno do NIJA
-
-7. O texto final deve ter tom jurídico robusto, persuasivo e técnico, próprio de um advogado experiente
-
-8. GUARDRAILS CONTRA ALUCINAÇÃO JURÍDICA (RISCO DE LITIGÂNCIA DE MÁ-FÉ):
-   - É ESTRITAMENTE PROIBIDO inventar, alucinar ou criar números de leis, artigos, súmulas ou jurisprudências.
-   - Limite-se APENAS à base legal e fatos fornecidos neste prompt, ou leis federais de amplo e inequívoco conhecimento.
-   - NUNCA invente números de processos ou ementas de tribunais. Para exemplificar jurisprudência, use placeholders óbvios ou escreva "[O ADVOGADO DEVE INSERIR A JURISPRUDÊNCIA APLICÁVEL AQUI]".
-
-FORMATO DE SAÍDA:
-Retorne EXCLUSIVAMENTE um JSON válido no formato exato abaixo:
-{
-  "tipoPeca": "CONTESTACAO" | "APELACAO" | "EMBARGOS_DECLARACAO" | "AGRAVO" | "RECURSO_ESPECIAL" | "MANDADO_SEGURANCA" | "HABEAS_CORPUS" | "IMPUGNACAO" | "OUTRO",
-  "tituloSugestao": "Título sugerido para a peça",
-  "focoPrincipal": "Ex: cerceamento de defesa, prescrição intercorrente",
-  "estrutura": {
-    "fatos": "Narrativa cronológica dos fatos em linguagem jurídica natural",
-    "fundamentos": "Fundamentação jurídica robusta e persuasiva",
-    "pedidos": "Pedidos específicos e bem fundamentados",
-    "jurisprudenciaSugerida": "Sugestões genéricas de jurisprudência (sem inventar números)",
-    "observacoesEstrategicas": "Recomendações táticas para o advogado"
-  },
-  "sugerirNomeArquivo": "nome-sugerido-para-arquivo.docx"
-}`;
+  prompt += `\n\nRetorne EXCLUSIVAMENTE um JSON válido conforme o esquema solicitado.`;
+  return prompt;
+}
 
 serve(async (req) => {
-  // Preflight CORS - Safari fix: always return Content-Type: application/json
   if (req.method === "OPTIONS") {
     return new Response(JSON.stringify({ ok: true }), { 
       headers: { ...corsHeaders, "Content-Type": "application/json" } 
@@ -169,129 +159,91 @@ serve(async (req) => {
   }
 
   try {
-    const body: NijaPieceRequest = await req.json();
-    console.log("Received nija-generate-piece request");
+    // 1. Authenticate and Authorize (Zero Trust)
+    const auth = await requireOfficeMembership(req); 
+    if (!auth.ok) return auth.response;
 
+    const body: NijaPieceRequest = await req.json();
     const {
-      ramo,
-      resumoTatico,
-      vicios,
-      estrategiasPrincipais,
-      estrategiasSecundarias,
-      caseDescription,
-      clientName,
-      opponentName,
-      cnjNumber,
-      courtName,
-      city,
-      lawyerName,
-      oabNumber,
-      actingSide,
+      ramo, resumoTatico, vicios, estrategiasPrincipais, estrategiasSecundarias,
+      caseDescription, clientName, opponentName, cnjNumber, courtName, city,
+      lawyerName, oabNumber, actingSide, instrucoesAdicionais,
     } = body;
 
-    // Calcular perspectiva processual
     const isReu = (actingSide ?? "REU") === "REU";
     const clientRoleLabel = isReu ? "RÉU" : "AUTOR";
     const opponentRoleLabel = isReu ? "AUTOR" : "RÉU";
 
-    // Validar vícios obrigatórios
     if (!vicios || vicios.length === 0) {
-      console.log("No vicios provided, returning 400");
       return new Response(
         JSON.stringify({ error: "Vícios são obrigatórios para gerar a peça." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Construir resumo dos vícios em linguagem natural (sem termos técnicos)
     const viciosSummary = vicios.map((v, i) => {
-      const list: string[] = [];
-      const label = v.defect?.label || "Irregularidade identificada";
-      const severity = v.severity === "high" ? "grave" : v.severity === "medium" ? "moderada" : "leve";
-      
-      list.push(`${i + 1}. ${label} (gravidade ${severity})`);
-      
-      if (v.defect?.description) {
-        list.push(`   Descrição: ${v.defect.description}`);
-      }
-      if (v.trecho) {
-        list.push(`   Trecho relevante: "${v.trecho}"`);
-      }
-      if (v.tecnico?.fundamentosLegais && v.tecnico.fundamentosLegais.length > 0) {
-        list.push(`   Base legal: ${v.tecnico.fundamentosLegais.join("; ")}`);
-      }
-      if (v.defect?.recommendedActions?.length) {
-        list.push(`   Ações recomendadas: ${v.defect.recommendedActions.join("; ")}`);
-      }
-      if (v.notas) {
-        list.push(`   Observação: ${v.notas}`);
-      }
-      
-      return list.join("\n");
+      const label = v.defect?.label || "Irregularidade";
+      const severity = v.severity === "high" ? "grave" : "moderada";
+      return `${i + 1}. ${label} (gravidade ${severity})\n   Descrição: ${v.defect?.description || ""}\n   Base: ${v.tecnico?.fundamentosLegais?.join("; ") || ""}`;
     }).join("\n\n");
 
-    // Resumo das estratégias em linguagem natural
     const estrategiasSummary = [
-      ...(estrategiasPrincipais || []).map(s => `- Estratégia principal: ${s.label} - ${s.description}`),
-      ...(estrategiasSecundarias || []).map(s => `- Estratégia secundária: ${s.label} - ${s.description}`),
+      ...(estrategiasPrincipais || []).map(s => `- Estratégia: ${s.label}`),
     ].join("\n");
 
-    const userPrompt = `
-Com base nas irregularidades identificadas abaixo, elabore uma peça jurídica profissional e completa.
+    const userPrompt = `Gere peça para o ramo ${ramo || "INDEFINIDO"}.\n${viciosSummary}\n${estrategiasSummary}`;
 
-REGRA ABSOLUTA SOBRE O RAMO DO DIREITO:
-1. Você NÃO PODE adivinhar ou inventar o ramo do direito.
-2. Você SEMPRE deve usar EXCLUSIVAMENTE o valor recebido no campo "ramo".
-3. Se "ramo" vier preenchido (ex.: "CIVIL"), repita exatamente esse valor no texto (sem adaptar).
-4. Se "ramo" vier vazio, nulo ou indefinido, escreva no resumo: "Ramo identificado: INDEFINIDO – ramo não identificado com segurança. Confirme manualmente.".
-5. É PROIBIDO escrever "TRABALHISTA" se o campo "ramo" não contiver "TRABALHISTA".
+    // 2. RAG V2 - Busca Vetorial com Trava de Tenant
+    let internalDocsStr = "";
+    try {
+      const queryParts = [ramo, vicios.map(v => v.defect?.label).join(", ")].filter(Boolean);
+      const queryString = queryParts.join(" | ");
 
-RAMO DO DIREITO (campo obrigatório): ${ramo || "INDEFINIDO"}
+      const embRes = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "text-embedding-3-small",
+          input: queryString,
+        }),
+      });
 
-RESUMO DO CASO: ${resumoTatico || "Caso em análise"}
+      if (embRes.ok) {
+        const embData = await embRes.json();
+        const { data: searchResults, error: searchError } = await auth.adminClient
+          .rpc("match_legal_chunks", {
+            query_embedding: embData.data[0].embedding,
+            match_threshold: 0.5,
+            match_count: 8,
+            filter_ramo: ramo || null,
+            filter_office_id: auth.membership.office_id // CRÍTICO: Isola os dados por tenant
+          });
 
-IRREGULARIDADES IDENTIFICADAS:
-${viciosSummary}
-
-ESTRATÉGIAS RECOMENDADAS:
-${estrategiasSummary || "Escolher a mais adequada às irregularidades"}
-
-CONTEXTO: ${caseDescription || "Adaptar conforme necessário"}
-
-DADOS DO PROCESSO:
-- Cliente (${clientRoleLabel}): ${clientName || "DADO A COMPLETAR PELO ADVOGADO"}
-- Parte contrária (${opponentRoleLabel}): ${opponentName || "DADO A COMPLETAR PELO ADVOGADO"}
-- Número do processo: ${cnjNumber || "DADO A COMPLETAR PELO ADVOGADO"}
-- Juízo: ${courtName || "DADO A COMPLETAR PELO ADVOGADO"}
-- Cidade: ${city || "DADO A COMPLETAR PELO ADVOGADO"}
-- Advogado: ${lawyerName || "DADO A COMPLETAR PELO ADVOGADO"}
-- OAB: ${oabNumber || "DADO A COMPLETAR PELO ADVOGADO"}
-
-PERSPECTIVA PROCESSUAL:
-Atue SEMPRE na perspectiva da parte representada (${clientRoleLabel}), estruturando a peça como ${isReu ? "defesa" : "ataque"} do ${clientRoleLabel}.
-
-INSTRUÇÕES:
-1. Escolha o tipo de peça mais adequado às irregularidades
-2. Construa narrativa dos fatos em linguagem jurídica natural
-3. Fundamente juridicamente cada ponto de forma persuasiva
-4. Formule pedidos específicos e bem fundamentados
-5. NÃO inclua avisos sobre revisão ou geração automática
-6. NÃO use termos técnicos internos do sistema
-
-Retorne APENAS o JSON no formato especificado.
-`;
-
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY not configured");
-      return new Response(
-        JSON.stringify({ error: "Serviço de IA não configurado" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+        if (!searchError && searchResults) {
+          internalDocsStr = searchResults.map((doc: any) => doc.chunk_text).join('\n---\n');
+        }
+      }
+    } catch (e) {
+      console.error("[NIJA-PIECE] RAG Error:", e);
     }
 
-    console.log("Calling AI gateway for piece generation...");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
+    // Config do agente
+    const { data: agentData } = await auth.adminClient
+        .from("ai_agents")
+        .select("model, system_prompt, temperature, max_tokens, is_active")
+        .eq("slug", "nija-generate-piece")
+        .single();
+
+    const modelToUse = agentData?.model || "google/gemini-2.5-pro";
+    const tempToUse = agentData?.temperature ?? 0.4;
+
+    const finalSystemPrompt = buildSystemPrompt(internalDocsStr);
+
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -299,108 +251,32 @@ Retorne APENAS o JSON no formato especificado.
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: modelToUse,
+        temperature: tempToUse,
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: finalSystemPrompt },
           { role: "user", content: userPrompt },
         ],
       }),
     });
 
-    if (!aiResponse.ok) {
-      const status = aiResponse.status;
-      const errorText = await aiResponse.text();
-      console.error(`AI gateway error: ${status} - ${errorText}`);
-
-      if (status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns minutos." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      if (status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos de IA esgotados. Adicione créditos para continuar." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      return new Response(
-        JSON.stringify({ error: "Erro ao comunicar com serviço de IA" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    if (!aiResponse.ok) throw new Error("Erro no gateway de IA");
 
     const aiData = await aiResponse.json();
     const content = aiData.choices?.[0]?.message?.content;
+    if (!content) throw new Error("Resposta da IA vazia");
 
-    if (!content) {
-      console.error("No content in AI response");
-      return new Response(
-        JSON.stringify({ error: "Resposta vazia do serviço de IA" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    let parsedPiece: NijaGeneratedPiece = JSON.parse(content.replace(/```json|```/g, "").trim());
 
-    console.log("AI response received, parsing JSON...");
-
-    // Tentar extrair JSON da resposta
-    let parsedPiece: NijaGeneratedPiece;
-    try {
-      // Limpar markdown code blocks se presentes
-      let jsonContent = content.trim();
-      if (jsonContent.startsWith("```json")) {
-        jsonContent = jsonContent.slice(7);
-      } else if (jsonContent.startsWith("```")) {
-        jsonContent = jsonContent.slice(3);
-      }
-      if (jsonContent.endsWith("```")) {
-        jsonContent = jsonContent.slice(0, -3);
-      }
-      
-      parsedPiece = JSON.parse(jsonContent.trim());
-    } catch (parseError) {
-      console.error("Failed to parse AI response as JSON:", parseError);
-      console.error("Raw content:", content.substring(0, 500));
-      
-      // Tentar extrair JSON do conteúdo
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try {
-          parsedPiece = JSON.parse(jsonMatch[0]);
-        } catch {
-          return new Response(
-            JSON.stringify({ error: "Não foi possível processar a resposta da IA" }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-      } else {
-        return new Response(
-          JSON.stringify({ error: "Formato de resposta inválido" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    }
-
-    // Normalizar placeholders na estrutura
-    if (parsedPiece.estrutura) {
-      const placeholderData = { clientName, opponentName, cnjNumber, courtName, city, lawyerName, oabNumber };
-      parsedPiece.estrutura.fatos = normalizePlaceholders(parsedPiece.estrutura.fatos || "", placeholderData);
-      parsedPiece.estrutura.fundamentos = normalizePlaceholders(parsedPiece.estrutura.fundamentos || "", placeholderData);
-      parsedPiece.estrutura.pedidos = normalizePlaceholders(parsedPiece.estrutura.pedidos || "", placeholderData);
-    }
-
-    console.log("Piece generated successfully:", parsedPiece.tipoPeca);
+    // Resolve placeholders
+    const placeholderData = { clientName, opponentName, cnjNumber, courtName, city, lawyerName, oabNumber };
+    parsedPiece.estrutura.fatos = await resolveAllPlaceholders(auth.adminClient, parsedPiece.estrutura.fatos, { office_id: auth.membership.office_id } as any, placeholderData);
 
     return new Response(JSON.stringify(parsedPiece), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("Error in nija-generate-piece:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Erro desconhecido" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

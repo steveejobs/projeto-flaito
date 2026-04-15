@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
     Dialog,
     DialogContent,
@@ -41,105 +43,6 @@ interface Protocolo {
     referencias: { titulo: string; autores: string; ano: number; doi?: string }[];
 }
 
-const MOCK_PROTOCOLOS: Protocolo[] = [
-    {
-        id: '1',
-        titulo: 'Protocolo de Suplementação para Fadiga Crônica',
-        condicao: 'Síndrome de Fadiga Crônica',
-        categoria: 'nutricao',
-        nivel_evidencia: 'B',
-        descricao: 'Protocolo nutricional baseado em evidências para manejo de fadiga crônica com foco em micronutrientes e suporte mitocondrial.',
-        conteudo: [
-            'Magnésio Quelato 300-400mg/dia (preferencialmente à noite)',
-            'Coenzima Q10 200-300mg/dia (suporte mitocondrial)',
-            'Vitamina D3 2000-4000 UI/dia (ajustar conforme 25-OH sérico)',
-            'Complexo B metilado (B12 metilcobalamina 1000mcg + Folato 5-MTHF 400mcg)',
-            'Ômega-3 EPA/DHA 2g/dia (modulação inflamatória)',
-            'Avaliar ferro sérico + ferritina antes de suplementar',
-        ],
-        referencias: [
-            { titulo: 'Vitamins and Minerals for Energy, Fatigue and Cognition', autores: 'Tardy et al.', ano: 2020, doi: '10.3390/nu12010228' },
-            { titulo: 'Coenzyme Q10 supplementation in chronic fatigue syndrome', autores: 'Castro-Marrero et al.', ano: 2015, doi: '10.1016/j.clnu.2014.03.007' },
-        ],
-    },
-    {
-        id: '2',
-        titulo: 'Adaptógenos para Estresse e Ansiedade',
-        condicao: 'Estresse Crônico / Ansiedade',
-        categoria: 'integrativa',
-        nivel_evidencia: 'B',
-        descricao: 'Protocolo fitoterápico com adaptógenos para modulação do eixo HPA e manejo de estresse e ansiedade.',
-        conteudo: [
-            'Ashwagandha (Withania somnifera) — 300-600mg/dia extrato padronizado KSM-66',
-            'Rhodiola rosea — 200-400mg/dia extrato padronizado (3% rosavinas)',
-            'L-Teanina 200mg/dia (suporte GABAérgico)',
-            'Magnésio Taurato 200mg/dia (efeito ansiolítico)',
-            'Considerar protocolo MBSR 8 semanas (meditação mindfulness)',
-        ],
-        referencias: [
-            { titulo: 'Ashwagandha root extract: safety and efficacy', autores: 'Chandrasekhar et al.', ano: 2012, doi: '10.4103/0253-7176.106022' },
-            { titulo: 'Rhodiola rosea for stress management', autores: 'Anghelescu et al.', ano: 2018, doi: '10.1016/j.phymed.2018.07.080' },
-        ],
-    },
-    {
-        id: '3',
-        titulo: 'Avaliação Neuropsicológica — Déficit de Atenção Adulto',
-        condicao: 'TDAH Adulto / Déficit Atencional',
-        categoria: 'neurologia',
-        nivel_evidencia: 'A',
-        descricao: 'Protocolo de investigação neuropsicológica para queixas de desatenção e disfunção executiva em adultos.',
-        conteudo: [
-            'Triagem inicial com ASRS v1.1 (WHO Adult ADHD Self-Report Scale)',
-            'Avaliação neuropsicológica completa: atenção, memória de trabalho, funções executivas',
-            'MoCA (Montreal Cognitive Assessment) para screening cognitivo',
-            'Descartar: hipotireoidismo, anemia ferropriva, apneia do sono, depressão',
-            'Exames: TSH, Ferritina, Vitamina D, B12, Hemograma',
-            'Considerar polissonografia se queixas de sono relevantes',
-        ],
-        referencias: [
-            { titulo: 'ADHD in Adults: Diagnosis and Management', autores: 'Kooij et al.', ano: 2019, doi: '10.1007/s00406-018-0947-2' },
-        ],
-    },
-    {
-        id: '4',
-        titulo: 'Protocolo Anti-Inflamatório Nutricional',
-        condicao: 'Inflamação Crônica Subclínica',
-        categoria: 'nutricao',
-        nivel_evidencia: 'B',
-        descricao: 'Abordagem nutricional para redução de marcadores inflamatórios e modulação da resposta imunológica.',
-        conteudo: [
-            'Dieta anti-inflamatória: aumento de vegetais crucíferos, frutas vermelhas, peixes gordurosos',
-            'Eliminação: açúcares refinados, óleos vegetais industrializados, ultraprocessados',
-            'Cúrcuma (curcumina) 500-1000mg/dia com piperina',
-            'Ômega-3 EPA/DHA 2-3g/dia',
-            'Probióticos multi-cepas (mín. 10 bilhões UFC)',
-            'Vitamina D3 manter > 40ng/mL',
-        ],
-        referencias: [
-            { titulo: 'Anti-Inflammatory Effects of Curcumin', autores: 'Hewlings & Kalman', ano: 2017, doi: '10.3390/foods6100092' },
-        ],
-    },
-    {
-        id: '5',
-        titulo: 'Acupuntura para Cefaleia Tensional',
-        condicao: 'Cefaleia Tensional Crônica',
-        categoria: 'integrativa',
-        nivel_evidencia: 'A',
-        descricao: 'Protocolo de acupuntura baseado em evidências para manejo de cefaleia tensional episódica e crônica.',
-        conteudo: [
-            'Sessões semanais de acupuntura (protocolo cervicogênico)',
-            'Pontos principais: GB20, GB21, LI4, LV3, GV20, Taiyang',
-            'Ciclo: 8-12 sessões, com reavaliação a cada 4',
-            'Associar: alongamento cervical diário 2x/dia',
-            'Orientação ergonômica para uso de computador',
-            'Considerar dry needling em pontos-gatilho',
-        ],
-        referencias: [
-            { titulo: 'Acupuncture for tension-type headache', autores: 'Linde et al.', ano: 2016, doi: '10.1002/14651858.CD007587.pub2' },
-        ],
-    },
-];
-
 const categoriaConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
     nutricao: { label: 'Nutrição', icon: Apple, color: 'text-orange-400' },
     integrativa: { label: 'Med. Integrativa', icon: Leaf, color: 'text-green-400' },
@@ -166,8 +69,39 @@ const ProtocolosPage = () => {
     const [categoriaFilter, setCategoriaFilter] = useState('todos');
     const [evidenciaFilter, setEvidenciaFilter] = useState('todos');
     const [selected, setSelected] = useState<Protocolo | null>(null);
+    const [protocolos, setProtocolos] = useState<Protocolo[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const filtered = MOCK_PROTOCOLOS.filter((p) => {
+    useEffect(() => {
+        const fetchProtocolos = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('protocolos')
+                    .select('*, referencias:referencias_cientificas(*)')
+                    .eq('ativo', true) as any;
+
+                if (error) throw error;
+                
+                // Map database JSONB to expected structure if needed, 
+                // but here we just ensure content is an array
+                const mapped = (data || []).map(p => ({
+                    ...p,
+                    conteudo: Array.isArray(p.conteudo) ? p.conteudo : []
+                })) as Protocolo[];
+
+                setProtocolos(mapped);
+            } catch (error) {
+                console.error('Erro ao carregar protocolos:', error);
+                toast.error("Erro ao carregar biblioteca de protocolos.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProtocolos();
+    }, []);
+
+    const filtered = protocolos.filter((p) => {
         const matchSearch =
             p.titulo.toLowerCase().includes(search.toLowerCase()) ||
             p.condicao.toLowerCase().includes(search.toLowerCase());

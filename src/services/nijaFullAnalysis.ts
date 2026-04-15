@@ -1,99 +1,12 @@
+import { NijaFullAnalysisResult } from "@/types/nija-contracts";
+import { nijaClient } from "./nija/nijaClient";
 import { supabase } from "@/integrations/supabase/client";
+import { mapFaseToStage, mapPoloToSide } from "@/lib/utils/legalUtils";
 
-export type NijaFullAnalysisResult = {
-  meta: {
-    ramo: string;
-    ramoConfiavel: boolean;
-    faseProcessual: string;
-    poloAtuacao: "AUTOR" | "REU" | "TERCEIRO" | "INDEFINIDO";
-    grauRiscoGlobal: "BAIXO" | "MEDIO" | "ALTO";
-    resumoTatico: string;
-  };
-  partes: {
-    cliente?: {
-      nome: string;
-      papelProcessual: string;
-    };
-    parteContraria?: {
-      nome: string;
-      papelProcessual: string;
-    };
-    terceiros?: {
-      nome: string;
-      papelProcessual: string;
-    }[];
-  };
-  processo: {
-    titulo?: string;
-    numero?: string;
-    vara?: string;
-    comarca?: string;
-  };
-  linhaDoTempo: {
-    ordem: number;
-    dataDetectada?: string;
-    tipoAto: string;
-    descricao: string;
-    trecho?: string;
-  }[];
-  prescricao: {
-    haPrescricao: boolean;
-    tipo: "GERAL" | "INTERCORRENTE" | "NENHUMA" | "DUVIDOSA";
-    fundamentacao: string;
-    risco: "BAIXO" | "MEDIO" | "ALTO";
-  };
-  vicios: {
-    codigo: string;
-    label: string;
-    natureza: "FORMAL" | "MATERIAL" | "MISTA";
-    gravidade: "BAIXA" | "MEDIA" | "ALTA";
-    atoRelacionado: string;
-    trecho: string;
-    fundamentosLegais: string[];
-    observacoes: string;
-  }[];
-  estrategias: {
-    principais: {
-      label: string;
-      descricao: string;
-      recomendadaPara: string[];
-      possiveisPecas: string[];
-    }[];
-    secundarias: {
-      label: string;
-      descricao: string;
-    }[];
-  };
-  sugestaoPeca?: {
-    tipo: string;
-    tituloSugestao: string;
-    focoPrincipal: string;
-  };
-};
 
 /**
- * Mapeia faseProcessual da NIJA para o stage do caso
+ * @deprecated Use nijaClient.analyzeCase diretamente seguido pelo processamento de metadados se necessário
  */
-function mapFaseToStage(fase?: string): string | null {
-  if (!fase) return null;
-  const lower = fase.toLowerCase();
-  if (lower.includes("pré") || lower.includes("extra") || lower.includes("administrativ")) return "pre_processual";
-  if (lower.includes("conhecimento") || lower.includes("instrução") || lower.includes("inicial")) return "conhecimento";
-  if (lower.includes("recurso") || lower.includes("recursal") || lower.includes("apelação")) return "recursal";
-  if (lower.includes("execução") || lower.includes("cumprimento")) return "execucao";
-  return null;
-}
-
-/**
- * Mapeia poloAtuacao da NIJA para o side do caso
- */
-function mapPoloToSide(polo?: string): "ATAQUE" | "DEFESA" | null {
-  if (!polo) return null;
-  if (polo === "AUTOR") return "ATAQUE";
-  if (polo === "REU") return "DEFESA";
-  return null;
-}
-
 export async function runNijaFullAnalysis(params: {
   caseId: string;
   rawText: string;
@@ -103,99 +16,69 @@ export async function runNijaFullAnalysis(params: {
 }): Promise<NijaFullAnalysisResult> {
   const { caseId, rawText, ramoHint, faseHint, poloHint } = params;
 
-  // NIJA Fase 1: Verificar reading_status dos documentos antes de chamar IA
-  const { data: documents, error: docsError } = await supabase
-    .from("documents")
-    .select("id, reading_status, extracted_text_chars")
-    .eq("case_id", caseId)
-    .is("deleted_at", null);
+  // Lógica Original (p/ comparação no Shadow Mode)
+  const legacyFn = async () => {
+    const { data: documents, error: docsError } = await supabase
+      .from("documents")
+      .select("id, reading_status, extracted_text_chars")
+      .eq("case_id", caseId)
+      .is("deleted_at", null);
 
-  if (docsError) {
-    console.error("[runNijaFullAnalysis] Erro ao buscar documentos:", docsError);
-    throw new Error("Erro ao verificar status dos documentos.");
-  }
+    if (docsError) throw new Error("Erro ao verificar status dos documentos.");
 
-  // Verificar se todos os documentos têm leitura suficiente
-  const docsWithProblems = (documents || []).filter(doc => {
-    const status = doc.reading_status;
-    return !status || 
-           status === "PENDING" || 
-           status === "INSUFFICIENT_READING" || 
-           status === "ERROR" || 
-           status === "FALLBACK_CLIENT_PDFJS";
+    const docsWithProblems = (documents || []).filter(doc => {
+      const status = doc.reading_status;
+      return !status || ["PENDING", "INSUFFICIENT_READING", "ERROR", "FALLBACK_CLIENT_PDFJS"].includes(status);
+    });
+
+    if (docsWithProblems.length > 0) throw new Error("LEITURA_INSUFICIENTE");
+
+    const { data, error } = await supabase.functions.invoke("nija-full-analysis", {
+      body: {
+        rawText,
+        ramoHint: ramoHint ?? null,
+        faseHint: faseHint ?? null,
+        poloHint: poloHint ?? null,
+        caseMeta: {},
+        clientMeta: {},
+        opponentMeta: {},
+        observacoes: null,
+      },
+    });
+
+    if (error || !data || data.error) throw new Error(error?.message || data?.error || "Resposta inválida");
+    return data as NijaFullAnalysisResult;
+  };
+
+  // Nova Lógica
+  const newFn = () => nijaClient.analyzeCase({
+    caseId,
+    rawText,
+    ramoHint,
+    faseHint,
+    poloHint: poloHint as any
   });
 
-  if (docsWithProblems.length > 0) {
-    throw new Error(
-      `LEITURA_INSUFICIENTE: ${docsWithProblems.length} documento(s) não foram lidos adequadamente. ` +
-      `Reprocesse os documentos antes de rodar a análise.`
-    );
-  }
+  // Execução em Shadow Mode (compara os resultados brutos da IA)
+  const analysisResolved = await nijaClient.shadowInvoke("FullAnalysis", legacyFn, newFn);
 
-  const { data, error } = await supabase.functions.invoke("nija-full-analysis", {
-    body: {
-      rawText,
-      ramoHint: ramoHint ?? null,
-      faseHint: faseHint ?? null,
-      poloHint: poloHint ?? null,
-      caseMeta: {},
-      clientMeta: {},
-      opponentMeta: {},
-      observacoes: null,
-    },
-  });
-
-  // Safari fix: validate response before processing to prevent download behavior
-  if (error) {
-    const errorMessage = error.message || "Erro desconhecido";
-    console.error("[runNijaFullAnalysis] Edge function error:", error);
-    throw new Error(errorMessage);
-  }
-
-  if (!data || typeof data !== "object") {
-    console.error("[runNijaFullAnalysis] Invalid response type:", typeof data);
-    throw new Error("Resposta inválida do serviço NIJA");
-  }
-
-  if (data.error) {
-    console.error("[runNijaFullAnalysis] API error:", data.error);
-    throw new Error(data.error);
-  }
-
-  // Preparar campos adicionais a partir da análise
+  // --- Lógica de Pós-Processamento (Mantida para não quebrar fluxos) ---
   const updateFields: Record<string, unknown> = {
-    nija_full_analysis: data,
+    nija_full_analysis: analysisResolved,
     nija_full_last_run_at: new Date().toISOString(),
   };
 
-  // Salvar resumo tático como summary do caso
-  if (data.meta?.resumoTatico) {
-    updateFields.summary = data.meta.resumoTatico;
-  }
+  if (analysisResolved.meta?.resumoTatico) updateFields.summary = analysisResolved.meta.resumoTatico;
+  if (analysisResolved.meta?.ramo) updateFields.area = analysisResolved.meta.ramo;
+  
+  const mappedSide = mapPoloToSide(analysisResolved.meta?.poloAtuacao);
+  if (mappedSide) updateFields.side = mappedSide;
 
-  // Salvar ramo como area (se disponível e ainda não preenchido)
-  if (data.meta?.ramo) {
-    updateFields.area = data.meta.ramo;
-  }
+  const mappedStage = mapFaseToStage(analysisResolved.meta?.faseProcessual);
+  if (mappedStage) updateFields.stage = mappedStage;
 
-  // Salvar polo como side
-  const mappedSide = mapPoloToSide(data.meta?.poloAtuacao);
-  if (mappedSide) {
-    updateFields.side = mappedSide;
-  }
+  if (analysisResolved.processo?.numero) updateFields.cnj_number = analysisResolved.processo.numero;
 
-  // Salvar fase como stage
-  const mappedStage = mapFaseToStage(data.meta?.faseProcessual);
-  if (mappedStage) {
-    updateFields.stage = mappedStage;
-  }
-
-  // Salvar número do processo se detectado
-  if (data.processo?.numero) {
-    updateFields.cnj_number = data.processo.numero;
-  }
-
-  // Persistir metadados no case via RPC (SECURITY DEFINER) para evitar bloqueio de RLS
   const { error: updateError } = await supabase.rpc("lexos_nija_update_case_metadata", {
     p_case_id: caseId,
     p_patch: JSON.parse(JSON.stringify(updateFields)),
@@ -203,7 +86,7 @@ export async function runNijaFullAnalysis(params: {
 
   if (updateError) throw updateError;
 
-  return data as NijaFullAnalysisResult;
+  return analysisResolved;
 }
 
 /**
@@ -321,7 +204,7 @@ export async function runNijaFullAnalysisQuick(params: {
         faseHint,
         poloHint,
       });
-      const resumo = (fullResult as any)?.meta?.resumoTatico ?? null;
+      const resumo = fullResult.meta?.resumoTatico ?? null;
       if (resumo) {
         const { error: sErr } = await supabase.rpc("lexos_nija_update_case_metadata", {
           p_case_id: existingCaseId,
@@ -475,7 +358,7 @@ export async function runNijaFullAnalysisQuick(params: {
     });
 
     // Salvar summary pós-FULL
-    const resumo = (fullResult as any)?.meta?.resumoTatico ?? null;
+    const resumo = fullResult.meta?.resumoTatico ?? null;
     if (resumo) {
       const { error: sErr } = await supabase.rpc("lexos_nija_update_case_metadata", {
         p_case_id: caseId,

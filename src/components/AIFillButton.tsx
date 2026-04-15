@@ -3,11 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import type { Json } from '@/integrations/supabase/types';
 
 interface AIFillButtonProps {
   caseId?: string;
   templateId: string;
-  formDraft?: Record<string, any>;
+  formDraft?: Record<string, unknown>;
   onFillComplete: (output: Record<string, any>) => void;
   disabled?: boolean;
 }
@@ -40,10 +41,10 @@ export function AIFillButton({ caseId, templateId, formDraft = {}, onFillComplet
     abortRef.current = false;
 
     try {
-      const { data, error } = await supabase.rpc('enqueue_ai_fill_job', {
+      const { data, error } = await (supabase.rpc as any)('enqueue_ai_fill_job', {
         p_case_id: caseId || null,
         p_template_id: templateId,
-        p_input: formDraft,
+        p_input: formDraft as Json,
       });
 
       if (error) {
@@ -94,15 +95,17 @@ export function AIFillButton({ caseId, templateId, formDraft = {}, onFillComplet
           .single();
 
         if (error) throw error;
+        if (!data) return; // Se não houver dados, ignoramos este ciclo
 
-        setStatus(data.status);
+        const jobData = data as { status: string; output: Json | null; error: string | null };
+        setStatus(jobData.status);
 
-        if (data.status === 'done' && data.output) {
+        if (jobData.status === 'done' && jobData.output) {
           if (pollingRef.current) clearInterval(pollingRef.current);
           toast({ title: 'Sucesso', description: 'Preenchimento com IA concluído' });
           setLoading(false);
           setStatus('');
-          onFillComplete(data.output as Record<string, any>);
+          onFillComplete(jobData.output as Record<string, any>);
           return;
         }
 

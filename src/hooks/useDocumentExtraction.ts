@@ -7,10 +7,12 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   extractTextFromPdfUrl, 
-  saveExtractionToDatabase,
-  type ExtractionResult,
-  type ReadingStatus
-} from "@/nija";
+  saveExtractionToDatabase 
+} from "@/nija/connectors/pdf/pdfClientExtractor";
+import type { 
+  ExtractionResult, 
+  ReadingStatus 
+} from "@/types/nija-contracts";
 
 export interface DocumentForExtraction {
   id: string;

@@ -1,53 +1,51 @@
 /**
  * RBAC - Role-Based Access Control
- * Tipos e utilitários para controle de acesso baseado em roles
+ * Camada de Frontend que consome o Contrato Centralizado
  */
 
-export type OfficeRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+import { 
+  AppRole, 
+  ROLE_RANK as CENTRAL_RANK, 
+  isAtLeastRole as centralIsAtLeastRole,
+  normalizeAppRole
+} from "@shared/role-contract";
+
+export type OfficeRole = AppRole;
 export type OfficeModule = 'LEGAL' | 'MEDICAL';
 
-
-export const ROLE_RANK: Record<OfficeRole, number> = {
-  MEMBER: 1,
-  ADMIN: 2,
-  OWNER: 3,
-};
+/**
+ * Re-exporta o ranking centralizado para componentes que precisam de pesos.
+ * Agora usando 50, 80, 100.
+ */
+export const ROLE_RANK = CENTRAL_RANK;
 
 /**
- * Verifica se o role do usuário atende ao requisito mínimo
- * @param userRole - Role atual do usuário (pode ser null/undefined)
- * @param minRole - Role mínimo necessário
- * @returns true se o usuário tem permissão
+ * Verifica se o role do usuário atende ao requisito mínimo.
+ * UX Gating: Apenas para controle visual. O enforcement real ocorre no backend.
  */
 export function hasRole(
-  userRole: OfficeRole | null | undefined,
-  minRole: OfficeRole
+  userRole: AppRole,
+  minRole: Exclude<AppRole, null>
 ): boolean {
-  const effectiveRole = userRole || 'MEMBER';
-  return ROLE_RANK[effectiveRole] >= ROLE_RANK[minRole];
+  return centralIsAtLeastRole(userRole, minRole);
 }
 
 /**
- * Normaliza o role para UPPERCASE
- * @param role - Role em qualquer case
- * @returns Role normalizado em UPPERCASE
+ * Normaliza o role usando a lógica centralizada.
+ * Retorna null se não houver um papel válido associado.
  */
 export function normalizeRole(role: string | null | undefined): OfficeRole {
-  if (!role) return 'MEMBER';
-  const upper = role.toUpperCase();
-  if (upper === 'OWNER' || upper === 'ADMIN' || upper === 'MEMBER') {
-    return upper as OfficeRole;
-  }
-  return 'MEMBER';
+  return normalizeAppRole(role);
 }
 
 /**
- * Normaliza o tipo de escritório para OfficeModule
+ * Normaliza o tipo de escritório para OfficeModule (Layout/UX)
  */
 export function normalizeModule(type: string | null | undefined): OfficeModule {
-  if (!type) return 'LEGAL'; // Default para Jurídico por retrocompatibilidade
+  if (!type) return 'LEGAL'; 
   const lower = type.toLowerCase();
-  if (lower.includes('medical') || lower.includes('medico') || lower.includes('clinica')) {
+  // Inclui termos comuns para clínicas/médicos
+  if (lower.includes('medical') || lower.includes('medico') || lower.includes('clinica') || lower.includes('health')) {
     return 'MEDICAL';
   }
   return 'LEGAL';

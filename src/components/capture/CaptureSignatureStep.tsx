@@ -182,15 +182,11 @@ export function CaptureSignatureStep({
           onClick={onSubmit}
           disabled={!canSubmit}
           className={cn(
-            "flex-1 font-medium transition-all duration-200",
+            "flex-1 font-bold h-12 rounded-xl border-none shadow-xl transition-all duration-200",
             canSubmit 
-              ? "hover:opacity-90 active:scale-[0.98]" 
-              : "opacity-40 cursor-not-allowed"
+              ? "bg-white text-black hover:bg-white/90 active:scale-[0.98]" 
+              : "bg-white/20 text-white/40 cursor-not-allowed opacity-50"
           )}
-          style={{
-            backgroundColor: "var(--brand-primary)",
-            color: "#000",
-          }}
         >
           {submitting ? (
             <>

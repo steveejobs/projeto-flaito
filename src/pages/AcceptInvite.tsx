@@ -43,7 +43,7 @@ export default function AcceptInvite() {
         .from('office_invites')
         .select('id, office_id, role, expires_at, accepted_at')
         .eq('token', token)
-        .single();
+        .single() as any;
 
       if (inviteError || !inviteData) {
         setError('Convite não encontrado ou link inválido.');
@@ -67,7 +67,7 @@ export default function AcceptInvite() {
         .from('offices')
         .select('name')
         .eq('id', inviteData.office_id)
-        .single();
+        .single() as any;
 
       setInvite({
         ...inviteData,
@@ -82,11 +82,11 @@ export default function AcceptInvite() {
   };
 
   const handleAccept = async () => {
-    if (!invite || !user) return;
+    if (!invite || !user || !token) return;
 
     setAccepting(true);
     try {
-      // Check if user is already a member
+      // Check if user is already a member (RLS select allows viewing own membership)
       const { data: existingMember } = await supabase
         .from('office_members')
         .select('id')
@@ -100,30 +100,15 @@ export default function AcceptInvite() {
         return;
       }
 
-      // Create office member
-      const { error: memberError } = await supabase
-        .from('office_members')
-        .insert({
-          office_id: invite.office_id,
-          user_id: user.id,
-          role: invite.role,
-          is_active: true,
-        });
+      // Execute official RPC to handle invite processing securely
+      const { data: rpcData, error: rpcError } = await supabase.rpc('accept_office_invite', { p_token: token });
 
-      if (memberError) throw memberError;
-
-      // Mark invite as accepted
-      const { error: updateError } = await supabase
-        .from('office_invites')
-        .update({
-          accepted_at: new Date().toISOString(),
-          accepted_by: user.id,
-        })
-        .eq('id', invite.id);
-
-      if (updateError) {
-        console.error('Error updating invite:', updateError);
-        // Continue anyway since member was created
+      if (rpcError) throw rpcError;
+      
+      // The RPC returns a custom jsonb response instead of raising exceptions
+      const result = rpcData as unknown as { success: boolean, error?: string };
+      if (result && !result.success) {
+        throw new Error(result.error || 'Falha desconhecida ao processar convite');
       }
 
       toast.success(`Bem-vindo ao ${invite.office_name}!`);
@@ -144,6 +129,17 @@ export default function AcceptInvite() {
         return 'Administrador';
       default:
         return 'Membro';
+    }
+  };
+
+  const getRoleDescription = (role: string) => {
+    switch (role) {
+      case 'OWNER':
+        return 'Acesso total, faturamento e posse do escritório.';
+      case 'ADMIN':
+        return 'Gerencia equipe, configurações e agentes de IA.';
+      default:
+        return 'Acesso básico a clientes, casos e agenda.';
     }
   };
 
@@ -259,6 +255,9 @@ export default function AcceptInvite() {
               <span className="text-muted-foreground">Permissão:</span>
               <span className="font-medium">{getRoleLabel(invite?.role || 'MEMBER')}</span>
             </div>
+            <p className="text-[10px] text-muted-foreground/60 text-right italic">
+              {getRoleDescription(invite?.role || 'MEMBER')}
+            </p>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Seu e-mail:</span>
               <span className="font-medium text-xs">{user.email}</span>

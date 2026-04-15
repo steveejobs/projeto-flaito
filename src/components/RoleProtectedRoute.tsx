@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 
 interface RoleProtectedRouteProps {
   children: React.ReactNode;
-  minRole: OfficeRole;
+  minRole: Exclude<OfficeRole, null>;
 }
 
 /**
@@ -26,13 +26,15 @@ export const RoleProtectedRoute = forwardRef<HTMLDivElement, RoleProtectedRouteP
 
     // Mostrar toast apenas uma vez quando acesso é negado
     useEffect(() => {
-      if (!isLoading && user && !isAuthorized && !toastShownRef.current) {
+      // Se não tem role, será redirecionado para Onboarding (silencioso)
+      // Se tem role mas não é suficiente, avisa o acesso negado
+      if (!isLoading && user && role !== null && !isAuthorized && !toastShownRef.current) {
         toastShownRef.current = true;
         toast.error('Acesso negado', {
           description: 'Você não tem permissão para acessar esta página.',
         });
       }
-    }, [isLoading, user, isAuthorized]);
+    }, [isLoading, user, isAuthorized, role]);
 
     // Reset ref quando rota muda
     useEffect(() => {
@@ -40,22 +42,28 @@ export const RoleProtectedRoute = forwardRef<HTMLDivElement, RoleProtectedRouteP
     }, [location.pathname]);
 
     if (isLoading) {
-      // Remover bg-background que causava a tela preta e suavizar o loader
       return (
-        <div ref={ref} className="min-h-[50vh] flex items-center justify-center bg-transparent">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-300 dark:border-slate-700" />
+        <div ref={ref} className="min-h-screen flex flex-col items-center justify-center bg-transparent">
+          <div className="h-10 w-10 rounded-full border-t-2 border-b-2 border-blue-500 animate-spin" />
+          <p className="mt-4 text-xs font-medium text-slate-500 animate-pulse">Verificando permissões...</p>
         </div>
       );
     }
 
-    // Não autenticado -> login
+    // Não autenticado -> login (Fail-safe, AppInitializer já trata)
     if (!user) {
       return <Navigate to="/login" replace />;
     }
 
-    // Não autorizado -> dashboard
+    // Sem escritório / sem papel atribuído -> Onboarding
+    if (!role && location.pathname !== '/onboarding') {
+      return <Navigate to="/onboarding" replace />;
+    }
+
+    // Não autorizado por hierarquia -> Volta para a home/root do módulo
     if (!isAuthorized) {
-      return <Navigate to="/dashboard" replace />;
+      const defaultDest = location.pathname.startsWith('/medical') ? '/medical/dashboard' : '/dashboard';
+      return <Navigate to={defaultDest} replace />;
     }
 
     return <div ref={ref}>{children}</div>;

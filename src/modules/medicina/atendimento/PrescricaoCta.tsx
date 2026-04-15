@@ -8,55 +8,44 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 // Mock Data
-const KITS_PRESCRICAO = [
-    {
-        id: "kit-1",
-        nome: "🩺 Combo Hipertensão Básica",
-        medicamentos: [
-            { id: "m1", nome: "Losartana Potássica 50mg", posologia: "Tomar 01 comprimido via oral 12/12h.", tipo: "uso continuo" },
-            { id: "m2", nome: "Hidroclorotiazida 25mg", posologia: "Tomar 01 comprimido via oral pela manhã.", tipo: "uso continuo" }
-        ]
-    },
-    {
-        id: "kit-2",
-        nome: "🤧 Combo IVAS (Gripe Forte)",
-        medicamentos: [
-            { id: "m3", nome: "Dipirona Monoidratada 1g", posologia: "Tomar 01 comprimido via oral 6/6h se dor ou febre.", tipo: "sintomatico" },
-            { id: "m4", nome: "Loratadina 10mg", posologia: "Tomar 01 comprimido via oral 1x ao dia por 5 dias.", tipo: "sintomatico" },
-            { id: "m5", nome: "Soro Fisiológico 0,9%", posologia: "Lavagem nasal 4x ao dia.", tipo: "geral" }
-        ]
-    },
-    {
-        id: "kit-3",
-        nome: "💊 Dor Lombar / Miorrelaxante",
-        medicamentos: [
-            { id: "m6", nome: "Torsilax (Cafeína, Carisoprodol, Diclofenaco)", posologia: "Tomar 01 comprimido 12/12h por 3 dias após as refeições.", tipo: "sintomatico" },
-            { id: "m7", nome: "Omeprazol 20mg", posologia: "Tomar 01 comprimido em jejum (Proteção Gástrica).", tipo: "uso continuo" }
-        ]
-    }
-];
+import { useAuth } from "@/contexts/AuthContext";
 
-export default function PrescricaoCta() {
-    const [prescricoes, setPrescricoes] = useState<any[]>([]);
+interface PrescricaoCtaProps {
+    prescricoes: any[];
+    setPrescricoes: (prescricoes: any[]) => void;
+    pacienteNome?: string;
+    medicalSettings?: any;
+    profissionalNome?: string;
+}
+
+export default function PrescricaoCta({ 
+    prescricoes, 
+    setPrescricoes, 
+    pacienteNome = "Paciente", 
+    medicalSettings,
+    profissionalNome = "Médico"
+}: PrescricaoCtaProps) {
+    const { user } = useAuth();
     const [busca, setBusca] = useState("");
+    const [isReviewed, setIsReviewed] = useState(false);
 
-    const adicionarKit = (kit: any) => {
-        // Evita duplicatas pelo ID do medicamento
-        const novosMedicamentos = kit.medicamentos.filter(
-            (med: any) => !prescricoes.some((p) => p.id === med.id)
-        );
-
-        if (novosMedicamentos.length === 0) {
-            toast.info("Kit já adicionado à prescrição.");
-            return;
-        }
-
-        setPrescricoes([...prescricoes, ...novosMedicamentos]);
-        toast.success(`Kit "${kit.nome}" (1-Clique) adicionado com sucesso!`);
-    };
+    const hasItemsPendingReview = prescricoes.some(p => p.requires_medical_review && !p.review_confirmed_at);
 
     const removerMedicamento = (id: string) => {
         setPrescricoes(prescricoes.filter(p => p.id !== id));
+    };
+
+    const handleConfirmReview = () => {
+        if (!user) return;
+        
+        const updated = prescricoes.map(p => ({
+            ...p,
+            review_confirmed_at: new Date().toISOString(),
+            reviewed_by_user_id: user.id
+        }));
+        setPrescricoes(updated);
+        setIsReviewed(true);
+        toast.success("Prescrição revisada e validada clinicamente.");
     };
 
     const handleImprimir = () => {
@@ -64,7 +53,11 @@ export default function PrescricaoCta() {
             toast.error("Nenhum medicamento prescrito.");
             return;
         }
-        toast.success("Enviando prescrição para impressora padrão...");
+        if (hasItemsPendingReview) {
+            toast.error("Ação bloqueada: É necessário revisar e validar a prescrição antes de imprimir.");
+            return;
+        }
+        window.print();
     }
 
     const handleGerarPDF = () => {
@@ -72,18 +65,24 @@ export default function PrescricaoCta() {
             toast.error("Nenhum medicamento prescrito.");
             return;
         }
-        toast.success("Gerando PDF da Receita Médica com assinatura digital...");
+        if (hasItemsPendingReview) {
+            toast.error("Ação bloqueada: É necessário revisar e validar a prescrição antes de gerar o PDF.");
+            return;
+        }
+        toast.info("Selecione 'Salvar como PDF' na opção de destino da impressora.");
+        setTimeout(() => window.print(), 500);
     }
 
     return (
-        <div className="flex flex-col xl:flex-row gap-6">
+        <>
+        <div className="flex flex-col xl:flex-row gap-6 print:hidden">
 
             {/* Esquerda: Construtor de Prescrição */}
             <div className="flex-1 space-y-4">
                 <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                     <Input
-                        placeholder="Buscar medicamento padrão (Ainda em mock)..."
+                        placeholder="Buscar medicamento padrão..."
                         className="pl-9 h-11 font-medium bg-white"
                         value={busca}
                         onChange={(e) => setBusca(e.target.value)}
@@ -105,7 +104,7 @@ export default function PrescricaoCta() {
                             <div className="flex flex-col items-center justify-center p-12 text-center h-full opacity-60">
                                 <FileText className="w-12 h-12 text-slate-300 mb-3" />
                                 <p className="font-bold text-slate-500">Nenhum medicamento</p>
-                                <p className="text-sm text-slate-400 max-w-[250px] mt-1">Busque um medicamento ou clique em um Kit rápido ao lado para prescrever em 1-clique.</p>
+                                <p className="text-sm text-slate-400 max-w-[250px] mt-1">Busque um medicamento ou use a IA para gerar sugestões terapêuticas.</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-slate-100">
@@ -114,7 +113,12 @@ export default function PrescricaoCta() {
                                         <div className="flex gap-3">
                                             <div className="font-bold text-slate-300 text-sm w-4 pt-0.5">{index + 1}.</div>
                                             <div>
-                                                <h4 className="font-bold text-slate-800 text-sm">{item.nome}</h4>
+                                                <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                                    {item.nome}
+                                                    {item.requires_medical_review && !item.review_confirmed_at && (
+                                                        <Badge variant="destructive" className="text-[10px] h-4 px-1 animate-pulse">Requer Revisão</Badge>
+                                                    )}
+                                                </h4>
                                                 <p className="text-sm text-slate-500 font-medium mt-1 leading-relaxed max-w-[90%]">{item.posologia}</p>
                                             </div>
                                         </div>
@@ -132,47 +136,116 @@ export default function PrescricaoCta() {
                         )}
                     </ScrollArea>
 
+                    {hasItemsPendingReview && (
+                        <div className="p-4 bg-rose-50 border-t border-rose-100 space-y-3">
+                            <div className="flex items-start gap-2">
+                                <AlertTriangle className="w-4 h-4 text-rose-500 mt-0.5 shrink-0" />
+                                <p className="text-xs text-rose-700 font-bold leading-tight">
+                                    Esta prescrição contém itens sugeridos por IA ou aguardando validação técnica.
+                                    Confirme que você revisou o conteúdo antes de prosseguir.
+                                </p>
+                            </div>
+                            <Button 
+                                size="sm" 
+                                className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold h-9 gap-2"
+                                onClick={handleConfirmReview}
+                            >
+                                <CheckCircle2 className="w-4 h-4" /> Validar Clinicamente e Liberar
+                            </Button>
+                        </div>
+                    )}
+
                     <div className="p-4 bg-slate-50/50 border-t border-slate-100 grid grid-cols-2 gap-3">
-                        <Button variant="outline" className="font-bold gap-2 text-slate-700 bg-white" onClick={handleImprimir}>
+                        <Button 
+                            variant="outline" 
+                            className="font-bold gap-2 text-slate-700 bg-white" 
+                            onClick={handleImprimir}
+                            disabled={hasItemsPendingReview}
+                        >
                             <Printer className="w-4 h-4" /> Imprimir
                         </Button>
-                        <Button className="font-bold gap-2 bg-teal-600 hover:bg-teal-700 text-white" onClick={handleGerarPDF}>
+                        <Button 
+                            className="font-bold gap-2 bg-teal-600 hover:bg-teal-700 text-white" 
+                            onClick={handleGerarPDF}
+                            disabled={hasItemsPendingReview}
+                        >
                             <FileDown className="w-4 h-4" /> Gerar PDF (Assinado)
                         </Button>
                     </div>
                 </div>
             </div>
 
-            {/* Direita: Kits Rápidos ("1-Clique") */}
+            {/* Direita: Avisos de Segurança e Contexto */}
             <div className="w-full xl:w-[320px] shrink-0 space-y-3">
-                <h3 className="text-xs font-black uppercase text-slate-400 tracking-widest pl-1 mb-2">Prescrição Mágica (1-Clique)</h3>
-
-                {KITS_PRESCRICAO.map((kit) => (
-                    <Card
-                        key={kit.id}
-                        className="p-3 border border-slate-200 hover:border-teal-300 hover:shadow-md cursor-pointer transition-all bg-white group relative overflow-hidden"
-                        onClick={() => adicionarKit(kit)}
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-teal-500/0 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="relative z-10 flex justify-between items-center">
-                            <h4 className="font-bold text-slate-700 text-sm">{kit.nome}</h4>
-                            <span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-1 rounded-md group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors">
-                                {kit.medicamentos.length} itens
-                            </span>
-                        </div>
-                        <div className="relative z-10 mt-2 text-xs font-medium text-slate-400 line-clamp-1">
-                            {kit.medicamentos.map(m => m.nome.split(" ")[0]).join(", ")}
-                        </div>
-                    </Card>
-                ))}
-
-                <div className="pt-2">
-                    <Button variant="ghost" className="w-full text-xs font-bold text-teal-600 hover:text-teal-700 hover:bg-teal-50 border border-dashed border-teal-200 bg-teal-50/50 h-10 rounded-xl">
-                        <Plus className="w-3.5 h-3.5 mr-1" /> Criar Novo Kit Personalizado
-                    </Button>
+                <Card className="p-4 bg-slate-900 border-none text-white overflow-hidden relative">
+                    <div className="absolute top-0 right-0 p-2 opacity-10">
+                        <Shield className="w-16 h-16" />
+                    </div>
+                    <h3 className="text-xs font-black uppercase text-teal-400 tracking-widest mb-2">Protocolo P0 Security</h3>
+                    <p className="text-[11px] leading-relaxed text-slate-300 font-medium">
+                        Kits estáticos foram removidos por segurança clínica. 
+                        Toda prescrição automatizada agora exige validação manual do profissional responsável.
+                    </p>
+                </Card>
+                
+                <div className="pt-2 text-center">
+                    <p className="text-[10px] text-muted-foreground font-bold px-4">
+                        Assinado digitalmente como {user?.user_metadata?.name || profissionalNome}
+                    </p>
                 </div>
             </div>
 
         </div>
+
+        {/* Layout de Impressão (Oculto na tela, visível apenas na impressão) */}
+        <div className="hidden print:block p-8 bg-white text-black min-h-screen">
+            {/* Cabeçalho */}
+            {medicalSettings?.doc_header ? (
+                <div 
+                    className="mb-8 border-b-2 border-slate-800 pb-4 text-center whitespace-pre-wrap"
+                    dangerouslySetInnerHTML={{ __html: medicalSettings.doc_header }} 
+                />
+            ) : (
+                <div className="mb-8 border-b-2 border-slate-800 pb-6 text-center">
+                    <h1 className="text-2xl font-black uppercase tracking-widest">{profissionalNome}</h1>
+                    <p className="text-sm font-bold text-slate-600">RECEITUÁRIO MÉDICO</p>
+                </div>
+            )}
+
+            {/* Informações do Paciente */}
+            <div className="mb-10 text-lg">
+                <p><strong>Paciente:</strong> {pacienteNome}</p>
+                <p><strong>Data:</strong> {new Date().toLocaleDateString('pt-BR')}</p>
+            </div>
+
+            {/* Lista de Medicamentos */}
+            <div className="space-y-8 min-h-[400px]">
+                {prescricoes.map((item, index) => (
+                    <div key={item.id} className="text-lg">
+                        <div className="flex items-baseline gap-2 mb-1">
+                            <span className="font-bold">{index + 1}.</span>
+                            <h4 className="font-bold uppercase">{item.nome}</h4>
+                        </div>
+                        <p className="pl-6 text-base leading-relaxed">{item.posologia}</p>
+                    </div>
+                ))}
+            </div>
+
+            {/* Assinatura */}
+            <div className="mt-20 pt-10 flex flex-col items-center justify-center text-center">
+                <div className="w-64 border-t border-black mb-2"></div>
+                <p className="font-bold uppercase">{profissionalNome}</p>
+                {medicalSettings?.crm && <p className="text-sm">CRM: {medicalSettings.crm} {medicalSettings.crm_uf ? `- ${medicalSettings.crm_uf}` : ''}</p>}
+            </div>
+
+            {/* Rodapé */}
+            {medicalSettings?.doc_footer && (
+                <div 
+                    className="mt-16 pt-4 border-t border-slate-300 text-center text-sm text-slate-500 whitespace-pre-wrap absolute bottom-8 left-0 right-0"
+                    dangerouslySetInnerHTML={{ __html: medicalSettings.doc_footer }} 
+                />
+            )}
+        </div>
+        </>
     );
 }

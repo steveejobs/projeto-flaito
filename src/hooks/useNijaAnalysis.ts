@@ -1,29 +1,36 @@
 import { useCallback, useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  runNijaAnalyzer,
-  runNijaEngine, 
-  NijaDetectedDefectInput,
-  mapAllAIVicios, 
+
+import type { 
+  NijaFullAnalysisResult,
+  PoloAtuacao,
+  GrauRisco,
+  NijaDocumentInput
+} from "@/types/nija-contracts";
+
+
+import { runNijaAnalyzer, type NijaDetectedDefectInput } from "@/nija/core/analyzer";
+import { runNijaEngine } from "@/nija/core/pipeline";
+import type { NijaRamo } from "@/nija/core/engine";
+import {
+  mapAllAIVicios,
   normalizeAto,
   inferTipoDocumento,
   inferParteFromPolo,
-  inferBeneficiario,
-  NijaPolo,
-  NijaRamo,
-  normalizePartyPrefill,
-  buildAnalysisKey, 
-  computeDocumentsHash,
-  type EnrichedDoc,
-} from "@/nija";
+  inferBeneficiario
+} from "@/nija/core/mapper";
+import { type NijaPolo } from "@/nija/core/poloDetect";
+import { normalizePartyPrefill } from "@/nija/utils/helpers";
+import { buildAnalysisKey, computeDocumentsHash } from "@/nija/utils/analysisKey";
+import type { EnrichedDoc } from "@/nija/connectors/tjto/dictionary";
 import { runNijaFullAnalysisQuick } from "@/services/nijaFullAnalysis";
-import { logNijaStart, logNijaSuccess, logNijaError, createNijaTimer } from "@/lib/nijaLogger";
+import { createNijaTimer, logNijaStart, logNijaError, logNijaSuccess } from "@/lib/nijaLogger";
 
-type ActingSide = "AUTOR" | "REU";
 
 export interface UseNijaAnalysisOptions {
-  actingSide: ActingSide;
+
+  actingSide: PoloAtuacao;
   clientName: string;
   opponentName: string;
   processNumber: string;
@@ -36,7 +43,7 @@ export interface UseNijaAnalysisOptions {
   selectedRamo: string;
   caseDescription: string;
 
-  setActingSide: (v: ActingSide) => void;
+  setActingSide: (v: PoloAtuacao) => void;
   setClientName: (v: string) => void;
   setOpponentName: (v: string) => void;
   setProcessNumber: (v: string) => void;
@@ -45,12 +52,6 @@ export interface UseNijaAnalysisOptions {
   setCity: (v: string) => void;
 }
 
-export interface NijaDocumentInput {
-  id: string;
-  filename: string;
-  content: string;
-  kind?: string;
-}
 
 interface DetectedMetadata {
   authorName?: string;
@@ -67,7 +68,7 @@ export function useNijaAnalysis(opts: UseNijaAnalysisOptions) {
   // =========================
   // STATES
   // =========================
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [analysisResult, setAnalysisResult] = useState<NijaFullAnalysisResult | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
 
   const [draftText, setDraftText] = useState<string>("");
@@ -270,8 +271,8 @@ export function useNijaAnalysis(opts: UseNijaAnalysisOptions) {
                 : undefined,
               events: extraContext?.detectedMetadata?.events?.map(e => ({
                 ...e,
-                meaning: (e as any).meaning,
-                category: (e as any).category,
+                meaning: e.meaning,
+                category: e.category,
               })) || undefined,
             },
           });
@@ -291,9 +292,9 @@ export function useNijaAnalysis(opts: UseNijaAnalysisOptions) {
               notas: v.observacoes || null,
               tipoDocumento: v.atoRelacionado || inferTipoDocumento(v.catalogCode!),
               trecho: v.trecho || null,
-              parteEnvolvida: (v as any).process_side || (v as any).parteEnvolvida || inferParteFromPolo(poloForAnalysis),
-              parteQuePraticou: (v as any).quemPraticou || null,
-              ladoAfetado: (v as any).who_benefits || inferBeneficiario(poloForAnalysis),
+              parteEnvolvida: v.process_side || v.parteEnvolvida || inferParteFromPolo(poloForAnalysis),
+              parteQuePraticou: v.quemPraticou || null,
+              ladoAfetado: v.who_benefits || inferBeneficiario(poloForAnalysis),
             }));
 
           // PASSO 4.4: Executar motor local
@@ -321,9 +322,9 @@ export function useNijaAnalysis(opts: UseNijaAnalysisOptions) {
               atoRelacionado: normalizeAto(v.atoRelacionado),
               trecho: v.trecho,
               observacoes: v.observacoes,
-              parteEnvolvida: (v as any).process_side || (v as any).parteEnvolvida || inferParteFromPolo(poloForAnalysis),
-              parteQuePraticou: (v as any).quemPraticou || null,
-              ladoAfetado: (v as any).who_benefits || inferBeneficiario(poloForAnalysis),
+              parteEnvolvida: v.process_side || v.parteEnvolvida || inferParteFromPolo(poloForAnalysis),
+              parteQuePraticou: v.quemPraticou || null,
+              ladoAfetado: v.who_benefits || inferBeneficiario(poloForAnalysis),
               technicalDetails: v.technicalDetails ? {
                 motivoDeteccao: v.technicalDetails.legalLogic || v.observacoes || "Detectado pela análise",
                 criteriosAplicados: v.technicalDetails.recommendedActions || [],

@@ -45,7 +45,8 @@ interface CasePlaudPanelProps {
   officeId: string;
 }
 
-const WEBHOOK_BASE_URL = "https://uxrakfbedmkiqhidruxx.functions.supabase.co/plaud-ingest";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const WEBHOOK_BASE_URL = `${SUPABASE_URL}/functions/v1/plaud-ingest`;
 
 export function CasePlaudPanel({ caseId, officeId }: CasePlaudPanelProps) {
   const { toast } = useToast();
@@ -86,7 +87,8 @@ export function CasePlaudPanel({ caseId, officeId }: CasePlaudPanelProps) {
         .limit(20);
 
       // Fetch analysis jobs for relevant assets
-      const assetIds = [...(caseData || []), ...(unlinkedData || [])].map(a => a.id);
+      const assetsFetched = [...((caseData as any) || []), ...((unlinkedData as any) || [])];
+      const assetIds = assetsFetched.map(a => a.id);
       
       if (assetIds.length > 0) {
         const { data: jobsData } = await supabase
@@ -99,12 +101,12 @@ export function CasePlaudPanel({ caseId, officeId }: CasePlaudPanelProps) {
           .select("plaud_asset_id, analysis, created_at")
           .in("plaud_asset_id", assetIds);
 
-        setJobs(jobsData || []);
-        setAnalyses(analysesData || []);
+        setJobs((jobsData as any) || []);
+        setAnalyses((analysesData as any) || []);
       }
 
-      setCaseAssets(caseData || []);
-      setUnlinkedAssets(unlinkedData || []);
+      setCaseAssets((caseData as any) || []);
+      setUnlinkedAssets((unlinkedData as any) || []);
     } catch (error) {
       console.error("Error fetching Plaud data:", error);
     } finally {
@@ -133,7 +135,7 @@ export function CasePlaudPanel({ caseId, officeId }: CasePlaudPanelProps) {
           setNewPlaudCount((prev) => prev + 1);
           toast({
             title: "Nova transcrição Plaud",
-            description: `"${(payload.new as PlaudAsset).title}" recebida`,
+            description: `"${(payload.new as any).title}" recebida`,
           });
           fetchData();
         }
@@ -394,7 +396,7 @@ export function CasePlaudPanel({ caseId, officeId }: CasePlaudPanelProps) {
                 asChild
               >
                 <a 
-                  href="https://supabase.com/dashboard/project/uxrakfbedmkiqhidruxx/functions/plaud-ingest/logs" 
+                  href={`https://supabase.com/dashboard/project/${SUPABASE_URL.split('//')[1].split('.')[0]}/functions/plaud-ingest/logs`} 
                   target="_blank" 
                   rel="noopener noreferrer"
                 >

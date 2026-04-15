@@ -12,9 +12,13 @@ import { Mail, Lock, UserPlus, Users, Shield, User, AlertCircle } from 'lucide-r
 import { cn } from '@/lib/utils';
 
 const signupSchema = z.object({
+  fullName: z.string().min(3, 'Nome muito curto'),
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
+  mainModule: z.enum(['JURIDICO', 'MEDICO', 'AMBOS'], {
+    required_error: 'Selecione sua área de atuação',
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'As senhas não coincidem',
   path: ['confirmPassword'],
@@ -51,10 +55,18 @@ const ROLE_INFO = {
 };
 
 export default function Signup() {
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
+  const [mainModule, setMainModule] = useState<'JURIDICO' | 'MEDICO' | 'AMBOS' | ''>('');
+  const [errors, setErrors] = useState<{ 
+    fullName?: string; 
+    email?: string; 
+    password?: string; 
+    confirmPassword?: string;
+    mainModule?: string;
+  }>({});
   const [isLoading, setIsLoading] = useState(false);
   const { signUp, user, loading } = useAuth();
   const navigate = useNavigate();
@@ -83,7 +95,7 @@ export default function Signup() {
   const loadInviteData = async (token: string) => {
     setInviteLoading(true);
     setInviteError(null);
-    
+
     try {
       // Use secure RPC function to get invite data (avoids RLS/permission issues)
       const { data, error } = await supabase.rpc('get_office_invite_public', {
@@ -128,59 +140,22 @@ export default function Signup() {
     }
   };
 
-  const acceptInvite = async (userId: string, inviteData: InviteData) => {
-    try {
-      // Check if already a member
-      const { data: existingMember } = await supabase
-        .from('office_members')
-        .select('id')
-        .eq('office_id', inviteData.office_id)
-        .eq('user_id', userId)
-        .single();
-
-      if (existingMember) {
-        console.log('User is already a member of this office');
-        return;
-      }
-
-      // Insert as office member
-      const { error: memberError } = await supabase
-        .from('office_members')
-        .insert({
-          office_id: inviteData.office_id,
-          user_id: userId,
-          role: inviteData.role,
-          is_active: true,
-        });
-
-      if (memberError) {
-        console.error('Error inserting member:', memberError);
-        throw memberError;
-      }
-
-      // Mark invite as accepted
-      await supabase
-        .from('office_invites')
-        .update({
-          accepted_at: new Date().toISOString(),
-          accepted_by: userId,
-        })
-        .eq('id', inviteData.id);
-    } catch (error) {
-      console.error('Error accepting invite:', error);
-      // Don't block the flow, but log the error
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
 
-    const validation = signupSchema.safeParse({ email, password, confirmPassword });
+    const validation = signupSchema.safeParse({ 
+      fullName, 
+      email, 
+      password, 
+      confirmPassword,
+      mainModule
+    });
+    
     if (!validation.success) {
-      const fieldErrors: { email?: string; password?: string; confirmPassword?: string } = {};
+      const fieldErrors: any = {};
       validation.error.errors.forEach((err) => {
-        const field = err.path[0] as 'email' | 'password' | 'confirmPassword';
+        const field = err.path[0];
         fieldErrors[field] = err.message;
       });
       setErrors(fieldErrors);
@@ -188,18 +163,15 @@ export default function Signup() {
     }
 
     setIsLoading(true);
-    
+
     // Include invite token in redirect URL so it works on any browser/device
-    const redirectUrl = inviteToken 
+    const redirectUrl = inviteToken
       ? `${window.location.origin}/?invite=${inviteToken}`
       : `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-      },
+
+    const { error } = await signUp(email, password, {
+      full_name: fullName,
+      main_module: mainModule,
     });
 
     if (error) {
@@ -222,14 +194,14 @@ export default function Signup() {
     if (invite && inviteToken) {
       // Store invite token in localStorage to process after email confirmation
       localStorage.setItem('pending_invite_token', inviteToken);
-      
+
       // Try to process immediately if session is available (in case email confirmation is disabled)
       const { data: sessionData } = await supabase.auth.getSession();
       if (sessionData?.session?.user) {
         // Session available immediately - process invite now
         const { data: result } = await supabase.rpc('accept_office_invite', { p_token: inviteToken });
         localStorage.removeItem('pending_invite_token');
-        
+
         const parsedResult = result as { success?: boolean } | null;
         if (parsedResult?.success) {
           setIsLoading(false);
@@ -241,7 +213,7 @@ export default function Signup() {
           return;
         }
       }
-      
+
       // If no session yet, user needs to confirm email first
       setIsLoading(false);
       toast({
@@ -279,7 +251,7 @@ export default function Signup() {
             {invite ? 'Aceitar Convite' : 'Criar Conta'}
           </CardTitle>
           <CardDescription>
-            {invite 
+            {invite
               ? 'Complete seu cadastro para acessar o escritório'
               : 'Preencha os dados abaixo para criar sua conta'
             }
@@ -304,7 +276,7 @@ export default function Signup() {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className={cn("p-3 rounded-md border", roleInfo?.color)}>
                   <div className="flex items-center gap-2 font-medium">
                     <RoleIcon className="h-4 w-4" />
@@ -317,16 +289,56 @@ export default function Signup() {
               </div>
             )}
 
-            {/* Invite Error */}
-            {inviteError && (
-              <div className="p-4 rounded-lg border border-destructive/50 bg-destructive/10 text-destructive flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium">Convite inválido</p>
-                  <p className="text-sm">{inviteError}</p>
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Nome Completo</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="Seu nome"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="pl-10"
+                  disabled={isLoading}
+                />
               </div>
-            )}
+              {errors.fullName && (
+                <p className="text-sm text-destructive">{errors.fullName}</p>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <Label>Área de Atuação</Label>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { value: 'JURIDICO', label: 'Jurídico', icon: Shield },
+                  { value: 'MEDICO', label: 'Médico', icon: Users },
+                  { value: 'AMBOS', label: 'Híbrido/Ambos', icon: UserPlus },
+                ].map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => setMainModule(item.value as any)}
+                    className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-lg border text-xs gap-2 transition-all duration-200",
+                      mainModule === item.value 
+                        ? "border-primary bg-primary/5 text-primary shadow-sm ring-1 ring-primary/20" 
+                        : "border-border hover:bg-muted/50 text-muted-foreground"
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              {errors.mainModule && (
+                <p className="text-sm text-destructive">{errors.mainModule}</p>
+              )}
+              <p className="text-[11px] text-muted-foreground italic">
+                * Escolha sua área principal para personalizarmos o onboarding.
+              </p>
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -392,9 +404,9 @@ export default function Signup() {
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full" 
+            <Button
+              type="submit"
+              className="w-full"
               disabled={isLoading || !!inviteError}
             >
               {isLoading ? (
@@ -408,8 +420,8 @@ export default function Signup() {
             </Button>
             <p className="text-sm text-muted-foreground text-center">
               Já tem uma conta?{' '}
-              <Link 
-                to={`/login${inviteToken ? `?redirect=${encodeURIComponent(`/convite/${inviteToken}`)}` : (redirectTo !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectTo)}` : '')}`} 
+              <Link
+                to={`/login${inviteToken ? `?redirect=${encodeURIComponent(`/convite/${inviteToken}`)}` : (redirectTo !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectTo)}` : '')}`}
                 className="text-primary hover:underline font-medium"
               >
                 Fazer login

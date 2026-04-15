@@ -39,9 +39,9 @@ const TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
 let memoryCache: Record<string, EprocEventEntry> | null = null;
 
-// URL do Supabase para buscar o dicionário
-const SUPABASE_URL = "https://uxrakfbedmkiqhidruxx.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4cmFrZmJlZG1raXFoaWRydXh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2Nzc0NDksImV4cCI6MjA4MTI1MzQ0OX0.urYN1qLC5O_NHuiLamFEGTmjkskrOu6bldycZmOX-bo";
+// Variáveis do Supabase obtidas do ambiente
+const ENV_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const ENV_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 /**
  * Busca dicionário de eventos do eProc com cache (memória + localStorage TTL 24h)
@@ -65,11 +65,11 @@ export async function getEprocEventDictionaryCached(): Promise<Record<string, Ep
   // 3. Buscar do Supabase via fetch (sem depender de tipos)
   try {
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/nija_eproc_event_dictionary?is_active=eq.true&select=code,label,meaning,category`,
+      `${ENV_SUPABASE_URL}/rest/v1/nija_eproc_event_dictionary?is_active=eq.true&select=code,label,meaning,category`,
       {
         headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "apikey": ENV_SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${ENV_SUPABASE_ANON_KEY}`,
         },
       }
     );

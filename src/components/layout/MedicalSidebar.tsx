@@ -8,7 +8,14 @@ import {
     Brain,
     ClipboardList,
     Bot,
+    FolderTree,
     Settings,
+    Sparkles,
+    Eye,
+    FileText,
+    BarChart3,
+    Shield,
+    MessageSquare,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
@@ -38,11 +45,17 @@ interface MenuItem {
 const MEDICAL_MENU: MenuItem[] = [
     { title: 'Dashboard Clínico', url: '/medical/dashboard', icon: LayoutDashboard },
     { title: 'Agenda Médica', url: '/medical/agenda', icon: Calendar },
+    { title: 'Iridologia', url: '/medical/iridologia', icon: Eye },
     { title: 'Decifrador IA', url: '/medical/ia', icon: Bot },
     { title: 'Pacientes', url: '/medical/patients', icon: Users },
-    { title: 'Transcrição Clínica', url: '/medical/transcricao', icon: Mic },
-    { title: 'Análise Clínica', url: '/medical/analise', icon: Brain },
-    { title: 'Protocolos', url: '/medical/protocolos', icon: ClipboardList },
+    { title: 'Central de Atendimento', url: '/inbox', icon: MessageSquare },
+    { title: 'Consultas Inteligentes', url: '/medical/transcricao', icon: Mic }, 
+    { title: 'Protocolos Clínicos', url: '/medical/protocolos', icon: ClipboardList },
+];
+
+const STUDIO_MENU: MenuItem[] = [
+    { title: 'Studio de Agentes', url: '/agent-studio', icon: Bot },
+    { title: 'Builder de Fluxos', url: '/flow-manager', icon: FolderTree },
 ];
 
 export function MedicalSidebar() {
@@ -82,7 +95,7 @@ export function MedicalSidebar() {
                                 <span className="font-extrabold text-base text-sidebar-foreground leading-tight tracking-tight">
                                     Flaito Health
                                 </span>
-                                <span className="text-[10px] text-teal-400 font-bold tracking-widest uppercase">
+                                <span className="text-[10px] text-teal-600 font-bold tracking-widest uppercase">
                                     Apoio à Decisão
                                 </span>
                             </div>
@@ -96,7 +109,7 @@ export function MedicalSidebar() {
             <SidebarContent className="overflow-y-auto pt-4">
                 <SidebarGroup>
                     {!collapsed && (
-                        <SidebarGroupLabel className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                        <SidebarGroupLabel className="px-4 py-2 text-xs font-semibold tracking-wider text-sidebar-foreground/60 uppercase">
                             Principal
                         </SidebarGroupLabel>
                     )}
@@ -132,7 +145,7 @@ export function MedicalSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild tooltip="Configurações">
                             <NavLink
-                                to="/settings/profile"
+                                to="/medical/settings"
                                 className="flex items-center gap-3 rounded-xl hover:bg-sidebar-accent px-3 py-2.5 transition-colors"
                             >
                                 <Settings className="h-4 w-4 shrink-0" />

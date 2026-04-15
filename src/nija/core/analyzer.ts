@@ -25,17 +25,17 @@ import {
 // Tipos públicos do ANALYZER
 // =========================
 
-export type NijaAnalysisMode = "AUTOMATIC" | "SUPERVISED";
+import type {
+  NijaAnalysisMode,
+  NijaDocumentInput,
+  NijaAnalyzerResponse,
+} from "@/types/nija-contracts";
 
-export interface NijaDocumentInput {
-  id: string;
-  caseId?: string;
-  filename: string;
-  content: string;
-  kind?: string;  // Tipo do documento: SENTENCA, CONTESTACAO, INICIAL, DESPACHO, etc.
-  createdAt?: string;
-  label?: string; // Label descritivo opcional
-}
+export type {
+  NijaAnalysisMode,
+  NijaDocumentInput,
+  NijaAnalyzerResponse,
+};
 
 // Resultado intermediário da heurística com metadados de contexto
 export interface NijaDetectedDefectWithContext extends NijaDetectedDefectInput {
@@ -50,15 +50,6 @@ export interface NijaAnalyzerRequest {
   caseContext: NijaCaseContextInput;
   documents: NijaDocumentInput[];
   preDetectedDefects?: NijaDetectedDefectInput[];
-}
-
-export interface NijaAnalyzerResponse {
-  mode: NijaAnalysisMode;
-  ramoFinal?: NijaRamo;
-  coreOverview: ReturnType<typeof getNijaCoreOverview>;
-  recommendation: NijaEngineRecommendation;
-  usedDefects: NijaDetectedDefectInput[];
-  warnings: string[];
 }
 
 // =========================

@@ -1,0 +1,25 @@
+-- RBAC: Restore real role-based access control
+-- Date: 2026-04-05
+--
+-- This migration documents the current (correct) state of the RBAC infrastructure.
+-- No schema changes are required — the database was already correct.
+--
+-- Source of truth for roles:
+--   office_members.role (enum: OWNER, ADMIN, MEMBER)
+--
+-- RPCs that already work correctly:
+--   lexos_healthcheck_session() — returns { ok, office_id, role, reason, auth_uid }
+--   ensure_personal_office()    — creates office + office_members with role='owner'
+--   has_office_role(text)       — checks if user has required role
+--
+-- Trigger that already works correctly:
+--   tr_on_auth_user_created_create_office — auto-creates office + OWNER membership
+--
+-- Frontend fixes applied separately:
+--   roles.ts          — hasRole() now compares ROLE_RANK (was: return true)
+--   useOfficeRole.ts  — uses health.role from RPC (was: setRole('OWNER') hardcoded)
+--   useUserRole.ts    — returns real data from query (was: role='owner' hardcoded)
+--
+-- Bootstrap OWNER user:
+--   Create manually via Supabase Dashboard → Authentication → Users → Add User
+--   The trigger will automatically create the office and OWNER membership.

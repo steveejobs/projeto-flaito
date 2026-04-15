@@ -366,7 +366,7 @@ export default function AdminModelos() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Modelos (Admin)</h1>
-          <p className="text-sm text-muted-foreground">Gerencie os templates HTML do escritório</p>
+          <p className="text-sm text-muted-foreground">Gerencie os templates HTML do escritório e personalize as variáveis.</p>
         </div>
         <Button 
           variant="outline" 
@@ -377,8 +377,8 @@ export default function AdminModelos() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Lista */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Lista de Templates */}
         <Card className="lg:col-span-1">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">Templates</CardTitle>
@@ -450,6 +450,47 @@ export default function AdminModelos() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            {/* Dicionário de Variáveis (Guia Rápida) */}
+            <div className="p-3 bg-muted/30 border rounded-md mb-4 text-xs space-y-2">
+              <h4 className="font-semibold text-foreground mb-1">Dicionário de Variáveis</h4>
+              <p className="text-muted-foreground mb-2">Clique na variável para copiar. Use chaves duplas <code className="bg-muted px-1 rounded">{"{{"}variavel{"}}"}</code> ou triplas <code className="bg-muted px-1 rounded">{"{{{"}variavel{"}}}"}</code> para HTML.</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+                <div>
+                  <strong className="text-muted-foreground block mb-1">Cliente</strong>
+                  <div className="flex flex-wrap gap-1">
+                    {['client.full_name', 'client.cpf', 'client.cnpj', 'client.qualificacao_cliente', 'client.address', 'client.signature_base64'].map(v => (
+                       <button key={v} type="button" onClick={() => { navigator.clipboard.writeText(`{{${v}}}`); toast.success('Copiado!'); }} className="bg-accent text-accent-foreground px-1.5 py-0.5 rounded text-[10px] hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">{v}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <strong className="text-muted-foreground block mb-1">Escritório & Advogado</strong>
+                  <div className="flex flex-wrap gap-1">
+                    {['office.name', 'office.cnpj', 'office.signature_signed_url', 'advogados.qualificacao_completa', 'advogados.lista_resumida'].map(v => (
+                       <button key={v} type="button" onClick={() => { navigator.clipboard.writeText(`{{${v}}}`); toast.success('Copiado!'); }} className="bg-accent text-accent-foreground px-1.5 py-0.5 rounded text-[10px] hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">{v}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <strong className="text-muted-foreground block mb-1">Contrato (Financeiro)</strong>
+                  <div className="flex flex-wrap gap-1">
+                    {['valor_fixo_honorarios', 'valor_fixo_honorarios_extenso', 'metodo_pagamento_label', 'forma_pagamento', 'parcelas_datas_vencimento', 'chave_pix', 'valor_entrada', 'valor_parcela'].map(v => (
+                       <button key={v} type="button" onClick={() => { navigator.clipboard.writeText(`{{${v}}}`); toast.success('Copiado!'); }} className="bg-accent text-accent-foreground px-1.5 py-0.5 rounded text-[10px] hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">{v}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <strong className="text-muted-foreground block mb-1">Sistema & Datas</strong>
+                  <div className="flex flex-wrap gap-1">
+                    {['data_atual_extenso', 'conteudo_principal', 'titulo_documento'].map(v => (
+                       <button key={v} type="button" onClick={() => { navigator.clipboard.writeText(`{{${v}}}`); toast.success('Copiado!'); }} className="bg-accent text-accent-foreground px-1.5 py-0.5 rounded text-[10px] hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">{v}</button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 

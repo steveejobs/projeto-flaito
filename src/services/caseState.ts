@@ -1,10 +1,17 @@
 /**
  * Centralized service for FSM-based case state management.
  * All state reads and transitions go through this service.
+ *
+ * NOTE: The FSM views/RPCs (vw_case_current_state, lexos_case_states,
+ * lexos_case_notifications, etc.) are not present in the remote schema.
+ * Unmapped queries use a local `db` alias to keep `as any` contained
+ * to a single import-line declaration.
  */
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const db = supabase as any;
 
 // ============ Types ============
 
@@ -65,29 +72,29 @@ export interface FsmErrorResult {
 }
 
 export function handleFsmError(error: unknown): FsmErrorResult {
-  const msg = (error as any)?.message || String(error);
-  
+  const msg = error instanceof Error ? error.message : String(error);
+
   if (msg.includes("BLOQUEIO") || msg.includes("Use RPC")) {
     return {
       message: "Transição não permitida no fluxo do caso. Verifique as regras de transição.",
       isBlocked: true,
     };
   }
-  
+
   if (msg.includes("Transição inválida") || msg.includes("transição inválida")) {
     return {
       message: "Esta mudança de estado não é permitida a partir do estado atual.",
       isBlocked: true,
     };
   }
-  
+
   if (msg.includes("Estado destino não encontrado")) {
     return {
       message: "Estado de destino não encontrado.",
       isBlocked: true,
     };
   }
-  
+
   return {
     message: "Erro ao atualizar estado do processo.",
     isBlocked: false,
@@ -96,12 +103,9 @@ export function handleFsmError(error: unknown): FsmErrorResult {
 
 // ============ Service Functions ============
 
-/**
- * Get the current state of a case from the FSM view.
- */
 export async function getCaseCurrentState(caseId: string): Promise<CaseCurrentState | null> {
-  const { data, error } = await supabase
-    .from("vw_case_current_state" as any)
+  const { data, error } = await db
+    .from("vw_case_current_state")
     .select("*")
     .eq("case_id", caseId)
     .maybeSingle();
@@ -111,25 +115,19 @@ export async function getCaseCurrentState(caseId: string): Promise<CaseCurrentSt
     return null;
   }
 
-  return data as unknown as CaseCurrentState | null;
+  return data as CaseCurrentState | null;
 }
 
-/**
- * Fetch all cases with their current FSM state merged.
- * Returns cases with an additional `currentState` property.
- */
 export async function listCasesWithCurrentState(officeId: string): Promise<
   Array<{
-    caseData: any;
+    caseData: Record<string, unknown>;
     currentState: CaseCurrentState | null;
   }>
 > {
-  // Fetch cases
   const { data: cases, error: casesError } = await supabase
     .from("cases")
     .select("*")
     .eq("office_id", officeId)
-    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (casesError) {
@@ -141,10 +139,9 @@ export async function listCasesWithCurrentState(officeId: string): Promise<
     return [];
   }
 
-  // Fetch current states for all cases
   const caseIds = cases.map((c) => c.id);
-  const { data: states, error: statesError } = await supabase
-    .from("vw_case_current_state" as any)
+  const { data: states, error: statesError } = await db
+    .from("vw_case_current_state")
     .select("*")
     .in("case_id", caseIds);
 
@@ -152,25 +149,20 @@ export async function listCasesWithCurrentState(officeId: string): Promise<
     console.error("[caseState] Error fetching states:", statesError);
   }
 
-  // Build a map of states by case_id
   const statesMap: Record<string, CaseCurrentState> = {};
-  (states || []).forEach((s: any) => {
-    statesMap[s.case_id] = s as CaseCurrentState;
+  (states as CaseCurrentState[] || []).forEach((s) => {
+    statesMap[s.case_id] = s;
   });
 
-  // Merge
   return cases.map((c) => ({
-    caseData: c,
+    caseData: c as Record<string, unknown>,
     currentState: statesMap[c.id] || null,
   }));
 }
 
-/**
- * Get all available FSM states for display/mapping.
- */
 export async function getAllStates(): Promise<CaseState[]> {
-  const { data, error } = await supabase
-    .from("lexos_case_states" as any)
+  const { data, error } = await db
+    .from("lexos_case_states")
     .select("*")
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
@@ -180,14 +172,11 @@ export async function getAllStates(): Promise<CaseState[]> {
     return [];
   }
 
-  return (data || []) as unknown as CaseState[];
+  return (data as CaseState[]) || [];
 }
 
-/**
- * Get valid next states for a given case via RPC.
- */
 export async function getNextStates(caseId: string): Promise<NextStateOption[]> {
-  const { data, error } = await supabase.rpc("lexos_next_states_for_case" as any, {
+  const { data, error } = await db.rpc("lexos_next_states_for_case", {
     p_case_id: caseId,
   });
 
@@ -196,15 +185,12 @@ export async function getNextStates(caseId: string): Promise<NextStateOption[]> 
     return [];
   }
 
-  return (data || []) as NextStateOption[];
+  return (data as NextStateOption[]) || [];
 }
 
-/**
- * Get the state timeline for a case.
- */
 export async function getStateTimeline(caseId: string): Promise<StateTimelineEntry[]> {
-  const { data, error } = await supabase
-    .from("vw_case_state_timeline" as any)
+  const { data, error } = await db
+    .from("vw_case_state_timeline")
     .select("*")
     .eq("case_id", caseId)
     .order("changed_at", { ascending: false });
@@ -214,18 +200,15 @@ export async function getStateTimeline(caseId: string): Promise<StateTimelineEnt
     return [];
   }
 
-  return (data || []) as unknown as StateTimelineEntry[];
+  return (data as StateTimelineEntry[]) || [];
 }
 
-/**
- * Transition a case to a new state via RPC.
- */
 export async function transitionCaseState(
   caseId: string,
   toStateId: string,
   note?: string
 ): Promise<{ success: boolean; historyId?: string; error?: string }> {
-  const { data, error } = await supabase.rpc("lexos_transition_case_state" as any, {
+  const { data, error } = await db.rpc("lexos_transition_case_state", {
     p_case_id: caseId,
     p_to_state_id: toStateId,
     p_note: note ?? null,
@@ -237,18 +220,15 @@ export async function transitionCaseState(
     return { success: false, error: fsmError.message };
   }
 
-  return { success: true, historyId: data as string };
+  return { success: true, historyId: data as string | undefined };
 }
 
-/**
- * Get notifications for a case (or all notifications if caseId is not provided).
- */
 export async function getNotifications(
   caseId?: string,
   unreadOnly: boolean = true
 ): Promise<CaseNotification[]> {
-  let query = supabase
-    .from("lexos_case_notifications" as any)
+  let query = db
+    .from("lexos_case_notifications")
     .select("*")
     .order("created_at", { ascending: false });
 
@@ -267,15 +247,12 @@ export async function getNotifications(
     return [];
   }
 
-  return (data || []) as unknown as CaseNotification[];
+  return (data as CaseNotification[]) || [];
 }
 
-/**
- * Mark a notification as read.
- */
 export async function markNotificationRead(notificationId: string): Promise<boolean> {
-  const { error } = await supabase
-    .from("lexos_case_notifications" as any)
+  const { error } = await db
+    .from("lexos_case_notifications")
     .update({ is_read: true })
     .eq("id", notificationId);
 
@@ -287,12 +264,9 @@ export async function markNotificationRead(notificationId: string): Promise<bool
   return true;
 }
 
-/**
- * Get a state by ID from the cache or fetch it.
- */
 export async function getStateById(stateId: string): Promise<CaseState | null> {
-  const { data, error } = await supabase
-    .from("lexos_case_states" as any)
+  const { data, error } = await db
+    .from("lexos_case_states")
     .select("*")
     .eq("id", stateId)
     .maybeSingle();
@@ -302,12 +276,9 @@ export async function getStateById(stateId: string): Promise<CaseState | null> {
     return null;
   }
 
-  return data as unknown as CaseState | null;
+  return data as CaseState | null;
 }
 
-/**
- * Build a state ID to state map for efficient lookups.
- */
 export function buildStatesMap(states: CaseState[]): Record<string, CaseState> {
   const map: Record<string, CaseState> = {};
   states.forEach((s) => {

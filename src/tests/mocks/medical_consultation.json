@@ -1,0 +1,19 @@
+{
+  "paciente": {
+    "id": "p-999",
+    "nome": "MARIA DAS DORES OLIVEIRA",
+    "idade": 65,
+    "historico_relevante": "Hipertensão crônica, Diabetes Tipo 2."
+  },
+  "atendimento": {
+    "id": "a-123",
+    "data": "2023-04-12T10:00:00Z",
+    "queixa_principal": "Dor persistente no joelho esquerdo e fadiga.",
+    "transcricao_raw": "Paciente relata dor intensa no joelho que piora ao caminhar. Nega traumas recentes. Glicemia de jejum hoje estava em 140. Sente-se cansada ultimamente.",
+    "resumo_ia": {
+      "diagnostico_provavel": "Osteoartrite de joelho + Descontrole glicêmico",
+      "conduta_sugerida": "Solicitar RX de joelhos, ajustar metformina e prescrever fisioterapia.",
+      "alertas": ["Risco de queda por fraqueza muscular", "Monitorar glicemia capilar 3x ao dia"]
+    }
+  }
+}

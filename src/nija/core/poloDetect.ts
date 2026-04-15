@@ -1,21 +1,14 @@
 // src/lib/nijaPoloDetect.ts
 // Utility for automatic detection of polo (REU/AUTOR) from EPROC extracted text
 
-export type NijaPolo = "REU" | "AUTOR" | "INDEFINIDO";
+import type { 
+  PoloAtuacao as NijaPolo, 
+  NijaPoloSource, 
+  NijaPoloDetectResult 
+} from "@/types/nija-contracts";
 
-export type NijaPoloSource = 
-  | "EPROC_CAMPOS" 
-  | "EPROC_PARTES" 
-  | "METADADOS_CLIENTE" 
-  | "HEURISTICA_TEXTO" 
-  | "INDEFINIDO";
+export type { NijaPolo, NijaPoloSource, NijaPoloDetectResult };
 
-export type NijaPoloDetectResult = {
-  poloDetected: NijaPolo;
-  poloSource: NijaPoloSource;
-  confidence: number; // 0..1
-  evidences: string[]; // 1-5 lines
-};
 
 interface DetectPoloInput {
   rawText?: string;
@@ -165,6 +158,7 @@ export function detectPoloFromEprocText(input: DetectPoloInput): NijaPoloDetectR
           poloDetected: poloMatch.polo,
           poloSource: "EPROC_CAMPOS",
           confidence: 0.75,
+          evidence: evidences[0] || "",
           evidences: evidences.slice(0, 5),
         };
       }
@@ -201,7 +195,8 @@ export function detectPoloFromEprocText(input: DetectPoloInput): NijaPoloDetectR
             poloDetected: poloMatch.polo,
             poloSource: "EPROC_PARTES",
             confidence: 0.95,
-            evidences: evidences.slice(0, 5),
+            evidence: evidences[0] || "",
+          evidences: evidences.slice(0, 5),
           };
         }
         
@@ -212,7 +207,8 @@ export function detectPoloFromEprocText(input: DetectPoloInput): NijaPoloDetectR
             poloDetected: poloMatch.polo,
             poloSource: "EPROC_PARTES",
             confidence: 0.75,
-            evidences: evidences.slice(0, 5),
+            evidence: evidences[0] || "",
+          evidences: evidences.slice(0, 5),
           };
         }
       }
@@ -233,6 +229,7 @@ export function detectPoloFromEprocText(input: DetectPoloInput): NijaPoloDetectR
           poloDetected: "REU",
           poloSource: "METADADOS_CLIENTE",
           confidence: 0.85,
+          evidence: evidences[0] || "",
           evidences: evidences.slice(0, 5),
         };
       }
@@ -246,6 +243,7 @@ export function detectPoloFromEprocText(input: DetectPoloInput): NijaPoloDetectR
           poloDetected: "AUTOR",
           poloSource: "METADADOS_CLIENTE",
           confidence: 0.85,
+          evidence: evidences[0] || "",
           evidences: evidences.slice(0, 5),
         };
       }
@@ -274,7 +272,8 @@ export function detectPoloFromEprocText(input: DetectPoloInput): NijaPoloDetectR
               poloDetected: poloMatch.polo,
               poloSource: "HEURISTICA_TEXTO",
               confidence: 0.60,
-              evidences: evidences.slice(0, 5),
+              evidence: evidences[0] || "",
+          evidences: evidences.slice(0, 5),
             };
           }
         }

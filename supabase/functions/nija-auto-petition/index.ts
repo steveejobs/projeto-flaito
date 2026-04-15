@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireResourceAccess } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -77,18 +78,17 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    // ETAPA -1: AUTORIZAÇÃO ZERO TRUST
+    const auth = await requireResourceAccess(req, {
+        resourceType: 'cases',
+        resourceId: payload.caseId,
+        minRole: 'MEMBER'
+    });
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error("[NIJA_AUTO] Variáveis SUPABASE_URL / SERVICE_ROLE ausentes.");
-      return new Response(
-        JSON.stringify({ error: "Configuração do Supabase ausente no ambiente." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
+    if (!auth.ok) return auth.response;
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = auth.adminClient;
+    const officeId = auth.membership.office_id;
 
     // 1) Buscar dados básicos do caso + cliente
     const { data: caseRow, error: caseError } = await supabase

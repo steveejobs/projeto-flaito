@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { verifyStaticToken } from "../_shared/webhook-security.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,73 +15,67 @@ function json(data: unknown, status = 200) {
 }
 
 serve(async (req) => {
-  // CORS preflight
+  const correlationId = crypto.randomUUID();
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Apenas POST
   if (req.method !== "POST") {
     return json({ ok: false, error: "Method not allowed" }, 405);
   }
 
   try {
-    // 1. Validar secret via querystring
+    // 1. Validar secret via querystring (Compatibilidade)
     const url = new URL(req.url);
     const secret = url.searchParams.get("secret");
     const expectedSecret = Deno.env.get("ZAPSIGN_WEBHOOK_SECRET");
 
-    if (!expectedSecret || secret !== expectedSecret) {
-      console.error("[zapsign-webhook] Unauthorized: invalid secret");
+    if (!expectedSecret || !verifyStaticToken(secret, expectedSecret)) {
+      console.error(`[zapsign-webhook] Unauthorized access attempt [${correlationId}]`);
       return json({ ok: false, error: "Unauthorized" }, 401);
     }
 
-    // 2. Parse do payload
     const payload = await req.json();
     const eventType = payload.event_type || "unknown";
     const docToken = payload.doc?.token || payload.token || null;
 
-    console.log("[zapsign-webhook] Received:", eventType, "token:", docToken);
-
-    // 3. Inicializar Supabase com service role
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // 4. Gerar ID único para idempotência
-    const eventId = payload.id || `${eventType}-${docToken}-${Date.now()}`;
+    // 2. ID Único determinístico para idempotência
+    // Se a Zapsign não enviar ID, criamos um baseado no token + evento.
+    // Evitamos Date.now() para ser repetível se o provedor reenviar o mesmo payload exato.
+    const eventId = payload.id || `zsign-${eventType}-${docToken}`;
 
-    // 5. Verificar duplicidade
-    const { data: existing } = await supabase
+    // ============================================
+    // 3. IDEMPOTENCIA ATÔMICA (Atomic DB Guard)
+    // ============================================
+    const { error: idempotencyError } = await supabase
       .from("zapsign_webhook_events")
-      .select("id")
-      .eq("zapsign_event_id", eventId)
-      .maybeSingle();
+      .insert({
+        zapsign_event_id: eventId,
+        event_type: eventType,
+        doc_token: docToken,
+        payload,
+      });
 
-    if (existing) {
-      console.log("[zapsign-webhook] Duplicate event, skipping:", eventId);
-      return json({ ok: true, duplicated: true });
+    if (idempotencyError) {
+      if (idempotencyError.code === "23505") {
+        console.info(`[zapsign-webhook] Duplicate event [${eventId}] skipped.`);
+        return json({ ok: true, duplicated: true });
+      }
+      throw idempotencyError;
     }
 
-    // 6. Inserir evento para auditoria
-    const { error: insertError } = await supabase.from("zapsign_webhook_events").insert({
-      zapsign_event_id: eventId,
-      event_type: eventType,
-      doc_token: docToken,
-      payload,
-    });
-
-    if (insertError) {
-      console.error("[zapsign-webhook] Insert error:", insertError);
-    }
-
-    // 7. Processar apenas eventos doc_signed
+    // ============================================
+    // 4. PROCESSAMENTO (Side Effects)
+    // ============================================
     if (eventType === "doc_signed" && docToken) {
       
-      // ========================================
       // PRIORIDADE 1: Assinatura de CADASTRO (e_signatures)
-      // ========================================
       const { data: clientSignature } = await supabase
         .from("e_signatures")
         .select("id, client_id, office_id")
@@ -88,7 +83,6 @@ serve(async (req) => {
         .maybeSingle();
 
       if (clientSignature) {
-        // Atualizar APENAS este registro de assinatura de cadastro
         await supabase
           .from("e_signatures")
           .update({
@@ -97,7 +91,6 @@ serve(async (req) => {
           })
           .eq("id", clientSignature.id);
 
-        // Marcar evento como processado
         await supabase
           .from("zapsign_webhook_events")
           .update({
@@ -106,13 +99,11 @@ serve(async (req) => {
           })
           .eq("zapsign_event_id", eventId);
 
-        console.log("[zapsign-webhook] Client signup signature signed:", clientSignature.client_id);
+        console.log(`[zapsign-webhook] Handled client signup signature: ${clientSignature.client_id}`);
         return json({ ok: true, type: "client_signup" });
       }
 
-      // ========================================
-      // PRIORIDADE 2 (fallback): Documentos/Contratos (document_sign_requests)
-      // ========================================
+      // PRIORIDADE 2: Documentos/Contratos
       const { data: signRequest } = await supabase
         .from("document_sign_requests")
         .select("id, document_id, office_id")
@@ -120,7 +111,6 @@ serve(async (req) => {
         .maybeSingle();
 
       if (signRequest) {
-        // Atualizar status da solicitação para SIGNED
         await supabase
           .from("document_sign_requests")
           .update({
@@ -130,16 +120,44 @@ serve(async (req) => {
           })
           .eq("id", signRequest.id);
 
-        // Atualizar status do documento para ASSINADO
-        await supabase
+        const { data: originalDoc } = await supabase
           .from("documents")
-          .update({
-            status: "ASSINADO",
-            signed_at: new Date().toISOString(),
-          })
-          .eq("id", signRequest.document_id);
+          .select("storage_bucket, storage_path, status")
+          .eq("id", signRequest.document_id)
+          .maybeSingle();
 
-        // Atualizar evento como processado
+        // Evitar re-processar documentos que já estão em estado final
+        if (originalDoc && originalDoc.status !== "ASSINADO") {
+            let updatedMimeType = "text/html";
+            
+            if (payload.doc?.file_url) {
+              try {
+                 const pdfRes = await fetch(payload.doc.file_url);
+                 if (pdfRes.ok) {
+                    const pdfBlob = await pdfRes.blob();
+                    await supabase.storage
+                      .from(originalDoc.storage_bucket || "documents")
+                      .upload(originalDoc.storage_path, pdfBlob, { 
+                         upsert: true, 
+                         contentType: "application/pdf" 
+                      });
+                    updatedMimeType = "application/pdf";
+                 }
+              } catch (dlErr) {
+                 console.error(`[zapsign-webhook] PDF Download failure:`, dlErr);
+              }
+            }
+
+            await supabase
+              .from("documents")
+              .update({
+                status: "ASSINADO",
+                signed_at: new Date().toISOString(),
+                mime_type: updatedMimeType
+              })
+              .eq("id", signRequest.document_id);
+        }
+
         await supabase
           .from("zapsign_webhook_events")
           .update({
@@ -148,16 +166,16 @@ serve(async (req) => {
           })
           .eq("zapsign_event_id", eventId);
 
-        console.log("[zapsign-webhook] Document signed:", signRequest.document_id);
+        console.log(`[zapsign-webhook] Handled document signature: ${signRequest.document_id}`);
         return json({ ok: true, type: "document" });
       }
       
-      console.warn("[zapsign-webhook] No signature/request found for token:", docToken);
+      console.warn(`[zapsign-webhook] Orphan signature received (no record found for token): ${docToken}`);
     }
 
     return json({ ok: true });
-  } catch (error) {
-    console.error("[zapsign-webhook] Error:", error);
-    return json({ ok: false, error: String(error) }, 500);
+  } catch (error: any) {
+    console.error(`[zapsign-webhook] Failure [${correlationId}]:`, error.message);
+    return json({ ok: false, error: "Internal processing bypass" }, 500);
   }
 });

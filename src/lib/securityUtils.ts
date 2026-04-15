@@ -89,7 +89,7 @@ export async function getDocumentAudited<T extends Record<string, unknown>>(
   try {
     const { data, error } = await supabase.rpc('lexos_get_document_audited', {
       p_id: documentId,
-    });
+    } as any);
 
     if (error) {
       return { ok: false, error: getSecurityErrorMessage(error), code: error.code };
@@ -121,7 +121,7 @@ export async function consumeQuota(
     const { data, error } = await supabase.rpc('lexos_quota_consume', {
       p_kind: quotaType,
       p_amount: amount,
-    });
+    } as any);
 
     if (error) {
       if (isPermissionError(error)) return { ok: false, error: 'permission_denied' };
@@ -180,13 +180,13 @@ export async function setCaseState(
       p_case_id: caseId,
       p_to_state_code: toCode,
       p_note: note,
-    });
+    } as any);
 
     if (error) {
       return { ok: false, error: getSecurityErrorMessage(error), code: error.code };
     }
 
-    if (!data || typeof data !== 'object') {
+    if (!(data as any) || typeof data !== 'object') {
       return { ok: false, error: 'Resposta inválida do servidor.' };
     }
 

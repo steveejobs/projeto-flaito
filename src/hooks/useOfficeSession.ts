@@ -99,14 +99,24 @@ export function useOfficeSession(userId: string | null | undefined): UseOfficeSe
         const rpcBuilder = supabase.rpc("lexos_healthcheck_session").maybeSingle();
         const rpcPromise = Promise.resolve(rpcBuilder);
         const result = await withTimeout(rpcPromise, 8000, "lexos_healthcheck_session");
-        const { data, error: rpcError } = result as { data: any; error: any };
+        const { data, error: rpcError } = result as { data: Record<string, unknown> | null; error: unknown };
         
         if (!cancelled) {
           if (rpcError) setError("Erro ao verificar sessão do escritório");
           else setError(null);
         }
         
-        nextOfficeId = (data as any)?.office_id ?? null;
+        nextOfficeId = (data?.office_id as string) ?? null;
+
+        // Fallback: se não tiver escritório mas estiver logado, tenta provisionar um pessoal (Uso Pessoal)
+        if (!nextOfficeId && userId) {
+          if (import.meta.env.DEV) console.log("[useOfficeSession] No office found, attempting auto-provisioning...");
+          const { data: provisionedId } = await supabase.rpc("ensure_personal_office").maybeSingle();
+          if (provisionedId) {
+            nextOfficeId = provisionedId as string;
+            if (import.meta.env.DEV) console.log("[useOfficeSession] Office auto-provisioned:", nextOfficeId);
+          }
+        }
       } catch (e: any) {
         if (!cancelled) setError(e?.message ?? "Falha ao inicializar sessão");
         nextOfficeId = null;

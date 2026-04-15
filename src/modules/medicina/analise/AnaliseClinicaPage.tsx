@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +28,10 @@ import {
     FileImage,
     Info,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useOfficeRole } from "@/hooks/useOfficeRole";
+import { useToast } from "@/hooks/use-toast";
+import { clientService } from "@/services/domain/clientService";
 
 const AnaliseClinicaPage = () => {
     const [inputText, setInputText] = useState('');
@@ -43,61 +47,70 @@ const AnaliseClinicaPage = () => {
         setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
-    const handleAnalisar = () => {
-        setStatus('processing');
-        setTimeout(() => setStatus('done'), 3500);
-    };
+    const { officeId } = useOfficeRole();
+    const { toast } = useToast();
+    const [pacientes, setPacientes] = useState<any[]>([]);
+    const [selectedPacienteId, setSelectedPacienteId] = useState<string>('');
+    const [resultado, setResultado] = useState<any>(null);
 
-    // Mock results
-    const mockResults = {
-        estrutura: 'Paciente feminina, 42 anos. Queixa principal: fadiga crônica e dificuldade de concentração há 6 meses, com piora progressiva. Relata sono não reparador, irritabilidade e episódios de cefaleia tensional.',
-        hipoteses: [
-            'Deficiência de micronutrientes (vitamina D, magnésio, B12, ferro)',
-            'Síndrome de fadiga crônica (CFS/ME)',
-            'Hipotireoidismo subclínico',
-            'Distúrbio do eixo HPA (cortisol)',
-            'Disfunção mitocondrial',
-        ],
-        nutricao: {
-            avaliacao: 'Padrão alimentar com baixa ingestão de vegetais crucíferos, proteínas de alto valor biológico e gorduras saudáveis. Relata consumo elevado de carboidratos refinados e café (4+ xícaras/dia).',
-            hipoteses: [
-                'Depleção de magnésio (consumo elevado de cafeína)',
-                'Perfil inflamatório elevado (dieta pró-inflamatória)',
-                'Deficiência de B12 e ferro (especialmente se vegetariana parcial)',
-                'Disbiose intestinal provável',
-            ],
-            protocolos: [
-                'Avaliar micronutrientes: Vitamina D 25(OH), B12, Ferro sérico + Ferritina, Magnésio eritrocitário',
-                'Considerar dieta anti-inflamatória com aumento de ômega-3',
-                'Suplementação de magnésio quelato 300mg/dia (evidência B)',
-                'Redução gradual de cafeína a 2 xícaras/dia',
-            ],
-            referencias: ['Tardy et al. (2020) Nutrients. "Vitamins and Minerals for Energy, Fatigue and Cognition"', 'Boyle et al. (2017) Nutrients. "The Effects of Magnesium Supplementation"'],
-        },
-        integrativa: {
-            terapias: [
-                { nome: 'Acupuntura', descricao: 'Protocolos para fadiga crônica e cefaleia tensional. Evidência moderada (nível B).', evidencia: 'B' },
-                { nome: 'Fitoterapia — Rhodiola rosea', descricao: 'Adaptógeno com evidência para fadiga mental e física. Dose sugerida: 200-400mg/dia extrato padronizado.', evidencia: 'B' },
-                { nome: 'Fitoterapia — Ashwagandha', descricao: 'Withania somnifera — modulação do eixo HPA, ansiedade e fadiga. Dose: 300-600mg/dia.', evidencia: 'B' },
-                { nome: 'Meditação Mindfulness', descricao: 'Protocolo MBSR 8 semanas para manejo de estresse e melhora cognitiva.', evidencia: 'A' },
-            ],
-            referencias: ['Anghelescu et al. (2018) Phytomedicine. "Stress management and the role of Rhodiola rosea"', 'Chandrasekhar et al. (2012) Indian J Psychol Med. "Ashwagandha root extract safety and efficacy"'],
-        },
-        neurologia: {
-            avaliacao: 'Queixas cognitivas (atenção sustentada, memória de trabalho) compatíveis com padrão de fadiga mental. Sem sinais focais neurológicos descritos. Padrão sugere comprometimento atencional secundário a distúrbio metabólico ou de sono.',
-            correlacoes: [
-                'Fadiga + dificuldade de concentração → investigar perfil tireoidiano e ferro',
-                'Sono não reparador → considerar polissonografia para apneia obstrutiva',
-                'Cefaleia tensional + bruxismo → avaliação de ATM e estresse musculoesquelético',
-            ],
-            investigacao: [
-                'Avaliação neuropsicológica breve (MoCA ou MEEM ampliado)',
-                'Polissonografia ou actigrafia para avaliação objetiva do sono',
-                'Dosagem de cortisol salivar (curva diurna)',
-                'Considerar RNM de crânio se cefaleia atípica ou sinais focais',
-            ],
-            referencias: ['Cockshell & Mathias (2014) Neuropsychol Rev. "Cognitive functioning in CFS"'],
-        },
+    useEffect(() => {
+        if (!officeId) return;
+        const fetchPacientes = async () => {
+            const data = await clientService.listMedicalPatients(officeId);
+            if (data) setPacientes(data);
+        };
+        fetchPacientes();
+    }, [officeId]);
+
+    const handleAnalisar = async () => {
+        setStatus('processing');
+        
+        try {
+            // Real AI Edge Function Call
+            const { data, error: functionError } = await supabase.functions.invoke('medical-agent-analysis', {
+                body: {
+                    officeId,
+                    pacienteId: selectedPacienteId === 'none' ? null : selectedPacienteId,
+                    inputText,
+                    tipoAnalise,
+                    agentType: 'clinical' // Avisa a edge function qual prompt puxar do ai_config
+                }
+            });
+
+            if (functionError) throw new Error(functionError.message || "Erro na análise da IA");
+            if (!data || !data.resultado) throw new Error("A IA não retornou um formato válido.");
+
+            const generatedResult = data.resultado;
+            setResultado(generatedResult);
+
+            // Tenta salvar no BD o histórico (opcional/log)
+            try {
+                const { error: dbError } = await supabase.from('analises_clinicas').insert([{
+                    office_id: officeId,
+                    paciente_id: selectedPacienteId === 'none' ? null : selectedPacienteId,
+                    tipo: tipoAnalise,
+                    dados_entrada: { texto: inputText },
+                    resultado: generatedResult,
+                    hipoteses: generatedResult.hipoteses?.join('\n') || '',
+                    abordagens_nutricionais: generatedResult.nutricao?.protocolos?.join('\n') || '',
+                    abordagens_integrativas: generatedResult.integrativa?.terapias?.map((t:any) => t.nome).join('\n') || '',
+                    sugestoes_investigacao: generatedResult.neurologia?.investigacao?.join('\n') || '',
+                    referencias: [
+                        ...(generatedResult.nutricao?.referencias || []), 
+                        ...(generatedResult.integrativa?.referencias || []), 
+                        ...(generatedResult.neurologia?.referencias || [])
+                    ].join('\n')
+                }]);
+                if (dbError) console.error("Aviso: Falha não crítica salvando histórico:", dbError);
+            } catch (e) {}
+
+            toast({ title: "Sucesso", description: "Análise processada pela IA com sucesso!" });
+            setStatus('done');
+        } catch (error: any) {
+            console.error("Erro na análise:", error);
+            toast({ title: "Erro na IA", description: error.message || "Falha na comunicação com a IA.", variant: "destructive" });
+            setStatus('idle');
+        }
     };
 
     const evidenceColors: Record<string, string> = {
@@ -158,14 +171,15 @@ const AnaliseClinicaPage = () => {
 
                         <div>
                             <label className="text-sm text-muted-foreground">Paciente (opcional)</label>
-                            <Select>
+                            <Select value={selectedPacienteId} onValueChange={setSelectedPacienteId}>
                                 <SelectTrigger className="mt-1">
                                     <SelectValue placeholder="Vincular paciente..." />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="1">Maria Silva Santos</SelectItem>
-                                    <SelectItem value="2">João Pedro Oliveira</SelectItem>
-                                    <SelectItem value="3">Ana Beatriz Costa</SelectItem>
+                                    <SelectItem value="none">Nenhum</SelectItem>
+                                    {pacientes.map((p) => (
+                                        <SelectItem key={p.paciente_id || p.id} value={p.paciente_id || p.id}>{p.nome}</SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -238,7 +252,7 @@ const AnaliseClinicaPage = () => {
                                 <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                                     <Activity className="h-4 w-4" /> Estrutura Clínica
                                 </h3>
-                                <p className="text-sm text-foreground leading-relaxed">{mockResults.estrutura}</p>
+                                <p className="text-sm text-foreground leading-relaxed">{resultado?.estrutura}</p>
                             </Card>
 
                             {/* Hipóteses */}
@@ -247,7 +261,7 @@ const AnaliseClinicaPage = () => {
                                     <Brain className="h-4 w-4" /> Hipóteses Possíveis
                                 </h3>
                                 <div className="space-y-2">
-                                    {mockResults.hipoteses.map((h, i) => (
+                                    {resultado?.hipoteses?.map((h: string, i: number) => (
                                         <div key={i} className="flex items-start gap-2">
                                             <span className="text-xs text-blue-400 font-mono mt-0.5">{i + 1}.</span>
                                             <p className="text-sm text-foreground">{h}</p>
@@ -271,12 +285,12 @@ const AnaliseClinicaPage = () => {
                                     <div className="px-5 pb-5 space-y-4 border-t border-white/5 pt-4">
                                         <div>
                                             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Avaliação</p>
-                                            <p className="text-sm text-foreground leading-relaxed">{mockResults.nutricao.avaliacao}</p>
+                                            <p className="text-sm text-foreground leading-relaxed">{resultado?.nutricao?.avaliacao}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Hipóteses Nutricionais</p>
                                             <ul className="space-y-1">
-                                                {mockResults.nutricao.hipoteses.map((h, i) => (
+                                                {resultado?.nutricao?.hipoteses?.map((h: string, i: number) => (
                                                     <li key={i} className="text-sm text-foreground flex items-start gap-2">
                                                         <span className="text-orange-400">•</span> {h}
                                                     </li>
@@ -286,7 +300,7 @@ const AnaliseClinicaPage = () => {
                                         <div>
                                             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Protocolos Sugeridos</p>
                                             <ul className="space-y-1">
-                                                {mockResults.nutricao.protocolos.map((p, i) => (
+                                                {resultado?.nutricao?.protocolos?.map((p: string, i: number) => (
                                                     <li key={i} className="text-sm text-foreground flex items-start gap-2">
                                                         <span className="text-emerald-400">→</span> {p}
                                                     </li>
@@ -297,7 +311,7 @@ const AnaliseClinicaPage = () => {
                                             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2 flex items-center gap-1">
                                                 <BookOpen className="h-3 w-3" /> Referências Científicas
                                             </p>
-                                            {mockResults.nutricao.referencias.map((r, i) => (
+                                            {resultado?.nutricao?.referencias?.map((r: string, i: number) => (
                                                 <p key={i} className="text-xs text-muted-foreground italic">{r}</p>
                                             ))}
                                         </div>
@@ -321,7 +335,7 @@ const AnaliseClinicaPage = () => {
                                         <div>
                                             <p className="text-xs font-semibold text-muted-foreground uppercase mb-3">Terapias Complementares & Fitoterapia</p>
                                             <div className="space-y-3">
-                                                {mockResults.integrativa.terapias.map((t, i) => (
+                                                {resultado?.integrativa?.terapias?.map((t: any, i: number) => (
                                                     <div key={i} className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
                                                         <div className="flex items-center justify-between mb-1">
                                                             <span className="font-semibold text-sm text-foreground">{t.nome}</span>
@@ -338,7 +352,7 @@ const AnaliseClinicaPage = () => {
                                             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2 flex items-center gap-1">
                                                 <BookOpen className="h-3 w-3" /> Referências
                                             </p>
-                                            {mockResults.integrativa.referencias.map((r, i) => (
+                                            {resultado?.integrativa?.referencias?.map((r: string, i: number) => (
                                                 <p key={i} className="text-xs text-muted-foreground italic">{r}</p>
                                             ))}
                                         </div>
@@ -361,12 +375,12 @@ const AnaliseClinicaPage = () => {
                                     <div className="px-5 pb-5 space-y-4 border-t border-white/5 pt-4">
                                         <div>
                                             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Avaliação Cognitiva Descritiva</p>
-                                            <p className="text-sm text-foreground leading-relaxed">{mockResults.neurologia.avaliacao}</p>
+                                            <p className="text-sm text-foreground leading-relaxed">{resultado?.neurologia?.avaliacao}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Correlações Sintoma-Condição</p>
                                             <ul className="space-y-1">
-                                                {mockResults.neurologia.correlacoes.map((c, i) => (
+                                                {resultado?.neurologia?.correlacoes?.map((c: string, i: number) => (
                                                     <li key={i} className="text-sm text-foreground flex items-start gap-2">
                                                         <span className="text-purple-400">⟶</span> {c}
                                                     </li>
@@ -376,7 +390,7 @@ const AnaliseClinicaPage = () => {
                                         <div>
                                             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Investigação Complementar Sugerida</p>
                                             <ul className="space-y-1">
-                                                {mockResults.neurologia.investigacao.map((inv, i) => (
+                                                {resultado?.neurologia?.investigacao?.map((inv: string, i: number) => (
                                                     <li key={i} className="text-sm text-foreground flex items-start gap-2">
                                                         <span className="text-cyan-400">→</span> {inv}
                                                     </li>
@@ -387,7 +401,7 @@ const AnaliseClinicaPage = () => {
                                             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2 flex items-center gap-1">
                                                 <BookOpen className="h-3 w-3" /> Referências
                                             </p>
-                                            {mockResults.neurologia.referencias.map((r, i) => (
+                                            {resultado?.neurologia?.referencias?.map((r: string, i: number) => (
                                                 <p key={i} className="text-xs text-muted-foreground italic">{r}</p>
                                             ))}
                                         </div>

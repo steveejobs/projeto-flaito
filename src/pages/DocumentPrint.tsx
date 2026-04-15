@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import DOMPurify from 'dompurify';
 
 export default function DocumentPrint() {
   const { id } = useParams<{ id: string }>();
@@ -55,10 +56,10 @@ export default function DocumentPrint() {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
         fontFamily: 'system-ui, sans-serif'
       }}>
@@ -69,17 +70,17 @@ export default function DocumentPrint() {
 
   if (error) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
         fontFamily: 'system-ui, sans-serif',
         flexDirection: 'column',
         gap: '16px'
       }}>
         <p style={{ color: '#ef4444' }}>{error}</p>
-        <button 
+        <button
           onClick={() => window.close()}
           style={{
             padding: '8px 16px',
@@ -98,9 +99,9 @@ export default function DocumentPrint() {
 
   // Render the HTML content directly (no wrapper layout)
   return (
-    <div 
-      dangerouslySetInnerHTML={{ __html: content || '' }}
-      style={{ 
+    <div
+      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content || '') }}
+      style={{
         background: 'white',
         minHeight: '100vh'
       }}

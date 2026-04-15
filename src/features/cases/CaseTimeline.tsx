@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { NijaPetitionDraftGenerator } from '@/components/NijaPetitionDraftGenerator';
 import { useToast } from '@/hooks/use-toast';
-import { enrichDoc, clearTjtoCache, type EnrichedDoc } from '@/nija';
+import { enrichDoc, clearTjtoCache, type EnrichedDoc } from '@/nija/connectors/tjto/dictionary';
 import { 
   History, 
   Loader2, 
@@ -49,7 +49,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, Footer, PageNumber } from 'docx';
 import { saveAs } from 'file-saver';
-import type { Json } from '@/integrations/supabase/types';
+import type { Json, Tables } from '@/integrations/supabase/types';
 
 interface CaseEvent {
   id: string;
@@ -84,14 +84,14 @@ const FILTER_OPTIONS: { value: TimelineFilter; label: string; subFilter?: boolea
 
 const NIJA_SUB_FILTERS: { value: TimelineFilter; label: string }[] = [
   { value: 'nija', label: 'Todos' },
-  { value: 'nija_prescricao', label: 'Prescrição' },
-  { value: 'nija_decadencia', label: 'Decadência' },
+  { value: 'nija_prescricao', label: 'PrescriÃ§Ã£o' },
+  { value: 'nija_decadencia', label: 'DecadÃªncia' },
 ];
 
 const EVENT_TYPE_CONFIG: Record<string, { icon: React.ElementType; label: string; className: string }> = {
   stage_changed: { 
     icon: ArrowRight, 
-    label: 'Mudança de Fase', 
+    label: 'MudanÃ§a de Fase', 
     className: 'text-blue-600 bg-blue-100' 
   },
   task_status: { 
@@ -106,7 +106,7 @@ const EVENT_TYPE_CONFIG: Record<string, { icon: React.ElementType; label: string
   },
   cnj_sync: { 
     icon: Clock, 
-    label: 'Sincronização CNJ', 
+    label: 'SincronizaÃ§Ã£o CNJ', 
     className: 'text-amber-600 bg-amber-100' 
   },
   doc_created: { 
@@ -116,17 +116,17 @@ const EVENT_TYPE_CONFIG: Record<string, { icon: React.ElementType; label: string
   },
   doc_export: { 
     icon: FileText, 
-    label: 'Exportação', 
+    label: 'ExportaÃ§Ã£o', 
     className: 'text-cyan-600 bg-cyan-100' 
   },
   nija_prescription_run: { 
     icon: Scale, 
-    label: 'NIJA Prescrição', 
+    label: 'NIJA PrescriÃ§Ã£o', 
     className: 'text-blue-700 bg-blue-100' 
   },
   nija_decadence_run: { 
     icon: Scale, 
-    label: 'NIJA Decadência', 
+    label: 'NIJA DecadÃªncia', 
     className: 'text-purple-700 bg-purple-100' 
   },
   default: { 
@@ -210,12 +210,12 @@ const extractNijaPayload = (payload: Json): {
 };
 
 // Standardized legal disclaimer text
-const LEGAL_DISCLAIMER = 'Esta análise é meramente orientativa e não substitui a análise técnica do advogado responsável. Os prazos prescricionais e decadenciais podem variar conforme jurisprudência atualizada, legislação específica e particularidades do caso concreto. Recomenda-se a verificação independente das informações aqui contidas antes de qualquer decisão processual.';
+const LEGAL_DISCLAIMER = 'Esta anÃ¡lise Ã© meramente orientativa e nÃ£o substitui a anÃ¡lise tÃ©cnica do advogado responsÃ¡vel. Os prazos prescricionais e decadenciais podem variar conforme jurisprudÃªncia atualizada, legislaÃ§Ã£o especÃ­fica e particularidades do caso concreto. Recomenda-se a verificaÃ§Ã£o independente das informaÃ§Ãµes aqui contidas antes de qualquer decisÃ£o processual.';
 
 // Cenario config for display
 const CENARIO_BADGES: Record<string, { label: string; icon: React.ElementType; className: string }> = {
   conservador: { label: 'Conservador', icon: Shield, className: 'bg-blue-100 text-blue-800 border-blue-300' },
-  provavel: { label: 'Provável', icon: Target, className: 'bg-amber-100 text-amber-800 border-amber-300' },
+  provavel: { label: 'ProvÃ¡vel', icon: Target, className: 'bg-amber-100 text-amber-800 border-amber-300' },
   agressivo: { label: 'Agressivo', icon: Zap, className: 'bg-red-100 text-red-800 border-red-300' },
 };
 
@@ -281,7 +281,7 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
   }, [events]);
 
   // Export disclaimer
-  const EXPORT_DISCLAIMER = 'Documento gerado com auxílio de ferramenta de apoio à redação jurídica, sob curadoria e revisão do advogado responsável.';
+  const EXPORT_DISCLAIMER = 'Documento gerado com auxÃ­lio de ferramenta de apoio Ã  redaÃ§Ã£o jurÃ­dica, sob curadoria e revisÃ£o do advogado responsÃ¡vel.';
 
   // PDF Export function via window.print() - with guard against multiple clicks
   const handleExportPdf = () => {
@@ -289,14 +289,14 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
     
     setIsExportingPdf(true);
 
-    const tipoLabel = nijaPayload.tipoAnalise === 'decadencia' ? 'Decadência' : 'Prescrição';
+    const tipoLabel = nijaPayload.tipoAnalise === 'decadencia' ? 'DecadÃªncia' : 'PrescriÃ§Ã£o';
     const dateTime = formatDateTime(selectedNijaEvent.created_at);
     const now = new Date();
     
     // Cenario label
     const cenarioLabels: Record<string, string> = {
       conservador: 'Conservador',
-      provavel: 'Provável',
+      provavel: 'ProvÃ¡vel',
       agressivo: 'Agressivo'
     };
     
@@ -305,7 +305,7 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
       <html lang="pt-BR">
       <head>
         <meta charset="UTF-8">
-        <title>Nota Técnica NIJA - ${tipoLabel}</title>
+        <title>Nota TÃ©cnica NIJA - ${tipoLabel}</title>
         <style>
           @page {
             size: A4;
@@ -540,8 +540,8 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
           ` : ''}
           
           <div class="doc-title">
-            <h1>NOTA TÉCNICA – NIJA</h1>
-            <div class="subtitle">Módulo NIJA (Núcleo Inteligente Jurídico de Análise)</div>
+            <h1>NOTA TÃ‰CNICA â€“ NIJA</h1>
+            <div class="subtitle">MÃ³dulo NIJA (NÃºcleo Inteligente JurÃ­dico de AnÃ¡lise)</div>
             <span class="badge ${nijaPayload.tipoAnalise === 'decadencia' ? 'badge-decadencia' : 'badge-prescricao'}">
               ${tipoLabel}
             </span>
@@ -551,7 +551,7 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
           <div class="section">
             <div class="section-title">
               <span class="section-number">1</span>
-              IDENTIFICAÇÃO
+              IDENTIFICAÃ‡ÃƒO
             </div>
             <div class="info-grid">
               ${clientName ? `
@@ -567,11 +567,11 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
               </div>
               ` : ''}
               <div class="info-item">
-                <div class="info-label">Natureza da Pretensão</div>
-                <div class="info-value">${nijaPayload.naturezaPretensao || 'Não informada'}</div>
+                <div class="info-label">Natureza da PretensÃ£o</div>
+                <div class="info-value">${nijaPayload.naturezaPretensao || 'NÃ£o informada'}</div>
               </div>
               <div class="info-item">
-                <div class="info-label">Tipo de Análise</div>
+                <div class="info-label">Tipo de AnÃ¡lise</div>
                 <div class="info-value">${tipoLabel}</div>
               </div>
               <div class="info-item">
@@ -579,8 +579,8 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
                 <div class="info-value">${nijaPayload.marcoInicial.data}${nijaPayload.marcoInicial.descricao ? ` - ${nijaPayload.marcoInicial.descricao}` : ''}</div>
               </div>
               <div class="info-item">
-                <div class="info-label">Data da Análise</div>
-                <div class="info-value">${dateTime.date} às ${dateTime.time}</div>
+                <div class="info-label">Data da AnÃ¡lise</div>
+                <div class="info-value">${dateTime.date} Ã s ${dateTime.time}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Documentos Analisados</div>
@@ -588,7 +588,7 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
               </div>
               ${nijaPayload.cenarioSelecionado ? `
               <div class="info-item">
-                <div class="info-label">Cenário Selecionado</div>
+                <div class="info-label">CenÃ¡rio Selecionado</div>
                 <div class="info-value">${cenarioLabels[nijaPayload.cenarioSelecionado] || nijaPayload.cenarioSelecionado}</div>
               </div>
               ` : ''}
@@ -600,7 +600,7 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
           <div class="section">
             <div class="section-title">
               <span class="section-number">2</span>
-              OBSERVAÇÕES
+              OBSERVAÃ‡Ã•ES
             </div>
             <div class="content-box">
               <div class="content-text">${nijaPayload.observacoes}</div>
@@ -612,27 +612,27 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
           <div class="section">
             <div class="section-title">
               <span class="section-number">${nijaPayload.observacoes ? '3' : '2'}</span>
-              NOTA TÉCNICA COMPLETA
+              NOTA TÃ‰CNICA COMPLETA
             </div>
             <div class="content-box">
-              <div class="content-text">${nijaPayload.notaTecnica || 'Nota técnica não disponível.'}</div>
+              <div class="content-text">${nijaPayload.notaTecnica || 'Nota tÃ©cnica nÃ£o disponÃ­vel.'}</div>
             </div>
           </div>
           
           ${nijaPayload.revisado ? `
           <!-- Review Status -->
           <div class="review-box">
-            <div class="review-title">✓ Análise Revisada</div>
+            <div class="review-title">âœ“ AnÃ¡lise Revisada</div>
             <div class="review-text">
-              Revisado pelo advogado responsável${nijaPayload.revisadoEm ? ` em ${new Date(nijaPayload.revisadoEm).toLocaleDateString('pt-BR')}` : ''}
-              ${nijaPayload.observacoesRevisor ? `<br/>Observações: "${nijaPayload.observacoesRevisor}"` : ''}
+              Revisado pelo advogado responsÃ¡vel${nijaPayload.revisadoEm ? ` em ${new Date(nijaPayload.revisadoEm).toLocaleDateString('pt-BR')}` : ''}
+              ${nijaPayload.observacoesRevisor ? `<br/>ObservaÃ§Ãµes: "${nijaPayload.observacoesRevisor}"` : ''}
             </div>
           </div>
           ` : ''}
           
           <!-- Disclaimer -->
           <div class="disclaimer">
-            <div class="disclaimer-title">⚠️ AVISO DE RESPONSABILIDADE</div>
+            <div class="disclaimer-title">âš ï¸ AVISO DE RESPONSABILIDADE</div>
             <div class="disclaimer-text">
               ${LEGAL_DISCLAIMER}
             </div>
@@ -640,7 +640,7 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
           
           <!-- Footer -->
           <div class="footer">
-            Documento gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            Documento gerado em ${now.toLocaleDateString('pt-BR')} Ã s ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             <div class="footer-disclaimer">${EXPORT_DISCLAIMER}</div>
           </div>
         </div>
@@ -677,15 +677,22 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
     const fetchPermission = async () => {
       setLoadingPermission(true);
       try {
-        const { data, error } = await supabase.rpc('get_my_case_role', { p_case_id: caseId });
-        if (error) {
-          console.error('Erro ao buscar permissão:', error);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
           setUserRole(null);
-        } else {
-          setUserRole(data || null);
+          setLoadingPermission(false);
+          return;
         }
+        const { data: memberData } = await supabase
+          .from('office_members')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .limit(1)
+          .maybeSingle();
+        setUserRole(memberData?.role || null);
       } catch (err) {
-        console.error('Erro ao buscar permissão:', err);
+        console.error('Erro ao buscar permissÃ£o:', err);
         setUserRole(null);
       } finally {
         setLoadingPermission(false);
@@ -721,12 +728,12 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
           // Check if it's a NIJA event
           if (isNijaEvent(newEvent.event_type)) {
             const nijaData = extractNijaPayload(newEvent.payload);
-            const tipoLabel = newEvent.event_type === 'nija_prescription_run' ? 'Prescrição' : 'Decadência';
-            const natureza = nijaData?.naturezaPretensao || 'Não informada';
+            const tipoLabel = newEvent.event_type === 'nija_prescription_run' ? 'PrescriÃ§Ã£o' : 'DecadÃªncia';
+            const natureza = nijaData?.naturezaPretensao || 'NÃ£o informada';
             
             // Show toast notification
             toast({
-              title: `🔔 Nova Análise NIJA: ${tipoLabel}`,
+              title: `ðŸ”” Nova AnÃ¡lise NIJA: ${tipoLabel}`,
               description: (
                 <div className="flex flex-col gap-2">
                   <p className="text-sm">
@@ -743,7 +750,7 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
                     }}
                   >
                     <Eye className="h-3 w-3" />
-                    Ver Análise
+                    Ver AnÃ¡lise
                   </Button>
                 </div>
               ),
@@ -866,7 +873,7 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
     if (!canViewNija) {
       toast({
         title: 'Acesso negado',
-        description: 'Você não tem permissão para visualizar análises NIJA deste caso.',
+        description: 'VocÃª nÃ£o tem permissÃ£o para visualizar anÃ¡lises NIJA deste caso.',
         variant: 'destructive',
       });
       return;
@@ -884,86 +891,86 @@ export function CaseTimeline({ caseId, caseTitle, caseCnj, clientName, officeNam
     if (!payload) return '';
     
     const dateTime = formatDateTime(event.created_at);
-    const tipoLabel = payload.tipoAnalise === 'decadencia' ? 'Decadência' : 'Prescrição';
+    const tipoLabel = payload.tipoAnalise === 'decadencia' ? 'DecadÃªncia' : 'PrescriÃ§Ã£o';
     const now = new Date();
     
-    let report = `═══════════════════════════════════════════════════════════════
-                    NOTA TÉCNICA – NIJA (${tipoLabel})
-                    Módulo NIJA (Núcleo Inteligente Jurídico de Análise)
-═══════════════════════════════════════════════════════════════
+    let report = `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                    NOTA TÃ‰CNICA â€“ NIJA (${tipoLabel})
+                    MÃ³dulo NIJA (NÃºcleo Inteligente JurÃ­dico de AnÃ¡lise)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 `;
 
     if (officeName) {
-      report += `ESCRITÓRIO: ${officeName}\n`;
+      report += `ESCRITÃ“RIO: ${officeName}\n`;
       if (officeOab) report += `OAB: ${officeOab}\n`;
       report += '\n';
     }
 
-    report += `─────────────────────────────────────────────────────────────────
-                           IDENTIFICAÇÃO
-─────────────────────────────────────────────────────────────────
+    report += `â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                           IDENTIFICAÃ‡ÃƒO
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 `;
     if (clientName) report += `Cliente: ${clientName}\n`;
     if (caseTitle) report += `Caso/Processo: ${caseTitle}\n`;
-    report += `Natureza da Pretensão: ${payload.naturezaPretensao || 'Não informada'}\n`;
+    report += `Natureza da PretensÃ£o: ${payload.naturezaPretensao || 'NÃ£o informada'}\n`;
     report += `Marco Inicial: ${payload.marcoInicial.data}${payload.marcoInicial.descricao ? ` - ${payload.marcoInicial.descricao}` : ''}\n`;
-    report += `Data da Análise: ${dateTime.date} às ${dateTime.time}\n`;
-    report += `Tipo de Análise: ${tipoLabel}\n`;
+    report += `Data da AnÃ¡lise: ${dateTime.date} Ã s ${dateTime.time}\n`;
+    report += `Tipo de AnÃ¡lise: ${tipoLabel}\n`;
     report += `Documentos Analisados: ${payload.documentosAnalisados}\n`;
     
     if (payload.cenarioSelecionado) {
       const cenarioLabels: Record<string, string> = {
         conservador: 'Conservador',
-        provavel: 'Provável',
+        provavel: 'ProvÃ¡vel',
         agressivo: 'Agressivo'
       };
-      report += `Cenário Selecionado: ${cenarioLabels[payload.cenarioSelecionado] || payload.cenarioSelecionado}\n`;
+      report += `CenÃ¡rio Selecionado: ${cenarioLabels[payload.cenarioSelecionado] || payload.cenarioSelecionado}\n`;
     }
 
     if (payload.observacoes) {
-      report += `\n─────────────────────────────────────────────────────────────────
-                           OBSERVAÇÕES
-─────────────────────────────────────────────────────────────────
+      report += `\nâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                           OBSERVAÃ‡Ã•ES
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 ${payload.observacoes}\n`;
     }
 
     report += `
-─────────────────────────────────────────────────────────────────
-                        NOTA TÉCNICA COMPLETA
-─────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                        NOTA TÃ‰CNICA COMPLETA
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-${payload.notaTecnica || 'Nota técnica não disponível.'}\n`;
+${payload.notaTecnica || 'Nota tÃ©cnica nÃ£o disponÃ­vel.'}\n`;
 
     if (payload.revisado) {
       report += `
-─────────────────────────────────────────────────────────────────
-                         STATUS DE REVISÃO
-─────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                         STATUS DE REVISÃƒO
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-✓ Revisado pelo advogado responsável`;
+âœ“ Revisado pelo advogado responsÃ¡vel`;
       if (payload.revisadoEm) {
         report += ` em ${new Date(payload.revisadoEm).toLocaleDateString('pt-BR')}`;
       }
       if (payload.observacoesRevisor) {
-        report += `\nObservações do revisor: "${payload.observacoesRevisor}"`;
+        report += `\nObservaÃ§Ãµes do revisor: "${payload.observacoesRevisor}"`;
       }
       report += '\n';
     }
 
     report += `
-═══════════════════════════════════════════════════════════════
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                     AVISO DE RESPONSABILIDADE
-═══════════════════════════════════════════════════════════════
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 ${LEGAL_DISCLAIMER}
 
-───────────────────────────────────────────────────────────────
-Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+Gerado em ${now.toLocaleDateString('pt-BR')} Ã s ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
 ${EXPORT_DISCLAIMER}
-───────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 `;
 
     return report;
@@ -1022,23 +1029,23 @@ ${EXPORT_DISCLAIMER}
     try {
       // Get user's office_id
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      if (!user) throw new Error('UsuÃ¡rio nÃ£o autenticado');
 
-      const { data: memberData, error: memberError } = await supabase
-        .from('office_members')
+      const { data: memberData, error: memberError } = await (supabase
+        .from('office_members'))
         .select('office_id')
         .eq('user_id', user.id)
         .limit(1)
         .single();
 
-      if (memberError || !memberData) throw new Error('Escritório não encontrado');
+      if (memberError || !memberData) throw new Error('EscritÃ³rio nÃ£o encontrado');
 
-      const tipoLabel = nijaPayload.tipoAnalise === 'decadencia' ? 'Decadência' : 'Prescrição';
-      const docTitle = `NIJA - ${tipoLabel} - ${nijaPayload.naturezaPretensao || 'Análise'}`;
+      const tipoLabel = nijaPayload.tipoAnalise === 'decadencia' ? 'DecadÃªncia' : 'PrescriÃ§Ã£o';
+      const docTitle = `NIJA - ${tipoLabel} - ${nijaPayload.naturezaPretensao || 'AnÃ¡lise'}`;
       const textReport = generateNijaTextReport(selectedNijaEvent);
 
-      const { data: newDoc, error: insertError } = await supabase
-        .from('generated_docs_legacy')
+      const { data: newDoc, error: insertError } = await (supabase
+        .from('generated_docs_legacy'))
         .insert({
           case_id: caseId,
           office_id: memberData.office_id,
@@ -1060,7 +1067,7 @@ ${EXPORT_DISCLAIMER}
 
       toast({
         title: 'Documento salvo',
-        description: 'Nota técnica NIJA salva como documento do caso.',
+        description: 'Nota tÃ©cnica NIJA salva como documento do caso.',
       });
 
       setNijaModalOpen(false);
@@ -1073,7 +1080,7 @@ ${EXPORT_DISCLAIMER}
       console.error('Erro ao salvar documento:', err);
       toast({
         title: 'Erro ao salvar',
-        description: 'Não foi possível salvar o documento. Tente novamente.',
+        description: 'NÃ£o foi possÃ­vel salvar o documento. Tente novamente.',
         variant: 'destructive',
       });
     } finally {
@@ -1088,7 +1095,7 @@ ${EXPORT_DISCLAIMER}
     setIsExportingDocx(true);
 
     try {
-      const tipoLabel = nijaPayload.tipoAnalise === 'decadencia' ? 'Decadência' : 'Prescrição';
+      const tipoLabel = nijaPayload.tipoAnalise === 'decadencia' ? 'DecadÃªncia' : 'PrescriÃ§Ã£o';
       const dateTime = formatDateTime(selectedNijaEvent.created_at);
       const now = new Date();
 
@@ -1125,7 +1132,7 @@ ${EXPORT_DISCLAIMER}
               heading: HeadingLevel.HEADING_1,
               alignment: AlignmentType.CENTER,
               children: [
-                new TextRun({ text: `NOTA TÉCNICA – NIJA (${tipoLabel})`, bold: true, size: 32 }),
+                new TextRun({ text: `NOTA TÃ‰CNICA â€“ NIJA (${tipoLabel})`, bold: true, size: 32 }),
               ],
               spacing: { after: 400 },
             }),
@@ -1133,7 +1140,7 @@ ${EXPORT_DISCLAIMER}
             // Case/Client info section
             new Paragraph({
               children: [
-                new TextRun({ text: 'IDENTIFICAÇÃO', bold: true, size: 24 }),
+                new TextRun({ text: 'IDENTIFICAÃ‡ÃƒO', bold: true, size: 24 }),
               ],
               spacing: { before: 200, after: 200 },
               border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: 'cccccc' } },
@@ -1158,8 +1165,8 @@ ${EXPORT_DISCLAIMER}
             ] : []),
             new Paragraph({
               children: [
-                new TextRun({ text: 'Natureza da Pretensão: ', bold: true }),
-                new TextRun({ text: nijaPayload.naturezaPretensao || 'Não informada' }),
+                new TextRun({ text: 'Natureza da PretensÃ£o: ', bold: true }),
+                new TextRun({ text: nijaPayload.naturezaPretensao || 'NÃ£o informada' }),
               ],
               spacing: { after: 100 },
             }),
@@ -1172,8 +1179,8 @@ ${EXPORT_DISCLAIMER}
             }),
             new Paragraph({
               children: [
-                new TextRun({ text: 'Data da Análise: ', bold: true }),
-                new TextRun({ text: `${dateTime.date} às ${dateTime.time}` }),
+                new TextRun({ text: 'Data da AnÃ¡lise: ', bold: true }),
+                new TextRun({ text: `${dateTime.date} Ã s ${dateTime.time}` }),
               ],
               spacing: { after: 300 },
             }),
@@ -1181,7 +1188,7 @@ ${EXPORT_DISCLAIMER}
             // Analysis body
             new Paragraph({
               children: [
-                new TextRun({ text: 'ANÁLISE', bold: true, size: 24 }),
+                new TextRun({ text: 'ANÃLISE', bold: true, size: 24 }),
               ],
               spacing: { before: 200, after: 200 },
               border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: 'cccccc' } },
@@ -1202,7 +1209,7 @@ ${EXPORT_DISCLAIMER}
               border: { top: { style: BorderStyle.SINGLE, size: 1, color: 'cccccc' } },
               children: [
                 new TextRun({ 
-                  text: `Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`, 
+                  text: `Gerado em ${now.toLocaleDateString('pt-BR')} Ã s ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`, 
                   size: 18, 
                   color: '888888',
                   italics: true,
@@ -1249,8 +1256,7 @@ ${EXPORT_DISCLAIMER}
         observacoes_revisor: observacoesRevisor || (currentPayload.observacoes_revisor as string | null) || null,
       };
 
-      const { error } = await supabase
-        .from('case_events')
+      const { error } = await supabase.from('case_events')
         .update({ payload: updatedPayload })
         .eq('id', eventId);
 
@@ -1307,7 +1313,7 @@ ${EXPORT_DISCLAIMER}
             Timeline do Caso
           </CardTitle>
           <CardDescription className="text-xs">
-            Histórico de eventos e alterações do processo
+            HistÃ³rico de eventos e alteraÃ§Ãµes do processo
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -1350,7 +1356,7 @@ ${EXPORT_DISCLAIMER}
                 }}
               >
                 <RefreshCw className={`h-3 w-3 ${loadingEnrich ? 'animate-spin' : ''}`} />
-                Atualizar dicionário
+                Atualizar dicionÃ¡rio
               </Button>
             </div>
             
@@ -1402,7 +1408,7 @@ ${EXPORT_DISCLAIMER}
                       <div className="flex items-center gap-2">
                         <Scale className="h-4 w-4 text-blue-700" />
                         <span className="text-sm font-medium text-blue-800">
-                          Análises de Prescrição
+                          AnÃ¡lises de PrescriÃ§Ã£o
                         </span>
                         <Badge variant="outline" className="text-[10px] bg-blue-100 text-blue-700 border-blue-300">
                           {nijaGroups.prescricao.length}
@@ -1416,7 +1422,7 @@ ${EXPORT_DISCLAIMER}
                     </button>
                     {collapsedNijaGroups.has('prescricao') && (
                       <div className="px-3 pb-2 text-[10px] text-blue-600">
-                        {nijaGroups.prescricao.length} análise(s) de prescrição agrupada(s). Clique para expandir.
+                        {nijaGroups.prescricao.length} anÃ¡lise(s) de prescriÃ§Ã£o agrupada(s). Clique para expandir.
                       </div>
                     )}
                   </div>
@@ -1431,7 +1437,7 @@ ${EXPORT_DISCLAIMER}
                       <div className="flex items-center gap-2">
                         <Scale className="h-4 w-4 text-purple-700" />
                         <span className="text-sm font-medium text-purple-800">
-                          Análises de Decadência
+                          AnÃ¡lises de DecadÃªncia
                         </span>
                         <Badge variant="outline" className="text-[10px] bg-purple-100 text-purple-700 border-purple-300">
                           {nijaGroups.decadencia.length}
@@ -1445,7 +1451,7 @@ ${EXPORT_DISCLAIMER}
                     </button>
                     {collapsedNijaGroups.has('decadencia') && (
                       <div className="px-3 pb-2 text-[10px] text-purple-600">
-                        {nijaGroups.decadencia.length} análise(s) de decadência agrupada(s). Clique para expandir.
+                        {nijaGroups.decadencia.length} anÃ¡lise(s) de decadÃªncia agrupada(s). Clique para expandir.
                       </div>
                     )}
                   </div>
@@ -1524,18 +1530,18 @@ ${EXPORT_DISCLAIMER}
                                                 }`}
                                               >
                                                 <Scale className="h-2.5 w-2.5 mr-1" />
-                                                {event.event_type === 'nija_prescription_run' ? 'Prescrição' : 'Decadência'}
+                                                {event.event_type === 'nija_prescription_run' ? 'PrescriÃ§Ã£o' : 'DecadÃªncia'}
                                               </Badge>
                                             </TooltipTrigger>
                                             <TooltipContent className="max-w-xs">
-                                              <p className="text-xs font-semibold text-amber-600 mb-1">📋 Análise Orientativa</p>
+                                              <p className="text-xs font-semibold text-amber-600 mb-1">ðŸ“‹ AnÃ¡lise Orientativa</p>
                                               {event.event_type === 'nija_prescription_run' ? (
                                                 <p className="text-xs">
-                                                  <strong>Prescrição:</strong> Análise da perda da pretensão (direito de ação) pelo decurso do tempo.
+                                                  <strong>PrescriÃ§Ã£o:</strong> AnÃ¡lise da perda da pretensÃ£o (direito de aÃ§Ã£o) pelo decurso do tempo.
                                                 </p>
                                               ) : (
                                                 <p className="text-xs">
-                                                  <strong>Decadência:</strong> Análise da perda do próprio direito potestativo pelo não exercício no prazo.
+                                                  <strong>DecadÃªncia:</strong> AnÃ¡lise da perda do prÃ³prio direito potestativo pelo nÃ£o exercÃ­cio no prazo.
                                                 </p>
                                               )}
                                             </TooltipContent>
@@ -1547,7 +1553,7 @@ ${EXPORT_DISCLAIMER}
                                         </Badge>
                                       )}
                                       <span className="text-xs text-muted-foreground">
-                                        às {time}
+                                        Ã s {time}
                                       </span>
                                       {/* Review status badge for NIJA events */}
                                       {isNija && event.payload && typeof event.payload === 'object' && !Array.isArray(event.payload) && (
@@ -1586,7 +1592,7 @@ ${EXPORT_DISCLAIMER}
                                                       ) : (
                                                         <>
                                                           <AlertTriangle className="h-2.5 w-2.5" />
-                                                          Não revisado
+                                                          NÃ£o revisado
                                                         </>
                                                       )}
                                                     </Badge>
@@ -1594,8 +1600,8 @@ ${EXPORT_DISCLAIMER}
                                                   <TooltipContent>
                                                     <p className="text-xs">
                                                       {isRevisado 
-                                                        ? `Revisado pelo advogado em ${p.revisado_em ? new Date(String(p.revisado_em)).toLocaleDateString('pt-BR') : 'data não informada'}`
-                                                        : 'Análise ainda não revisada pelo advogado responsável'
+                                                        ? `Revisado pelo advogado em ${p.revisado_em ? new Date(String(p.revisado_em)).toLocaleDateString('pt-BR') : 'data nÃ£o informada'}`
+                                                        : 'AnÃ¡lise ainda nÃ£o revisada pelo advogado responsÃ¡vel'
                                                       }
                                                     </p>
                                                     {p.observacoes_revisor && (
@@ -1621,7 +1627,7 @@ ${EXPORT_DISCLAIMER}
                                             {(enriched.code || enriched.legal_desc) && (
                                               <p className="text-[10px] text-muted-foreground mt-0.5">
                                                 {enriched.code ? enriched.code : ""}
-                                                {enriched.legal_desc ? ` — ${enriched.legal_desc}` : ""}
+                                                {enriched.legal_desc ? ` â€” ${enriched.legal_desc}` : ""}
                                               </p>
                                             )}
                                           </div>
@@ -1635,7 +1641,7 @@ ${EXPORT_DISCLAIMER}
                                       (() => {
                                         const p = event.payload as Record<string, unknown>;
                                         const nijaData = {
-                                          natureza: String(p.natureza_pretensao || 'Não informada'),
+                                          natureza: String(p.natureza_pretensao || 'NÃ£o informada'),
                                           marco: (p.marco_inicial as Record<string, unknown>)?.data 
                                             ? String((p.marco_inicial as Record<string, unknown>).data)
                                             : null,
@@ -1661,14 +1667,14 @@ ${EXPORT_DISCLAIMER}
                                                 <User className="h-3 w-3" />
                                                 <span className="text-foreground">Executado em {nijaData.executadoEm ? new Date(nijaData.executadoEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'data desconhecida'}</span>
                                               </span>
-                                              <span className="text-muted-foreground/50">•</span>
+                                              <span className="text-muted-foreground/50">â€¢</span>
                                               <span className="flex items-center gap-1">
                                                 <FileText className="h-3 w-3" />
                                                 <span className="font-medium text-foreground">{nijaData.natureza}</span>
                                               </span>
                                               {nijaData.marco && (
                                                 <>
-                                                  <span className="text-muted-foreground/50">•</span>
+                                                  <span className="text-muted-foreground/50">â€¢</span>
                                                   <span className="flex items-center gap-1">
                                                     <Clock className="h-3 w-3" />
                                                     Marco: {nijaData.marco}
@@ -1706,7 +1712,7 @@ ${EXPORT_DISCLAIMER}
                                                     ) : (
                                                       <span className="text-amber-700 flex items-center gap-1">
                                                         <AlertTriangle className="h-3 w-3" />
-                                                        Não revisado
+                                                        NÃ£o revisado
                                                       </span>
                                                     )}
                                                   </Label>
@@ -1726,7 +1732,7 @@ ${EXPORT_DISCLAIMER}
                                                       <Textarea
                                                         value={reviewNotes}
                                                         onChange={(e) => setReviewNotes(e.target.value)}
-                                                        placeholder="Observações do revisor (opcional)"
+                                                        placeholder="ObservaÃ§Ãµes do revisor (opcional)"
                                                         className="text-[10px] min-h-[50px] bg-background"
                                                       />
                                                       <div className="flex gap-1 justify-end">
@@ -1795,7 +1801,7 @@ ${EXPORT_DISCLAIMER}
                                                   }}
                                                 >
                                                   <MessageSquare className="h-2.5 w-2.5 mr-1" />
-                                                  Adicionar observação
+                                                  Adicionar observaÃ§Ã£o
                                                 </Button>
                                               )}
                                             </div>
@@ -1814,12 +1820,12 @@ ${EXPORT_DISCLAIMER}
                                                   {isNijaExpanded ? (
                                                     <>
                                                       <ChevronDown className="h-3 w-3 mr-1" />
-                                                      Ocultar análise
+                                                      Ocultar anÃ¡lise
                                                     </>
                                                   ) : (
                                                     <>
                                                       <ChevronRight className="h-3 w-3 mr-1" />
-                                                      Ver análise completa
+                                                      Ver anÃ¡lise completa
                                                     </>
                                                   )}
                                                 </Button>
@@ -1827,7 +1833,7 @@ ${EXPORT_DISCLAIMER}
                                               <CollapsibleContent className="mt-2">
                                                 <div className="bg-background border rounded-lg p-3 max-h-[200px] overflow-y-auto">
                                                   <pre className="whitespace-pre-wrap font-sans text-[11px] leading-relaxed text-foreground">
-                                                    {nijaData.notaTecnica || 'Nota técnica não disponível.'}
+                                                    {nijaData.notaTecnica || 'Nota tÃ©cnica nÃ£o disponÃ­vel.'}
                                                   </pre>
                                                 </div>
                                               </CollapsibleContent>
@@ -1856,7 +1862,7 @@ ${EXPORT_DISCLAIMER}
                                                 </Button>
                                               </TooltipTrigger>
                                               <TooltipContent>
-                                                <p className="text-xs">Copiar relatório NIJA</p>
+                                                <p className="text-xs">Copiar relatÃ³rio NIJA</p>
                                               </TooltipContent>
                                             </Tooltip>
                                           </TooltipProvider>
@@ -1872,7 +1878,7 @@ ${EXPORT_DISCLAIMER}
                                           onClick={() => openNijaModal(event)}
                                         >
                                           <Eye className="h-3 w-3" />
-                                          Reabrir Análise
+                                          Reabrir AnÃ¡lise
                                         </Button>
                                       </>
                                     )}
@@ -1887,7 +1893,7 @@ ${EXPORT_DISCLAIMER}
                                             </Badge>
                                           </TooltipTrigger>
                                           <TooltipContent>
-                                            <p className="text-xs">Você não tem permissão para visualizar esta análise</p>
+                                            <p className="text-xs">VocÃª nÃ£o tem permissÃ£o para visualizar esta anÃ¡lise</p>
                                           </TooltipContent>
                                         </Tooltip>
                                       </TooltipProvider>
@@ -1938,10 +1944,10 @@ ${EXPORT_DISCLAIMER}
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Scale className="h-5 w-5 text-primary" />
-              Nota Técnica - {nijaPayload?.tipoAnalise === 'decadencia' ? 'Decadência' : 'Prescrição'}
+              Nota TÃ©cnica - {nijaPayload?.tipoAnalise === 'decadencia' ? 'DecadÃªncia' : 'PrescriÃ§Ã£o'}
             </DialogTitle>
             <DialogDescription>
-              Análise realizada em {selectedNijaDateTime?.date} às {selectedNijaDateTime?.time}
+              AnÃ¡lise realizada em {selectedNijaDateTime?.date} Ã s {selectedNijaDateTime?.time}
             </DialogDescription>
           </DialogHeader>
 
@@ -1960,13 +1966,13 @@ ${EXPORT_DISCLAIMER}
                 {/* Metadata */}
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-muted-foreground text-xs font-medium">Natureza da Pretensão</p>
-                    <p className="font-medium">{nijaPayload.naturezaPretensao || 'Não informada'}</p>
+                    <p className="text-muted-foreground text-xs font-medium">Natureza da PretensÃ£o</p>
+                    <p className="font-medium">{nijaPayload.naturezaPretensao || 'NÃ£o informada'}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground text-xs font-medium">Marco Inicial</p>
                     <p className="font-medium">
-                      {nijaPayload.marcoInicial.data} - {nijaPayload.marcoInicial.descricao || 'Não informado'}
+                      {nijaPayload.marcoInicial.data} - {nijaPayload.marcoInicial.descricao || 'NÃ£o informado'}
                     </p>
                 </div>
 
@@ -1975,18 +1981,18 @@ ${EXPORT_DISCLAIMER}
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="h-4 w-4 text-green-600" />
-                      <span className="text-sm font-medium text-green-800">Verificação Humana Confirmada</span>
+                      <span className="text-sm font-medium text-green-800">VerificaÃ§Ã£o Humana Confirmada</span>
                     </div>
                     {nijaPayload.verificadoEm && (
                       <p className="text-xs text-green-700 mt-1 flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        Verificado em {new Date(nijaPayload.verificadoEm).toLocaleDateString('pt-BR')} às {new Date(nijaPayload.verificadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        Verificado em {new Date(nijaPayload.verificadoEm).toLocaleDateString('pt-BR')} Ã s {new Date(nijaPayload.verificadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     )}
                   </div>
                 )}
                   <div>
-                    <p className="text-muted-foreground text-xs font-medium">Tipo de Análise</p>
+                    <p className="text-muted-foreground text-xs font-medium">Tipo de AnÃ¡lise</p>
                     <Badge 
                       variant="outline" 
                       className={`text-[10px] ${
@@ -1995,7 +2001,7 @@ ${EXPORT_DISCLAIMER}
                           : 'bg-blue-50 text-blue-700 border-blue-300'
                       }`}
                     >
-                      {nijaPayload.tipoAnalise === 'decadencia' ? 'Decadência' : 'Prescrição'}
+                      {nijaPayload.tipoAnalise === 'decadencia' ? 'DecadÃªncia' : 'PrescriÃ§Ã£o'}
                     </Badge>
                   </div>
                   <div>
@@ -2006,17 +2012,17 @@ ${EXPORT_DISCLAIMER}
 
                 {nijaPayload.observacoes && (
                   <div>
-                    <p className="text-muted-foreground text-xs font-medium mb-1">Observações</p>
+                    <p className="text-muted-foreground text-xs font-medium mb-1">ObservaÃ§Ãµes</p>
                     <p className="text-sm bg-muted/30 p-2 rounded border">{nijaPayload.observacoes}</p>
                   </div>
                 )}
 
                 {/* Technical Note */}
                 <div>
-                  <p className="text-muted-foreground text-xs font-medium mb-2">Nota Técnica Completa</p>
+                  <p className="text-muted-foreground text-xs font-medium mb-2">Nota TÃ©cnica Completa</p>
                   <div className="bg-muted/30 border rounded-lg p-4 max-h-[350px] overflow-y-auto">
                     <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">
-                      {nijaPayload.notaTecnica || 'Nota técnica não disponível.'}
+                      {nijaPayload.notaTecnica || 'Nota tÃ©cnica nÃ£o disponÃ­vel.'}
                     </pre>
                   </div>
                 </div>

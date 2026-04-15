@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -24,8 +25,7 @@ interface SignatureRequestModalProps {
 }
 
 const PROVIDER_OPTIONS = [
-  { value: 'internal', label: 'Interno (Assinatura Manual)' },
-  { value: 'zapsign', label: 'ZapSign' },
+  { value: 'internal', label: 'Interno (Link Nativo)' },
   { value: 'docusign', label: 'DocuSign (em breve)', disabled: true },
   { value: 'clicksign', label: 'ClickSign (em breve)', disabled: true },
 ];
@@ -40,13 +40,15 @@ export function SignatureRequestModal({
 }: SignatureRequestModalProps) {
   const { toast } = useToast();
   const [provider, setProvider] = useState('internal');
+  const [signerName, setSignerName] = useState('');
+  const [signerEmail, setSignerEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
-    if (!documentId) {
+    if (!documentId || !signerName || !signerEmail) {
       toast({
         title: 'Erro',
-        description: 'Documento inválido para solicitar assinatura.',
+        description: 'Preencha todos os campos obrigatórios (nome e e-mail do signatário).',
         variant: 'destructive',
       });
       return;
@@ -57,7 +59,8 @@ export function SignatureRequestModal({
       // Call RPC to create signature request
       const { error: rpcError } = await supabase.rpc('request_document_signature', {
         p_document_id: documentId,
-        p_provider: provider,
+        p_signer_email: signerEmail,
+        p_signer_name: signerName,
       });
 
       if (rpcError) throw rpcError;
@@ -109,6 +112,27 @@ export function SignatureRequestModal({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="signerName">Nome do Signatário *</Label>
+            <Input
+              id="signerName"
+              placeholder="Nome completo"
+              value={signerName}
+              onChange={(e) => setSignerName(e.target.value)}
+              disabled={loading}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="signerEmail">E-mail do Signatário *</Label>
+            <Input
+              id="signerEmail"
+              type="email"
+              placeholder="email@exemplo.com"
+              value={signerEmail}
+              onChange={(e) => setSignerEmail(e.target.value)}
+              disabled={loading}
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="provider">Provedor de Assinatura</Label>
             <Select value={provider} onValueChange={setProvider}>

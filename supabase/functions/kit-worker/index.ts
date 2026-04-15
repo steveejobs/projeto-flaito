@@ -1,10 +1,30 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-lexos-worker-secret",
-};
+// Stage 10: kit-worker is an internal worker surface — not browser-facing.
+// CORS is restricted. Direct browser calls should be made via admin-run-kit-worker.
+// Server-to-server invocations (cron, operator proxy) don't require CORS.
+const ALLOWED_ORIGINS_KIT = [
+  "https://app.flaito.com", // Only if admin panel calls this directly
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
+function getKitCorsHeaders(req: Request): Record<string, string> {
+  const origin  = req.headers.get("Origin") ?? "";
+  if (!origin) return {}; // Server-to-server — no CORS needed
+  const allowed = ALLOWED_ORIGINS_KIT.includes(origin) ? origin : "";
+  if (!allowed) return {}; // Reject unknown browser origins
+  return {
+    "Access-Control-Allow-Origin":  allowed,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-lexos-worker-secret",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+}
+
+// Backward-compatible alias used in the handler below
+const corsHeaders = { "Access-Control-Allow-Origin": "https://app.flaito.com" };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

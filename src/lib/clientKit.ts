@@ -65,9 +65,22 @@ export async function autoGenerateClientKit(
 
     if (error) {
       console.error("[clientKit] Edge function error:", error);
+      let errorReason = error.message || "Erro ao chamar a função de geração";
+      if (error && (error as any).context && typeof (error as any).context.json === 'function') {
+        try {
+          const body = await (error as any).context.json();
+          if (body && body.reason) {
+            errorReason = body.reason;
+          } else if (body && body.errors) {
+            errorReason = Array.isArray(body.errors) ? typeof body.errors[0] === 'string' ? body.errors[0] : JSON.stringify(body.errors) : JSON.stringify(body.errors);
+          }
+        } catch (e) {
+          // Ignora se não for JSON
+        }
+      }
       return {
         ok: false,
-        reason: error.message || "Erro ao chamar a função de geração",
+        reason: errorReason,
       };
     }
 

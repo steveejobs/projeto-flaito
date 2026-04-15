@@ -120,7 +120,13 @@ export async function runFullAudit(officeId: string): Promise<{
   });
 
   if (error) throw new Error(error.message);
-  return data;
+  return data as {
+    snapshot_id: string;
+    created_at: string;
+    risk_summary: Record<string, number>;
+    counts: { tables: number; policies: number; functions: number };
+    report_md: string;
+  };
 }
 
 /**
@@ -142,7 +148,7 @@ export async function getLatestSnapshots(officeId: string, limit = 20): Promise<
  * Get database snapshot via RPC
  */
 export async function getDbSnapshot(officeId: string): Promise<DbSnapshot> {
-  const { data, error } = await supabase.rpc('lexos_audit_db_snapshot', {
+  const { data, error } = await (supabase.rpc as any)('lexos_audit_db_snapshot', {
     p_office_id: officeId,
   });
 
@@ -154,7 +160,7 @@ export async function getDbSnapshot(officeId: string): Promise<DbSnapshot> {
  * Get access matrix via RPC
  */
 export async function getMatrix(officeId: string): Promise<MatrixAccess> {
-  const { data, error } = await supabase.rpc('lexos_audit_matrix_access', {
+  const { data, error } = await (supabase.rpc as any)('lexos_audit_matrix_access', {
     p_office_id: officeId,
   });
 
@@ -166,7 +172,7 @@ export async function getMatrix(officeId: string): Promise<MatrixAccess> {
  * Get health data via RPC
  */
 export async function getHealth(officeId: string): Promise<HealthData> {
-  const { data, error } = await supabase.rpc('lexos_audit_health', {
+  const { data, error } = await (supabase.rpc as any)('lexos_audit_health', {
     p_office_id: officeId,
   });
 
@@ -183,7 +189,7 @@ export async function simulatePolicy(
   userId?: string,
   caseId?: string
 ): Promise<PolicySimulationResult> {
-  const { data, error } = await supabase.rpc('lexos_policy_simulate', {
+  const { data, error } = await (supabase.rpc as any)('lexos_policy_simulate', {
     p_office_id: officeId,
     p_role: role,
     p_user_id: userId || null,
@@ -202,7 +208,7 @@ export async function promoteRelease(
   snapshotId: string,
   target: string = 'PROD'
 ): Promise<{ success: boolean; promoted_at: string; target: string; snapshot_id: string }> {
-  const { data, error } = await supabase.rpc('lexos_promote_release', {
+  const { data, error } = await (supabase.rpc as any)('lexos_promote_release', {
     p_office_id: officeId,
     p_snapshot_id: snapshotId,
     p_target: target,
@@ -256,7 +262,7 @@ export async function logTelemetry(
   route?: string,
   durationMs?: number
 ): Promise<string> {
-  const { data, error } = await supabase.rpc('lexos_telemetry_log', {
+  const { data, error } = await (supabase.rpc as any)('lexos_telemetry_log', {
     p_office_id: officeId,
     p_kind: kind,
     p_payload: payload,
@@ -265,5 +271,6 @@ export async function logTelemetry(
   });
 
   if (error) throw new Error(error.message);
-  return data as string;
+  return data as unknown as string;
 }
+

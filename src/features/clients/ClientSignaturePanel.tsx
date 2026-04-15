@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SignatureCanvas, SignatureCanvasApi } from "@/components/SignatureCanvas";
-import { Pen, Loader2, CheckCircle2, Clock, Trash2, FileText, ExternalLink, RefreshCw } from "lucide-react";
+import { Pen, Loader2, CheckCircle2, Trash2, FileText, Link2, Copy, Check as CheckIcon, Maximize2, Minimize2, ExternalLink } from "lucide-react";
 import { autoGenerateClientKit } from "@/lib/clientKit";
 
 interface ClientSignature {
@@ -29,16 +29,18 @@ interface ClientSignature {
   signature_base64: string | null;
   signed_at: string | null;
   signature_status?: string | null;
-  zapsign_doc_token?: string | null;
 }
 
 interface ClientData {
   id: string;
   full_name: string;
+  person_type: "PF" | "PJ" | null;
   cpf: string | null;
   cnpj: string | null;
   email: string | null;
   phone: string | null;
+  representative_name: string | null;
+  representative_cpf: string | null;
   office_id: string;
 }
 
@@ -48,28 +50,33 @@ interface ClientSignaturePanelProps {
 
 export function ClientSignaturePanel({ clientId }: ClientSignaturePanelProps) {
   const { toast } = useToast();
-  
+
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [savingSignature, setSavingSignature] = useState(false);
   const [loadingSignatures, setLoadingSignatures] = useState(true);
   const [clientSignatures, setClientSignatures] = useState<ClientSignature[]>([]);
   const [clientData, setClientData] = useState<ClientData | null>(null);
   const [signatureApi, setSignatureApi] = useState<SignatureCanvasApi | null>(null);
-  const [sendingToZapSign, setSendingToZapSign] = useState(false);
-  
+
   // States for signature collection
   const [confirmConsent, setConfirmConsent] = useState(false);
 
+  // States for remote signature link
+  const [generatingLink, setGeneratingLink] = useState(false);
+  const [remoteLink, setRemoteLink] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
+
   const loadClientAndSignatures = useCallback(async () => {
     if (!clientId) return;
-    
+
     setLoadingSignatures(true);
-    
+
     try {
       // Load client data
       const { data: client, error: clientError } = await supabase
         .from("clients")
-        .select("id, full_name, cpf, cnpj, email, phone, office_id")
+        .select("id, full_name, person_type, representative_name, representative_cpf, cpf, cnpj, email, phone, office_id")
         .eq("id", clientId)
         .maybeSingle();
 
@@ -89,7 +96,7 @@ export function ClientSignaturePanel({ clientId }: ClientSignaturePanelProps) {
       if (sigError) {
         console.error("[Lexos] Erro ao carregar assinaturas:", sigError);
       } else {
-        setClientSignatures((signatures as ClientSignature[]) || []);
+        setClientSignatures((signatures as any) || []);
       }
     } catch (err) {
       console.error("[Lexos] Erro inesperado:", err);
@@ -120,7 +127,7 @@ export function ClientSignaturePanel({ clientId }: ClientSignaturePanelProps) {
     if (!dataUrl) return;
 
     setSavingSignature(true);
-    
+
     try {
       // Generate a simple hash for signed_hash (required field)
       const signedHash = btoa(Date.now().toString() + clientData.id).slice(0, 32);
@@ -133,8 +140,12 @@ export function ClientSignaturePanel({ clientId }: ClientSignaturePanelProps) {
           case_id: null,
           generated_document_id: null,
           signer_type: "cliente",
-          signer_name: clientData.full_name,
-          signer_doc: clientData.cpf || clientData.cnpj || null,
+          signer_name: clientData.person_type === "PJ" && clientData.representative_name
+            ? clientData.representative_name
+            : clientData.full_name,
+          signer_doc: clientData.person_type === "PJ" && clientData.representative_cpf
+            ? clientData.representative_cpf
+            : (clientData.cpf || clientData.cnpj || null),
           signer_email: clientData.email || null,
           signer_phone: clientData.phone || null,
           signature_base64: dataUrl,
@@ -159,9 +170,9 @@ export function ClientSignaturePanel({ clientId }: ClientSignaturePanelProps) {
         title: "Assinatura registrada",
         description: "A assinatura do cliente foi salva com sucesso.",
       });
-      
+
       setSignatureModalOpen(false);
-      
+
       // Reload signatures
       await loadClientAndSignatures();
 
@@ -227,198 +238,172 @@ export function ClientSignaturePanel({ clientId }: ClientSignaturePanelProps) {
     signatureApi?.clear();
   };
 
-  const handleSendToZapSign = async () => {
+  const handleGenerateLink = async () => {
     if (!clientData) return;
-    
-    setSendingToZapSign(true);
+    setGeneratingLink(true);
     try {
-      const { data, error } = await supabase.functions.invoke("zapsign-send-document", {
-        body: {
-          office_id: clientData.office_id,
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from("signature_links")
+        .insert({
           client_id: clientData.id,
-          document_type: "CADASTRO_CLIENTE"
-        }
-      });
-      
-      if (error || !data?.ok) {
-        toast({
-          title: "Erro ao enviar para ZapSign",
-          description: data?.error || "Não foi possível criar o documento para assinatura.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Abrir URL de assinatura em nova aba
-      if (data.sign_url) {
-        window.open(data.sign_url, "_blank");
-      }
-      
+          office_id: clientData.office_id,
+          expires_at: expiresAt,
+          status: "pending",
+        })
+        .select("token")
+        .single();
+
+      if (error || !data) throw error;
+
+      const link = `${window.location.origin}/assinar/${(data as any).token}`;
+      setRemoteLink(link);
+    } catch (err: any) {
+      console.error("[Lexos] Erro ao gerar link:", err);
       toast({
-        title: "Documento enviado",
-        description: "O termo de cadastro foi enviado para assinatura. Acompanhe o status abaixo.",
-      });
-      
-      // Recarregar para mostrar status PENDING
-      await loadClientAndSignatures();
-      
-    } catch (err) {
-      console.error("[Lexos] Erro ao enviar para ZapSign:", err);
-      toast({
-        title: "Erro inesperado",
-        description: "Não foi possível enviar para assinatura.",
-        variant: "destructive",
+        title: "Erro ao gerar link (Detalhado)",
+        description: err?.message || JSON.stringify(err) || "Erro desconhecido",
+        variant: "destructive"
       });
     } finally {
-      setSendingToZapSign(false);
+      setGeneratingLink(false);
     }
   };
 
-  // Verificar se tem assinatura válida (COLLECTED manual ou SIGNED via ZapSign)
+  const handleCopyLink = async () => {
+    if (!remoteLink) return;
+    await navigator.clipboard.writeText(remoteLink);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+
+  // Verificar se tem assinatura válida (COLLECTED manual ou signature_base64 presente)
   const hasValidSignature = clientSignatures.some(
-    sig => sig.signature_status === "COLLECTED" || sig.signature_status === "SIGNED" || sig.signature_base64
+    sig => sig.signature_status === "COLLECTED" || sig.signature_base64
   );
-  // Verificar se tem pendente no ZapSign
-  const hasPendingZapSign = clientSignatures.some(sig => sig.signature_status === "PENDING");
   const latestSignature = clientSignatures[0];
   const canSave = confirmConsent && !savingSignature;
 
   if (loadingSignatures) {
     return (
-      <Card className="overflow-hidden">
-        <CardContent className="py-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Carregando...
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground py-6">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Carregando assinatura...
+      </div>
     );
   }
 
   return (
     <>
-      <Card className="overflow-hidden">
-        <CardContent className="py-4">
-          {/* Mostrar status de assinatura pendente no ZapSign */}
-          {hasPendingZapSign && !hasValidSignature && (
-            <div className="flex items-center gap-3 p-3 mb-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-              <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
-              <span className="text-sm text-purple-700 dark:text-purple-300 flex-1">
-                Aguardando assinatura via ZapSign...
-              </span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={loadClientAndSignatures}
-                className="h-7 px-2"
+      <div className="space-y-4">
+
+        {/* Sem assinatura */}
+        {!hasValidSignature ? (
+          <div className="space-y-3">
+            <div className="p-4 rounded-xl border border-dashed border-muted-foreground/20 bg-muted/10 text-center space-y-3">
+              <Pen className="h-10 w-10 mx-auto text-muted-foreground/40" />
+              <p className="text-sm text-muted-foreground">Nenhuma assinatura coletada ainda.</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                onClick={handleOpenModal}
+                className="flex-1 hover:border-emerald-400 hover:text-emerald-600 dark:hover:border-emerald-600 dark:hover:text-emerald-400 transition-colors btn-tactile"
               >
-                <RefreshCw className="h-3.5 w-3.5" />
+                <Pen className="h-4 w-4 mr-2" />
+                Coletar presencialmente
               </Button>
-            </div>
-          )}
-          
-          {!hasValidSignature && !hasPendingZapSign ? (
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={handleOpenModal}
-                    className="hover:border-emerald-400 hover:text-emerald-600 dark:hover:border-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                  >
-                    <Pen className="h-4 w-4 mr-2" />
-                    Coletar manualmente
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={handleSendToZapSign}
-                    disabled={sendingToZapSign}
-                    className="hover:border-purple-400 hover:text-purple-600 dark:hover:border-purple-600 dark:hover:text-purple-400 transition-colors"
-                  >
-                    {sendingToZapSign ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                    )}
-                    Assinar via ZapSign
+
+              {/* Remote link */}
+              {remoteLink ? (
+                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border text-sm">
+                  <ExternalLink className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                  <span className="flex-1 truncate text-slate-600 dark:text-slate-400 font-mono text-xs">{remoteLink}</span>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 flex-shrink-0" onClick={handleCopyLink}>
+                    {linkCopied ? <CheckIcon className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                   </Button>
                 </div>
-                <Badge variant="outline" className="text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-700 gap-1">
-                  <Clock className="h-3 w-3" />
-                  Pendente
-                </Badge>
-              </div>
-            </div>
-          ) : hasValidSignature ? (
-            <div className="space-y-0">
-              {/* Card integrado com header, assinatura e footer */}
-              {latestSignature && (latestSignature.signature_base64 || latestSignature.signature_status === "SIGNED") && (
-                <div className="border rounded-xl overflow-hidden bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/50 dark:to-slate-800/30">
-                  {/* Header interno */}
-                  <div className="flex items-center justify-between px-4 py-2.5 border-b bg-muted/30">
-                    <div className="flex items-center gap-2">
-                      <Pen className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Assinatura</span>
-                    </div>
-                    <Badge className={`gap-1 text-xs ${
-                      latestSignature.signature_status === "SIGNED" 
-                        ? "bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-400"
-                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-400"
-                    }`}>
-                      <CheckCircle2 className="h-3 w-3" />
-                      {latestSignature.signature_status === "SIGNED" ? "ZapSign" : "Coletada"}
-                    </Badge>
-                  </div>
-                  
-                  {/* Área da assinatura */}
-                  <div className="p-4 flex items-center justify-center min-h-[100px] bg-white/50 dark:bg-slate-900/30">
-                    {latestSignature.signature_base64 ? (
-                      <img
-                        src={latestSignature.signature_base64}
-                        alt="Assinatura do cliente"
-                        className="max-h-24 w-auto"
-                      />
-                    ) : latestSignature.signature_status === "SIGNED" ? (
-                      <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
-                        <CheckCircle2 className="h-5 w-5" />
-                        <span className="text-sm font-medium">Assinado digitalmente via ZapSign</span>
-                      </div>
-                    ) : null}
-                  </div>
-                  
-                  {/* Footer com informações do signatário */}
-                  <div className="px-4 py-3 border-t bg-muted/20">
-                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                      <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                      {latestSignature.signer_name}
-                    </div>
-                    {latestSignature.signed_at && (
-                      <div className="text-xs text-muted-foreground mt-0.5 ml-5">
-                        {latestSignature.signature_status === "SIGNED" ? "Assinado" : "Coletada"} em {new Date(latestSignature.signed_at).toLocaleDateString("pt-BR")} às {new Date(latestSignature.signed_at).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    )}
-                  </div>
-                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={handleGenerateLink}
+                  disabled={generatingLink}
+                  className="flex-1 hover:border-blue-400 hover:text-blue-600 dark:hover:border-blue-600 dark:hover:text-blue-400 transition-colors btn-tactile"
+                >
+                  {generatingLink ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Link2 className="h-4 w-4 mr-2" />
+                  )}
+                  Gerar link para o cliente assinar
+                </Button>
+              )}
+
+              {remoteLink && (
+                <p className="text-xs text-center text-muted-foreground">
+                  Válido por 24 horas · Compartilhe com o cliente pelo WhatsApp ou e-mail
+                </p>
               )}
             </div>
-          ) : null}
-        </CardContent>
-      </Card>
+          </div>
+        ) : hasValidSignature ? (
+          <div className="space-y-2">
+            {latestSignature && (latestSignature.signature_base64 || latestSignature.signature_status === "SIGNED") && (
+              <div className="border rounded-xl overflow-hidden bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/50 dark:to-slate-800/30">
+                <div className="flex items-center justify-between px-4 py-2.5 border-b bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <Pen className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Assinatura</span>
+                  </div>
+                  <Badge className="gap-1 text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-400">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Coletada
+                  </Badge>
+                </div>
+                <div className="p-4 flex items-center justify-center min-h-[100px] bg-white/50 dark:bg-slate-900/30">
+                  {latestSignature.signature_base64 && (
+                    <img src={latestSignature.signature_base64} alt="Assinatura do cliente" className="max-h-24 w-auto" />
+                  )}
+                </div>
+                <div className="px-4 py-3 border-t bg-muted/20">
+                  <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                    {latestSignature.signer_name}
+                  </div>
+                  {latestSignature.signed_at && (
+                    <div className="text-xs text-muted-foreground mt-0.5 ml-5">
+                      Coletada em {new Date(latestSignature.signed_at).toLocaleDateString("pt-BR")} às {new Date(latestSignature.signed_at).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </div>
 
       {/* Signature Collection Modal */}
       <Dialog open={signatureModalOpen} onOpenChange={setSignatureModalOpen}>
-        <DialogContent className="sm:max-w-lg max-w-[95vw]">
-          <DialogHeader>
+        <DialogContent className={isExpanded ? "w-screen h-screen max-w-none m-0 rounded-none flex flex-col" : "sm:max-w-lg max-w-[95vw]"}>
+          <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <DialogTitle>Assinatura do cliente</DialogTitle>
+            <Button variant="ghost" size="icon" onClick={() => setIsExpanded(!isExpanded)} className="h-8 w-8 rounded-full border border-transparent hover:bg-slate-100">
+              {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </Button>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className={`space-y-4 ${isExpanded ? 'flex-1 flex flex-col' : ''}`}>
             <p className="text-sm text-muted-foreground">
               Peça para o cliente assinar na área abaixo, usando o dedo (celular) ou o mouse.
             </p>
 
-            <SignatureCanvas onReady={setSignatureApi} />
+            <div className={isExpanded ? 'flex-1' : ''}>
+              <SignatureCanvas
+                onReady={setSignatureApi}
+                className={isExpanded ? "w-full h-full min-h-[50vh]" : "w-full h-[250px]"}
+              />
+            </div>
 
             {/* Consent checkbox */}
             <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border">
@@ -428,8 +413,8 @@ export function ClientSignaturePanel({ clientId }: ClientSignaturePanelProps) {
                 onCheckedChange={(checked) => setConfirmConsent(!!checked)}
                 className="mt-0.5"
               />
-              <Label 
-                htmlFor="confirm-consent" 
+              <Label
+                htmlFor="confirm-consent"
                 className="text-sm leading-relaxed cursor-pointer"
               >
                 Confirmo que esta assinatura foi coletada com o consentimento do cliente e será utilizada para fins de representação legal.

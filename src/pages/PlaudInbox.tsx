@@ -172,10 +172,10 @@ const PlaudInbox = forwardRef<HTMLDivElement, object>(function PlaudInbox(_props
     else setLoading(true);
 
     try {
-      const { data, error } = await supabase.rpc('get_plaud_inbox', {
+      const { data, error } = await (supabase.rpc('get_plaud_inbox', {
         p_office_id: officeId,
         p_mode: mode,
-      });
+      }) as any);
 
       if (error) throw error;
       const fetchedAssets = (data as unknown as PlaudAsset[]) || [];
@@ -184,8 +184,8 @@ const PlaudInbox = forwardRef<HTMLDivElement, object>(function PlaudInbox(_props
       // Fetch OMNI-SÊNIOR analyses for these assets
       if (fetchedAssets.length > 0) {
         const assetIds = fetchedAssets.map(a => a.id);
-        const { data: seniorData, error: seniorError } = await supabase
-          .from('plaud_senior_analysis')
+        const { data: seniorData, error: seniorError } = await (supabase
+          .from('plaud_senior_analysis' as any) as any)
           .select('*')
           .in('plaud_asset_id', assetIds);
 
@@ -224,8 +224,8 @@ const PlaudInbox = forwardRef<HTMLDivElement, object>(function PlaudInbox(_props
     if (!officeId) return;
 
     try {
-      const { data, error } = await supabase
-        .from('office_members')
+      const { data, error } = await (supabase
+        .from('office_members' as any) as any)
         .select('user_id, role')
         .eq('office_id', officeId)
         .eq('is_active', true);
@@ -243,8 +243,8 @@ const PlaudInbox = forwardRef<HTMLDivElement, object>(function PlaudInbox(_props
 
     setLoadingCases(true);
     try {
-      let query = supabase
-        .from('cases')
+      let query = (supabase
+        .from('cases' as any) as any)
         .select('id, title, cnj_number, clients:client_id(name)')
         .eq('office_id', officeId)
         .is('deleted_at', null)
@@ -293,11 +293,11 @@ const PlaudInbox = forwardRef<HTMLDivElement, object>(function PlaudInbox(_props
 
     setActionLoadingId(assetId);
     try {
-      const { error } = await supabase.rpc('assign_plaud_asset', {
+      const { error } = await (supabase.rpc('assign_plaud_asset', {
         p_asset_id: assetId,
         p_assigned_to: user.id,
         p_office_visible: true,
-      });
+      }) as any);
 
       if (error) throw error;
       toast.success('Transcrição atribuída a você');
@@ -313,11 +313,11 @@ const PlaudInbox = forwardRef<HTMLDivElement, object>(function PlaudInbox(_props
   const handleAssignToOther = async (assetId: string, memberId: string) => {
     setActionLoadingId(assetId);
     try {
-      const { error } = await supabase.rpc('assign_plaud_asset', {
+      const { error } = await (supabase.rpc('assign_plaud_asset', {
         p_asset_id: assetId,
         p_assigned_to: memberId,
         p_office_visible: true,
-      });
+      }) as any);
 
       if (error) throw error;
       toast.success('Transcrição atribuída');
@@ -333,11 +333,11 @@ const PlaudInbox = forwardRef<HTMLDivElement, object>(function PlaudInbox(_props
   const handleHideFromOffice = async (assetId: string, currentAssignee: string | null) => {
     setActionLoadingId(assetId);
     try {
-      const { error } = await supabase.rpc('assign_plaud_asset', {
+      const { error } = await (supabase.rpc('assign_plaud_asset', {
         p_asset_id: assetId,
         p_assigned_to: currentAssignee,
         p_office_visible: false,
-      });
+      }) as any);
 
       if (error) throw error;
       toast.success('Transcrição ocultada do escritório');
@@ -364,10 +364,10 @@ const PlaudInbox = forwardRef<HTMLDivElement, object>(function PlaudInbox(_props
 
     setLinking(true);
     try {
-      const { error } = await supabase.rpc('link_plaud_asset_to_case', {
+      const { error } = await (supabase.rpc('link_plaud_asset_to_case', {
         p_asset_id: linkingAssetId,
         p_case_id: selectedCaseId,
-      });
+      }) as any);
 
       if (error) throw error;
       toast.success('Transcrição vinculada ao caso');
@@ -389,8 +389,8 @@ const PlaudInbox = forwardRef<HTMLDivElement, object>(function PlaudInbox(_props
     setSelectedSenior(seniorAnalyses[asset.id] || null);
     
     // Fetch job status
-    const { data: jobData } = await supabase
-      .from('plaud_analysis_jobs')
+    const { data: jobData } = await (supabase
+      .from('plaud_analysis_jobs' as any) as any)
       .select('status')
       .eq('plaud_asset_id', asset.id)
       .order('created_at', { ascending: false })
@@ -405,8 +405,8 @@ const PlaudInbox = forwardRef<HTMLDivElement, object>(function PlaudInbox(_props
 
     // Fetch analysis if done
     if (aiStatus === 'done') {
-      const { data: analysisData } = await supabase
-        .from('plaud_asset_analysis')
+      const { data: analysisData } = await (supabase
+        .from('plaud_asset_analysis' as any) as any)
         .select('analysis')
         .eq('plaud_asset_id', asset.id)
         .maybeSingle();

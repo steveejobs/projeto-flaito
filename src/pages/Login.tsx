@@ -22,13 +22,51 @@ export default function Login() {
   const { signIn, user, loading, clearSession } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const rawRedirect = searchParams.get('redirect');
+  const redirectTo = rawRedirect?.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/dashboard';
 
+  // Lógica de QA Auto-Login Programático
   useEffect(() => {
-    if (!loading && user) {
-      navigate(redirectTo, { replace: true });
+    const qaAccess = searchParams.get('qa_access') === 'true';
+    const isDev = import.meta.env.DEV;
+    const isQAModeEnabled = import.meta.env.VITE_ENABLE_QA_MODE === 'true';
+
+    if (isDev && isQAModeEnabled && qaAccess && !isLoading) {
+      const executeQALogin = async () => {
+        console.warn('[QA] Detectado acesso programático. Iniciando bypass de UI...');
+        
+        // 1. Limpar sessão anterior para evitar session leak
+        clearSession();
+        
+        // Pequeno delay para garantir limpeza do storage
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        setIsLoading(true);
+        const { error } = await signIn('qa-automation@flaito.com.br', 'QA_password_123!');
+        setIsLoading(false);
+
+        if (error) {
+          console.error('[QA] Falha no login programático:', error);
+          toast({
+            title: 'Erro QA',
+            description: 'Falha no login programático de QA. Verifique o console.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        console.log('[QA] Login programático concluído. Redirecionando...');
+        toast({
+          title: 'QA Mode',
+          description: 'Login automatizado realizado.',
+          duration: 2000,
+        });
+        navigate(redirectTo, { replace: true });
+      };
+
+      executeQALogin();
     }
-  }, [user, loading, navigate, redirectTo]);
+  }, [searchParams, clearSession, signIn, navigate, redirectTo, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,6 +186,26 @@ export default function Login() {
                 </>
               )}
             </Button>
+
+            {import.meta.env.DEV && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full border-dashed border-orange-500 text-orange-600 hover:bg-orange-50"
+                onClick={async () => {
+                  setEmail('qa-automation@flaito.com.br');
+                  setPassword('QA_password_123!');
+                  // Auto-submit after state update (using a small timeout or just calling handleSubmit manually)
+                  setTimeout(() => {
+                    const form = document.querySelector('form');
+                    form?.requestSubmit();
+                  }, 100);
+                }}
+              >
+                QA Auto-Login
+              </Button>
+            )}
+
             <p className="text-sm text-muted-foreground text-center">
               Não tem uma conta?{' '}
               <Link to={`/signup${redirectTo !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="text-primary hover:underline font-medium">

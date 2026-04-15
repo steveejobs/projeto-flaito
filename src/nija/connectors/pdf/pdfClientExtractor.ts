@@ -363,7 +363,8 @@ export async function extractTextFromPdfFile(
  */
 export async function saveExtractionToDatabase(
   documentId: string,
-  result: ExtractionResult
+  result: ExtractionResult,
+  officeId: string
 ): Promise<void> {
   // Sanitize text and report before persisting (prevents Postgres 22P05 error)
   const sanitizedText = sanitizeForPostgresText(result.extracted_text);
@@ -390,7 +391,9 @@ export async function saveExtractionToDatabase(
     extracted_coverage_ratio: sanitizedReport.coverage_ratio,
     extraction_method: sanitizedReport.method,
     extraction_updated_at: new Date().toISOString(),
-  }).eq("id", documentId);
+  })
+  .eq("id", documentId)
+  .eq("office_id", officeId);
 
   if (error) {
     console.error("[pdfClientExtractor] Erro ao salvar no banco:", error);

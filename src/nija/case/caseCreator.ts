@@ -1,4 +1,4 @@
-// src/lib/nija/caseCreator.ts
+// src/nija/case/caseCreator.ts
 // Criação automática de caso a partir da extração EPROC SEM IA
 
 import { supabase } from "@/integrations/supabase/client";

@@ -1,0 +1,19 @@
+PÁGINA DE SEPARAÇÃO
+5001234-56.2023.8.27.0001
+Evento 1
+Evento: SENTENCA_1
+Data: 10/02/2023 14:30:00
+Usuário: TO0123 - JUIZ TITULAR
+
+Processo 5001234-56.2023.8.27.0001/TO, Evento 1, SENT_1, Página 1
+Conteúdo da sentença...
+
+PÁGINA DE SEPARAÇÃO
+5001234-56.2023.8.27.0001
+Evento 2
+Evento: PETICAO_INICIAL
+Data: 15/01/2023 09:00:00
+Usuário: TO9999 - ADVOGADO
+
+Processo 5001234-56.2023.8.27.0001/TO, Evento 2, INIC1, Página 1
+Petição inicial...

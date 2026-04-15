@@ -97,7 +97,7 @@ export default function AuditoriaTecnicaPage() {
         return;
       }
 
-      setSnapshots((data || []).map(parseSnapshot));
+      setSnapshots(((data as any) || []).map(parseSnapshot));
     } catch (err) {
       console.error('[AuditoriaTecnica] Fetch error:', err);
       toast.error('Erro inesperado ao carregar auditorias');
@@ -126,7 +126,7 @@ export default function AuditoriaTecnicaPage() {
         return;
       }
 
-      setSelectedSnapshot({ ...snapshot, report_md: data?.report_md || '' });
+      setSelectedSnapshot({ ...snapshot, report_md: (data as any)?.report_md || '' });
     } catch (err) {
       console.error('[AuditoriaTecnica] Load report error:', err);
       toast.error('Erro inesperado ao carregar relatório');

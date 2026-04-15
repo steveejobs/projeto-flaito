@@ -1,28 +1,17 @@
 // src/nija/extraction/timelineSummary.ts
 // Geração automática de resumo dos andamentos processuais
 
-import type { EprocEventoExtraido } from "./mode";
+import type { 
+  EprocEventoExtraido,
+  TimelineSummary
+} from "@/types/nija-contracts";
 
-// ======================================================
-// TYPES
-// ======================================================
-
-export interface TimelineSummary {
-  totalEventos: number;
-  primeiroEvento: { data: string; tipo: string } | null;
-  ultimoEvento: { data: string; tipo: string } | null;
-  contagemPorTipo: Record<string, number>;
-  decisoesChave: string[];
-  resumoTexto: string;
-  qualidade: "ALTA" | "MEDIA" | "BAIXA";
-  percentualComData: number;
-}
 
 // ======================================================
 // HELPERS
 // ======================================================
 
-const PLACEHOLDER_NAO_IDENTIFICADO = "Não identificado nos documentos analisados";
+export const PLACEHOLDER_NAO_IDENTIFICADO = "Não identificado nos documentos analisados";
 
 /**
  * Verifica se uma data é válida (não placeholder)

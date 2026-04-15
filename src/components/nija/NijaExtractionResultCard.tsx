@@ -25,13 +25,17 @@ import {
   Link2,
   Bookmark,
 } from "lucide-react";
+import type { 
+  EprocExtractionResult,
+} from "@/types/nija-contracts";
+
 import { 
-  type EprocExtractionResult, 
   FRASE_FINAL_EXTRACAO,
-  PLACEHOLDER_NAO_IDENTIFICADO,
   formatExtractionForDisplay,
-  type BookmarkExtractionResult,
-} from "@/nija";
+} from "@/nija/utils/formatters";
+import { PLACEHOLDER_NAO_IDENTIFICADO } from "@/nija/extraction/timelineSummary";
+import type { BookmarkExtractionResult } from "@/nija/connectors/pdf/pdfBookmarkExtractor";
+
 import { useToast } from "@/hooks/use-toast";
 import { NijaDocumentNavigator } from "./NijaDocumentNavigator";
 

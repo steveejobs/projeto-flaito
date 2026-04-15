@@ -53,7 +53,7 @@ export function DeadlineAlertsPending({ officeId, limit = 50 }: DeadlineAlertsPe
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('vw_deadline_alerts_pending')
+        .from('vw_deadline_alerts_pending' as any)
         .select('id, office_id, case_id, deadline_id, fire_at, channel, status, tries, last_error, payload, created_at, updated_at')
         .eq('office_id', officeId)
         .order('fire_at', { ascending: true })
@@ -80,7 +80,7 @@ export function DeadlineAlertsPending({ officeId, limit = 50 }: DeadlineAlertsPe
 
     setProcessing(true);
     try {
-      const { data, error } = await supabase.rpc('lexos_process_deadline_alerts', {
+      const { data, error } = await supabase.rpc('lexos_process_deadline_alerts' as any, {
         p_limit: limit,
       });
 

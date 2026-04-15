@@ -2,7 +2,7 @@
 // Service para persistir e recuperar sessões de análise NIJA
 
 import { supabase } from "@/integrations/supabase/client";
-import type { EprocExtractionResult } from "@/nija";
+import type { EprocExtractionResult } from "@/types/nija-contracts";
 import type { Json } from "@/integrations/supabase/types";
 
 export interface NijaSessionData {
@@ -129,7 +129,7 @@ export async function saveNijaSession(data: NijaSessionData): Promise<string> {
       .single();
 
     if (error) throw error;
-    return inserted.id;
+    return (inserted as any).id;
   }
 }
 
@@ -154,7 +154,7 @@ export async function findSessionByDocumentsHash(
     return null;
   }
 
-  return data as NijaSessionRow | null;
+  return data as unknown as NijaSessionRow | null;
 }
 
 /**
@@ -176,7 +176,7 @@ export async function listRecentSessions(
     return [];
   }
 
-  return (data || []) as NijaSessionRow[];
+  return (data || []) as unknown as NijaSessionRow[];
 }
 
 /**
@@ -194,7 +194,7 @@ export async function getSessionById(sessionId: string): Promise<NijaSessionRow 
     return null;
   }
 
-  return data as NijaSessionRow | null;
+  return data as unknown as NijaSessionRow | null;
 }
 
 /**

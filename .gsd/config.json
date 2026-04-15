@@ -1,0 +1,11 @@
+{
+  "projectName": "Flaito",
+  "framework": "GSD",
+  "version": "1.28.0",
+  "author": "User (Antigravity)",
+  "settings": {
+    "roadmapPath": "./ROADMAP.md",
+    "architecturePath": "./ARCHITECTURE.md",
+    "stackPath": "./STACK.md"
+  }
+}

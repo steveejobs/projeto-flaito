@@ -11,7 +11,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { FileText, Loader2, FileWarning } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { canAnalyzeDocuments, getBlockingReason, type ReadingStatus } from "@/nija";
+import { canAnalyzeDocuments, getBlockingReason } from "@/nija/connectors/pdf/pdfClientExtractor";
+import type { ReadingStatus } from "@/nija/connectors/pdf/pdfClientExtractor";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface DocumentWithStatus {

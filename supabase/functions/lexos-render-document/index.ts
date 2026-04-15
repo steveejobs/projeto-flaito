@@ -57,8 +57,8 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     // ASSINATURA – gera URL assinada se bucket/path existirem
-    const sigBucket = vars["office.assinatura_bucket"] as string | undefined;
-    const sigPath = vars["office.assinatura_path"] as string | undefined;
+    const sigBucket = (vars["office.assinatura_bucket"] || vars["doctor.signature_bucket"]) as string | undefined;
+    const sigPath = (vars["office.assinatura_path"] || vars["doctor.signature_path"]) as string | undefined;
 
     if (sigBucket && sigPath) {
       console.log("[lexos-render-document] Generating signed URL for signature:", sigBucket, sigPath);
@@ -68,10 +68,18 @@ serve(async (req: Request): Promise<Response> => {
 
       if (!sigErr && sigSigned?.signedUrl) {
         vars["office.signature_signed_url"] = sigSigned.signedUrl;
+        vars["doctor.signature_url"] = sigSigned.signedUrl;
         console.log("[lexos-render-document] Signature signed URL generated successfully");
       } else if (sigErr) {
         console.warn("[lexos-render-document] Error generating signature signed URL:", sigErr);
       }
+    }
+
+    // Identidade Médica V5 - placeholders adicionais
+    if (vars["doctor.title_prefix"]) {
+        vars["doctor.full_title"] = `${vars["doctor.title_prefix"]} ${vars["doctor.name"]}`;
+    } else {
+        vars["doctor.full_title"] = vars["doctor.name"];
     }
 
     // Renderiza conteúdo final via função SQL já existente

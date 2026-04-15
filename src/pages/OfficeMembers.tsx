@@ -85,19 +85,19 @@ const ROLE_CONFIG: Record<OfficeRole, { label: string; icon: React.ElementType; 
     label: 'Proprietário', 
     icon: Crown, 
     color: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-    description: 'Controle total sobre o escritório: configurações, faturamento, membros e todas as operações. Responsável legal pelo sistema.'
+    description: 'Acesso total, gestão financeira e posse do escritório.'
   },
   ADMIN: { 
     label: 'Administrador', 
     icon: Shield, 
     color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-    description: 'Gerencia clientes, casos, documentos e membros. Não pode alterar configurações críticas ou remover o proprietário.'
+    description: 'Gerencia membros da equipe, configurações e agentes de IA.'
   },
   MEMBER: { 
     label: 'Membro', 
     icon: User, 
     color: 'bg-muted text-muted-foreground border-border',
-    description: 'Acesso operacional básico: visualiza e edita casos/documentos atribuídos. Ideal para estagiários e colaboradores.'
+    description: 'Acesso básico a clientes, casos, agenda e ferramentas jurídicas.'
   },
 };
 
@@ -194,17 +194,16 @@ export default function OfficeMembers() {
         setOfficeName(officeData.name);
       }
 
-      // Check permission
       if (health.role !== 'OWNER' && health.role !== 'ADMIN') {
         toast.error('Acesso negado. Apenas OWNER ou ADMIN podem gerenciar membros.');
         navigate('/dashboard');
         return;
       }
 
-      // Fetch members with professional profile fields
+      // Fetch members with professional profile fields and persisted email
       const { data: membersData, error: membersError } = await supabase
         .from('office_members')
-        .select('id, user_id, role, is_active, created_at, full_name, profession, oab_number, oab_uf, cpf')
+        .select('id, user_id, role, is_active, created_at, full_name, email, profession, oab_number, oab_uf, cpf')
         .eq('office_id', health.office_id)
         .order('created_at', { ascending: true });
 
@@ -213,7 +212,7 @@ export default function OfficeMembers() {
       const membersWithEmail: OfficeMember[] = (membersData || []).map(m => ({
         ...m,
         role: m.role as OfficeRole,
-        email: undefined,
+        email: m.email ?? undefined,
         full_name: m.full_name ?? null,
         profession: m.profession ?? null,
         oab_number: m.oab_number ?? null,
@@ -500,9 +499,9 @@ export default function OfficeMembers() {
             </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle className="text-lg font-semibold">Convidar Novo Membro</DialogTitle>
+              <DialogTitle className="text-lg font-semibold">Convidar para {officeName || 'Equipe'}</DialogTitle>
               <DialogDescription className="text-sm">
-                Gere um link de convite para adicionar um colaborador à equipe.
+                Gere um link de convite para adicionar um novo membro ao escritório.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">

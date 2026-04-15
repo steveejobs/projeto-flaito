@@ -59,7 +59,7 @@ export function useUserRole(): UserRoleData {
   return {
     role,
     officeId,
-    isAdmin: role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'owner',
+    isAdmin: role === 'OWNER' || role === 'ADMIN',
     loading,
   };
 }

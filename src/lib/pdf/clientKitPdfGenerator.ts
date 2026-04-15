@@ -200,35 +200,42 @@ export async function generateClientKitPdf(
   const errors: { code: string; reason: string }[] = [];
 
   // 1. Buscar dados do cliente com office
-  const { data: client, error: clientErr } = await supabase
+  const { data: clientRaw, error: clientErr } = await supabase
     .from("clients")
     .select("*")
     .eq("id", clientId)
     .single();
+
+  const client = clientRaw as any;
 
   if (clientErr || !client) {
     throw new Error("Cliente não encontrado");
   }
 
   // 2. Buscar dados do escritório
-  const { data: office, error: officeErr } = await supabase
+  const { data: officeRaw, error: officeErr } = await supabase
     .from("offices")
     .select("*")
     .eq("id", client.office_id)
     .single();
 
+  const office = officeRaw as any;
+
   if (officeErr || !office) {
     throw new Error("Escritório não encontrado");
   }
 
-  // 3. Buscar assinatura do cliente
-  const { data: clientSignature } = await supabase
-    .from("e_signatures")
+  // 3. Buscar assinatura do cliente usando view para consistência
+  const { data: clientSignatureRaw } = await supabase
+    .from("vw_client_signatures")
     .select("signature_base64, signed_at, signer_name")
     .eq("client_id", clientId)
+    .eq("office_id", client.office_id)
     .order("signed_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  const clientSignature = clientSignatureRaw as any;
 
   // 4. Montar dados do template
   const safeStr = (v: unknown): string => (v === null || v === undefined) ? "" : String(v);
@@ -342,23 +349,25 @@ export async function generateClientKitPdf(
   for (const code of templateCodes) {
     try {
       // Buscar template ativo (office ou global)
-      let { data: templates } = await supabase
+      let { data: templatesRaw } = await supabase
         .from("document_templates")
         .select("id")
         .eq("code", code)
         .eq("is_active", true)
         .eq("office_id", client.office_id)
         .limit(1);
+      
+      let templates = templatesRaw as any[];
 
       if (!templates?.length) {
-        const { data: globalTemplates } = await supabase
+        const { data: globalTemplatesRaw } = await supabase
           .from("document_templates")
           .select("id")
           .eq("code", code)
           .eq("is_active", true)
           .is("office_id", null)
           .limit(1);
-        templates = globalTemplates;
+        templates = globalTemplatesRaw as any[];
       }
 
       if (!templates?.length) {
@@ -369,7 +378,7 @@ export async function generateClientKitPdf(
       // Renderizar HTML via RPC
       const { data: html, error: renderErr } = await supabase.rpc(
         "render_template_preview",
-        { p_template_id: templates[0].id, p_data: templateData }
+        { p_template_id: (templates[0] as any).id, p_input: templateData }
       );
 
       if (renderErr || !html) {
@@ -405,22 +414,22 @@ export async function generateClientKitPdf(
       // Verificar se já existe registro para este client/kind
       const fileKind = CODE_TO_FILE_KIND[code];
       const { data: existingFile } = await supabase
-        .from("client_files")
+        .from("documents")
         .select("id")
+        .eq("office_id", client.office_id)
         .eq("client_id", clientId)
         .eq("kind", fileKind)
         .eq("mime_type", "application/pdf")
-        .maybeSingle();
+        .maybeSingle() as any;
 
       let fileRecordId: string;
 
       if (existingFile?.id) {
         // Atualizar registro existente
         const { error: updateErr } = await supabase
-          .from("client_files")
+          .from("documents")
           .update({
             storage_path: storagePath,
-            updated_at: new Date().toISOString(),
           })
           .eq("id", existingFile.id);
 
@@ -431,17 +440,23 @@ export async function generateClientKitPdf(
         }
         fileRecordId = existingFile.id;
       } else {
-        // Inserir novo registro em client_files
+        // Inserir novo registro em documents
         const { data: fileRecord, error: insertErr } = await supabase
-          .from("client_files")
+          .from("documents")
           .insert({
             office_id: client.office_id,
             client_id: clientId,
             kind: CODE_TO_FILE_KIND[code] as any,
             storage_path: storagePath,
             storage_bucket: "client-files",
-            file_name: `${code.toLowerCase()}.pdf`,
+            filename: `${code.toLowerCase()}.pdf`,
             mime_type: "application/pdf",
+            metadata: {
+              auto_generated: true,
+              template_code: code,
+              format: "pdf",
+              generated_at: new Date().toISOString()
+            },
           } as any)
           .select("id")
           .single();

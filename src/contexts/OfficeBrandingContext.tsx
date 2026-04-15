@@ -14,6 +14,7 @@ import {
   getBrandingTemplateVars,
 } from "@/lib/officeBranding";
 import { supabase } from "@/integrations/supabase/client";
+import { withTimeout } from "@/lib/utils";
 
 interface OfficeBrandingContextValue {
   branding: OfficeBranding | null;
@@ -34,11 +35,17 @@ const OfficeBrandingContext = createContext<
  */
 async function fetchBrandingFromSession(): Promise<OfficeBranding | null> {
   try {
-    const { data: healthRaw } = await supabase.rpc("lexos_healthcheck_session");
-    const healthArr = healthRaw as Array<{ ok: boolean; office_id: string }> | null;
-    const health = healthArr?.[0] ?? null;
+    const rpcPromise = supabase.rpc("lexos_healthcheck_session").maybeSingle();
+    const result = await withTimeout(
+      Promise.resolve(rpcPromise),
+      8000,
+      'OfficeBranding:healthcheck'
+    );
+    
+    const { data: healthRaw, error: rpcError } = result as { data: any; error: any };
+    const health = healthRaw ?? null;
 
-    if (!health?.ok || !health.office_id) return null;
+    if (rpcError || !health?.ok || !health.office_id) return null;
 
     const { data: office } = await supabase
       .from("offices")

@@ -55,7 +55,7 @@ export function DocumentSignatureButton({
         p_signature_base64: '', // Simplified - no actual signature canvas
         p_signed_hash: hash,
         p_metadata: {},
-      });
+      } as any);
 
       if (error) throw error;
 
@@ -64,7 +64,7 @@ export function DocumentSignatureButton({
         p_document_id: generatedDocumentId,
         p_action: 'sign',
         p_metadata: { signer_name: formData.signer_name, signer_doc: formData.signer_doc },
-      });
+      } as any);
 
       toast({ title: 'Sucesso', description: 'Documento assinado com sucesso' });
       setDialogOpen(false);

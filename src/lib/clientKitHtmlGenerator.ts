@@ -311,7 +311,8 @@ function injectPrintCss(html: string): string {
  * Também injeta um script de correção para forçar display:block nas assinaturas.
  */
 function injectKitData(html: string, kitData: Record<string, unknown>): string {
-  const scriptTag = `<script>window.__KIT_DATA__ = ${JSON.stringify(kitData)};</script>`;
+  const safeJson = JSON.stringify(kitData).replace(/<\/script>/gi, '<\\/script>');
+  const scriptTag = `<script>window.__KIT_DATA__ = ${safeJson};</script>`;
   
   // Script de correção para forçar display:block nas imagens de assinatura
   // Este script roda após o template e usa setProperty com !important para garantir visibilidade
@@ -426,29 +427,33 @@ export async function generateClientKitHtml(
   const errors: { code: string; reason: string }[] = [];
 
   // 1. Fetch client data
-  const { data: client, error: clientErr } = await supabase
+  const { data: clientRaw, error: clientErr } = await supabase
     .from("clients")
     .select("*")
     .eq("id", clientId)
     .single();
+
+  const client = clientRaw as any;
 
   if (clientErr || !client) {
     throw new Error("Cliente não encontrado");
   }
 
   // 2. Fetch office data
-  const { data: office, error: officeErr } = await supabase
+  const { data: officeRaw, error: officeErr } = await supabase
     .from("offices")
     .select("*")
     .eq("id", client.office_id)
     .single();
+
+  const office = officeRaw as any;
 
   if (officeErr || !office) {
     throw new Error("Escritório não encontrado");
   }
 
   // 3. Fetch client signature using view for reliability
-  const { data: clientSignature, error: sigError } = await supabase
+  const { data: clientSignatureRaw, error: sigError } = await supabase
     .from("vw_client_signatures")
     .select("signature_base64, signed_at, signer_name")
     .eq("client_id", clientId)
@@ -456,6 +461,8 @@ export async function generateClientKitHtml(
     .order("signed_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  const clientSignature = clientSignatureRaw as any;
 
   if (sigError) {
     console.error("[ClientKitHtmlGenerator] Error fetching client signature:", sigError);
@@ -518,11 +525,13 @@ export async function generateClientKitHtml(
 
   if (allLawyers) {
     // Fetch all lawyers from the office
-    const { data: members } = await supabase
+    const { data: membersRaw } = await supabase
       .from("office_members")
       .select("id, full_name, cpf, rg, rg_issuer, nationality, marital_status, profession, oab_number, oab_uf, phone, email, address_street, address_neighborhood, address_city, address_state, address_zip_code")
       .eq("office_id", client.office_id)
       .eq("is_active", true);
+    
+    const members = membersRaw as any[];
     
     if (members) {
       // Filter only lawyers (has OAB or profession contains advogado)
@@ -532,11 +541,13 @@ export async function generateClientKitHtml(
     }
   } else if (selectedLawyerIds.length > 0) {
     // Fetch specific selected lawyers
-    const { data: members } = await supabase
+    const { data: membersRaw } = await supabase
       .from("office_members")
       .select("id, full_name, cpf, rg, rg_issuer, nationality, marital_status, profession, oab_number, oab_uf, phone, email, address_street, address_neighborhood, address_city, address_state, address_zip_code")
       .in("id", selectedLawyerIds)
       .eq("is_active", true);
+    
+    const members = membersRaw as any[];
     
     if (members) {
       selectedLawyers = members as OfficeMemberForIdentification[];
@@ -694,23 +705,25 @@ export async function generateClientKitHtml(
   for (const code of templateCodes) {
     try {
       // Find active template (office or global)
-      let { data: templates } = await supabase
+      let { data: templatesRaw } = await supabase
         .from("document_templates")
-        .select("id, name")
+        .select("id")
         .eq("code", code)
         .eq("is_active", true)
         .eq("office_id", client.office_id)
         .limit(1);
+      
+      let templates = templatesRaw as any[];
 
       if (!templates?.length) {
-        const { data: globalTemplates } = await supabase
+        const { data: globalTemplatesRaw } = await supabase
           .from("document_templates")
-          .select("id, name")
+          .select("id")
           .eq("code", code)
           .eq("is_active", true)
           .is("office_id", null)
           .limit(1);
-        templates = globalTemplates;
+        templates = globalTemplatesRaw as any[];
       }
 
       if (!templates?.length) {
@@ -723,7 +736,7 @@ export async function generateClientKitHtml(
       // Render HTML via RPC (for Handlebars-style templates)
       const { data: html, error: renderErr } = await supabase.rpc(
         "render_template_preview",
-        { p_template_id: template.id, p_data: templateData }
+        { p_template_id: (templates[0] as any).id, p_input: templateData }
       );
 
       if (renderErr || !html) {
@@ -842,30 +855,29 @@ export async function generateClientKitHtml(
         continue;
       }
 
-      // Check for existing file record
+      // client_files table no longer exists in schema; using documents table instead
       const { data: existingFile } = await supabase
-        .from("client_files")
+        .from("documents")
         .select("id")
         .eq("office_id", client.office_id)
         .eq("client_id", clientId)
         .eq("kind", CODE_TO_FILE_KIND[code])
         .eq("mime_type", "text/html")
-        .maybeSingle();
+        .maybeSingle() as any;
 
       let fileId: string;
 
       if (existingFile?.id) {
         // Update existing record
         const { error: updErr } = await supabase
-          .from("client_files")
+          .from("documents")
           .update({
             storage_path: storagePath,
-            file_name: fileName,
             file_size: htmlBytes.length,
-            metadata: { 
-              auto_generated: true, 
-              kit_html_first: true, 
-              template_code: code, 
+            metadata: {
+              auto_generated: true,
+              kit_html_first: true,
+              template_code: code,
               format: "html",
               generated_at: new Date().toISOString()
             },
@@ -881,19 +893,18 @@ export async function generateClientKitHtml(
       } else {
         // Insert new record
         const { data: fileRecord, error: insErr } = await supabase
-          .from("client_files")
+          .from("documents")
           .insert({
             office_id: client.office_id,
             client_id: clientId,
             kind: CODE_TO_FILE_KIND[code],
-            description: `${template.name} - ${client.full_name}`,
+            filename: `${template.name} - ${client.full_name}`,
             storage_path: storagePath,
             storage_bucket: "client-files",
-            file_name: fileName,
             mime_type: "text/html",
             file_size: htmlBytes.length,
-            metadata: { 
-              auto_generated: true, 
+            metadata: {
+              auto_generated: true,
               kit_html_first: true, 
               template_code: code, 
               format: "html",

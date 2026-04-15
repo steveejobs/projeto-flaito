@@ -342,7 +342,7 @@ export const ClientFilesCard = forwardRef<HTMLDivElement, ClientFilesCardProps>(
           .limit(1)
           .maybeSingle();
 
-        setLatestSignature(signature as ClientSignature | null);
+        setLatestSignature(signature as any);
       } catch (err) {
         console.error("[ClientFilesCard] Erro ao carregar assinatura:", err);
       }

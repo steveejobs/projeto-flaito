@@ -5,32 +5,48 @@ import { useState, useRef, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { 
   extractTextFromPdfFile, 
-  type ExtractionResult, 
   saveExtractionToDatabase,
+  type ExtractionResult 
+} from "@/nija/connectors/pdf/pdfClientExtractor";
+import { 
   enrichDoc, 
-  type EnrichedDoc,
-  extractProcessYear, 
-  normalizeComarcaToCity, 
-  normalizePartyPrefill,
-  type QuickMetadata, 
-  type ProcessEvent,
-  isImagePdf, 
-  getImagePdfReason,
-  convertPdfPageToImage,
-  convertPdfFirstPageToImage,
-  saveEventSegments, 
-  mapCategoryToNature, 
-  type EventSegmentInput,
   getTjtoDictionaryCached,
   extractDocCode,
-  getEprocEventDictionaryCached,
+  type EnrichedDoc 
+} from "@/nija/connectors/tjto/dictionary";
+import { 
+  extractProcessYear, 
+  normalizeComarcaToCity, 
+  normalizePartyPrefill
+} from "@/nija/utils/helpers";
+import { 
+  isImagePdf, 
+  getImagePdfReason 
+} from "@/nija/connectors/pdf/imagePdfDetector";
+import { 
+  convertPdfPageToImage,
+  convertPdfFirstPageToImage 
+} from "@/nija/connectors/pdf/pdfToImage";
+import { 
+  saveEventSegments, 
+  mapCategoryToNature,
+  type EventSegmentInput
+} from "@/nija/extraction/eventSegments";
+import { 
   inferCategoryFromText,
-  type EprocEventCategory,
-  // Bookmark extraction
+  getEprocEventDictionaryCached,
+  type EprocEventCategory 
+} from "@/nija/connectors/eproc/eventDictionary";
+import { 
   extractBookmarksFromPdfFile,
   type BookmarkExtractionResult,
-  type EprocDocumentBookmark,
-} from "@/nija";
+  type EprocDocumentBookmark
+} from "@/nija/connectors/pdf/pdfBookmarkExtractor";
+import { extractEprocDataPure } from "@/nija/connectors/eproc/detector";
+import { PLACEHOLDER_NAO_IDENTIFICADO } from "@/nija/extraction/timelineSummary";
+
+import type { QuickMetadata, ProcessEvent } from "@/nija/core/engine";
+
 import {
   OCR_MAX_PAGES,
   OCR_RETRIES,
@@ -38,6 +54,8 @@ import {
   IMAGE_PDF_MIN_CHARS,
   MIN_CHARS_TOTAL,
 } from "@/nija/extraction/constants";
+import type { NijaDocumentInput } from "@/types/nija-contracts";
+
 import { validateCNJ, formatCNJ } from "@/nija/connectors/cnj/validator";
 import { 
   logNijaStart, 
@@ -95,16 +113,10 @@ export interface UseNijaExtractionOptions {
   setOabNumber: (v: string) => void;
 }
 
-export interface NijaDocumentInput {
-  id: string;
-  filename: string;
-  content: string;
-  kind: "ARQUIVO_PROCESSO" | "DOCUMENTO_COMPLEMENTAR";
-}
-
 // ======================================================
 // METADATA DETECTION (moved from Nija.tsx)
 // ======================================================
+
 
 // Imports already available from @/nija at top of file
 
@@ -455,9 +467,9 @@ async function detectProcessMetadataEprocV2(text: string): Promise<QuickMetadata
     const timelinePattern = /(\d{2}\/\d{2}\/\d{4})\s*[-–]\s*(?:Evento\s*(\d+)\s*[-–:]?\s*)?([^\n]+)/gi;
     let match;
     while ((match = timelinePattern.exec(cleanText)) !== null) {
-      const date = match[1];
+      const date = match[1] || "";
       const eventNumber = match[2] ? parseInt(match[2], 10) : undefined;
-      const description = match[3].trim();
+      const description = (match[3] || "").trim();
       const code = extractDocCode(description);
       
       let enrichedLabel: string | undefined;
@@ -503,17 +515,17 @@ async function generateQuickPreview(text: string): Promise<string | null> {
 async function updateDocumentImagePdfStatus(
   documentId: string, 
   isImagePdfValue: boolean, 
+  officeId: string,
   reason?: string | null
 ): Promise<void> {
   try {
-    // NOTE: Using 'as any' temporarily until Supabase types are regenerated
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from("documents")
       .update({ 
         is_image_pdf: isImagePdfValue,
-        // Optionally store reason in extraction_report or metadata
       })
-      .eq("id", documentId);
+      .eq("id", documentId)
+      .eq("office_id", officeId);
     
     if (error) {
       console.warn("[updateDocumentImagePdfStatus] Erro:", error);
@@ -678,7 +690,8 @@ export function useNijaExtraction(options: UseNijaExtractionOptions) {
           
           // Update document in DB if linked
           if (pf.documentId) {
-            await updateDocumentImagePdfStatus(pf.documentId, true, reason);
+            const { officeId } = await getOfficeContext();
+            await updateDocumentImagePdfStatus(pf.documentId, true, officeId, reason);
           }
           
           // Set status as image_pdf if text is insufficient - try OCR multi-página
@@ -832,7 +845,7 @@ export function useNijaExtraction(options: UseNijaExtractionOptions) {
               // Salvar no banco se tiver documentId
               if (pf.documentId) {
                 try {
-                  await (supabase as any)
+                  await supabase
                     .from("documents")
                     .update({
                       extracted_text: ocrText,
@@ -841,7 +854,8 @@ export function useNijaExtraction(options: UseNijaExtractionOptions) {
                       extraction_updated_at: new Date().toISOString(),
                       is_image_pdf: true,
                     })
-                    .eq("id", pf.documentId);
+                    .eq("id", pf.documentId)
+                    .eq("office_id", (await getOfficeContext()).officeId);
                 } catch (persistErr) {
                   console.warn("[NIJA] Falha ao persistir OCR:", persistErr);
                 }
@@ -926,13 +940,14 @@ export function useNijaExtraction(options: UseNijaExtractionOptions) {
         if (pf.documentId) {
           try {
             if (extractionResult) {
-              await saveExtractionToDatabase(pf.documentId, extractionResult);
+              const { officeId } = await getOfficeContext();
+              await saveExtractionToDatabase(pf.documentId, extractionResult, officeId);
               // Se não for PDF-imagem, também marcar explicitamente como false
               const isImg = isImagePdf(extractionResult.extraction_report);
-              await updateDocumentImagePdfStatus(pf.documentId, isImg, isImg ? getImagePdfReason(extractionResult.extraction_report) : null);
+              await updateDocumentImagePdfStatus(pf.documentId, isImg, officeId, isImg ? getImagePdfReason(extractionResult.extraction_report) : null);
             } else {
               // TXT: salvar apenas o texto
-              await (supabase as any)
+              await supabase
                 .from("documents")
                 .update({
                   extracted_text: text,
@@ -940,7 +955,8 @@ export function useNijaExtraction(options: UseNijaExtractionOptions) {
                   extraction_method: "text_file",
                   extraction_updated_at: new Date().toISOString(),
                 })
-                .eq("id", pf.documentId);
+                .eq("id", pf.documentId)
+                .eq("office_id", (await getOfficeContext()).officeId);
             }
           } catch (persistErr) {
             console.warn("[NIJA] Falha ao persistir extração:", persistErr);
@@ -968,7 +984,6 @@ export function useNijaExtraction(options: UseNijaExtractionOptions) {
         // === AUTO-DETECT METADATA USANDO EXTRAÇÃO PURA (PRIORIDADE) ===
         // IMPORTANTE: Usar extractEprocDataPure ao invés de V2 truncada para nomes completos
         // Passar bookmarks para extração precisa da timeline
-        const { extractEprocDataPure, PLACEHOLDER_NAO_IDENTIFICADO } = await import("@/nija");
         const pureExtraction = extractEprocDataPure(text, bookmarkForState);
         
         // Fallback para V2 apenas para campos que a extração pura não capturou
@@ -1237,7 +1252,7 @@ export function useNijaExtraction(options: UseNijaExtractionOptions) {
                 expires_at: expiresAt
               },
               uploaded_by: userId,
-            } as any)
+            })
             .select("id")
             .single();
 

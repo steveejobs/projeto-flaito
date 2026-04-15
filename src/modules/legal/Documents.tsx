@@ -249,7 +249,7 @@ export default function Documents() {
     fetchData();
   }, [fetchData]);
 
-  const isAdmin = userRole && ['admin', 'owner'].includes(userRole.toLowerCase());
+  const isAdmin = userRole === 'OWNER' || userRole === 'ADMIN';
 
   // Filter documents
   const filteredDocuments = useMemo(() => {

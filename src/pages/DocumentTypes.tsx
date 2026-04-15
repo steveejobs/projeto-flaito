@@ -12,20 +12,30 @@ import { useToast } from '@/hooks/use-toast';
 
 interface DocumentType {
   id: string;
-  name: string;
+  name: string | null;
   code: string | null;
-  is_active: boolean;
-  office_id: string;
+  is_active: boolean | null;
+  office_id: string | null;
 }
 
 interface TypePermission {
   id?: string;
-  type_id: string;
-  role: string;
-  can_view: boolean;
-  can_upload: boolean;
-  can_download: boolean;
-  can_delete: boolean;
+  type_id: string | null;
+  role: string | null;
+  can_view: boolean | null;
+  can_upload: boolean | null;
+  can_download: boolean | null;
+  can_delete: boolean | null;
+}
+
+interface TypePermission {
+  id?: string;
+  type_id: string | null;
+  role: string | null;
+  can_view: boolean | null;
+  can_upload: boolean | null;
+  can_download: boolean | null;
+  can_delete: boolean | null;
 }
 
 const ROLES = ['owner', 'admin', 'member'] as const;
@@ -70,14 +80,18 @@ export default function DocumentTypes() {
         .limit(1)
         .single();
 
-      if (memberError || !memberData) throw new Error('Usuário sem escritório ativo');
+      if (memberError || !memberData) {
+        if (import.meta.env.DEV) console.log('[DocumentTypes] No office member record yet. Hooks might still be provisioning.');
+        setLoading(false);
+        return;
+      }
 
       setOfficeId(memberData.office_id);
       setUserRole(memberData.role);
 
-      // Check if user is admin/owner
       if (!['admin', 'owner'].includes(memberData.role?.toLowerCase())) {
         toast({ title: 'Acesso negado', description: 'Apenas administradores podem acessar esta página.', variant: 'destructive' });
+        setLoading(false);
         return;
       }
 
@@ -229,7 +243,7 @@ export default function DocumentTypes() {
     }
   };
 
-  const isAdmin = userRole && ['admin', 'owner'].includes(userRole.toLowerCase());
+  const isAdmin = userRole === 'OWNER' || userRole === 'ADMIN';
 
   if (!isAdmin && !loading) {
     return (

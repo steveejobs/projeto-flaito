@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOfficeRole } from '@/hooks/useOfficeRole';
+import { hasRole } from '@/lib/rbac/roles';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,6 +53,7 @@ import type { NijaFullAnalysisResult } from '@/services/nijaFullAnalysis';
 import {
   getAllStates,
   getCaseCurrentState,
+  listCasesWithCurrentState,
   type CaseState,
   type CaseCurrentState,
   buildStatesMap,
@@ -135,6 +138,7 @@ function extractNijaSearchSubject(analysis: NijaFullAnalysisResult | null): stri
 
 export default function Cases() {
   const { user } = useAuth();
+  const { role } = useOfficeRole();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -306,17 +310,17 @@ export default function Cases() {
       });
       setClientsMap(map);
 
-      // Fetch FSM states for all cases
+      // Fetch FSM states for all cases via caseState service
       if (casesData.length > 0) {
         const caseIds = casesData.map((c) => c.id);
         const { data: caseStates } = await supabase
-          .from('vw_case_current_state' as any)
+          .from('vw_case_current_state')
           .select('*')
-          .in('case_id', caseIds);
+          .in('case_id', caseIds) as { data: CaseCurrentState[] | null; error: unknown };
 
         const csMap: Record<string, CaseCurrentState> = {};
-        (caseStates || []).forEach((s: any) => {
-          csMap[s.case_id] = s as CaseCurrentState;
+        (caseStates || []).forEach((s) => {
+          csMap[s.case_id] = s;
         });
         setCaseStatesMap(csMap);
       }
@@ -344,18 +348,12 @@ export default function Cases() {
 
   // Fetch permission when case is selected
   useEffect(() => {
-    const fetchPermission = async () => {
-      if (!selectedCase) {
-        setCanEdit(false);
-        return;
-      }
-
-      const { data: roleData } = await supabase.rpc('get_my_case_role', { p_case_id: selectedCase.id });
-      setCanEdit(roleData === 'owner' || roleData === 'editor');
-    };
-
-    fetchPermission();
-  }, [selectedCase]);
+    if (!selectedCase) {
+      setCanEdit(false);
+      return;
+    }
+    setCanEdit(hasRole(role, 'ADMIN'));
+  }, [selectedCase, role]);
 
   // Refresh FSM state for a specific case (used after transitions)
   const refreshCaseState = useCallback(async (caseId: string) => {
@@ -1041,7 +1039,7 @@ export default function Cases() {
                       ramoHint={selectedCase.area}
                       faseHint={selectedCase.stage}
                       poloHint={selectedCase.side === "ATAQUE" ? "AUTOR" : "REU"}
-                      initialData={selectedCase.nija_full_analysis as NijaFullAnalysisResult | null}
+                      initialData={selectedCase.nija_full_analysis as unknown as NijaFullAnalysisResult | null}
                     />
 
                     {/* Botão para gerar peça automática */}
@@ -1049,7 +1047,7 @@ export default function Cases() {
                     
                     <CaseKnowledgePanel
                       caseId={selectedCase.id}
-                      subject={knowledgeSubject || extractNijaSearchSubject(selectedCase.nija_full_analysis as NijaFullAnalysisResult | null) || selectedCase.area || ""}
+                      subject={knowledgeSubject || extractNijaSearchSubject(selectedCase.nija_full_analysis as unknown as NijaFullAnalysisResult | null) || selectedCase.area || ""}
                       onSubjectChange={setKnowledgeSubject}
                     />
                   </TabsContent>

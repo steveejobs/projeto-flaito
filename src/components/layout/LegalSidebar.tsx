@@ -31,6 +31,10 @@ import {
   Mic,
   Star,
   Stethoscope,
+  Scale,
+  Sparkles,
+  MessageSquare,
+  BookOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -118,8 +122,8 @@ const MENU_TREE: MenuGroup[] = [
     defaultOpen: true,
     items: [
       { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, minRole: 'MEMBER', keywords: ['inicio', 'home', 'visao', 'geral', 'resumo'] },
+      { title: 'CRM Inteligente', url: '/crm', icon: Sparkles, minRole: 'MEMBER', keywords: ['vendas', 'leads', 'funil', 'pipeline', 'clientes', 'prospecção'] },
       { title: 'Alertas', url: '/alerts', icon: Bell, minRole: 'MEMBER', module: 'LEGAL', keywords: ['prazos', 'vencimentos', 'urgente', 'deadline', 'notificacao', 'pendentes'] },
-      { title: 'KPIs', url: '/kpis', icon: BarChart3, minRole: 'MEMBER', module: 'LEGAL', keywords: ['metricas', 'indicadores', 'performance', 'resultados', 'estatisticas', 'graficos'] },
     ],
   },
   {
@@ -132,7 +136,8 @@ const MENU_TREE: MenuGroup[] = [
     items: [
       { title: 'Casos', url: '/cases', icon: Briefcase, minRole: 'MEMBER', keywords: ['processos', 'acoes', 'demandas', 'clientes'] },
       { title: 'Documentos', url: '/documents', icon: FileText, minRole: 'MEMBER', keywords: ['arquivos', 'pecas', 'anexos', 'pdf'] },
-      { title: 'Plaud Inbox', url: '/plaud-inbox', icon: Mic, minRole: 'MEMBER', keywords: ['audio', 'gravacao', 'transcricao', 'reuniao'] },
+      { title: 'Reuniões Inteligentes', url: '/legal/meetings', icon: Mic, minRole: 'MEMBER', keywords: ['audio', 'gravacao', 'transcricao', 'reuniao', 'ao vivo', 'nija'] },
+      { title: 'Plaud Inbox', url: '/plaud-inbox', icon: History, minRole: 'MEMBER', keywords: ['audio', 'gravacao', 'transcricao', 'reuniao'] },
     ],
   },
 
@@ -155,8 +160,27 @@ const MENU_TREE: MenuGroup[] = [
     defaultOpen: true,
     items: [
       { title: 'Compromissos', url: '/agenda', icon: Calendar, minRole: 'MEMBER', keywords: ['reunioes', 'audiencias', 'eventos', 'horarios'] },
-      { title: 'Pagamentos Pendentes', url: '/agenda/payments', icon: CreditCard, minRole: 'MEMBER', keywords: ['cobranca', 'financeiro', 'boleto', 'pix'] },
-      { title: 'Histórico', url: '/agenda/history', icon: History, minRole: 'MEMBER', keywords: ['passado', 'anteriores', 'concluidos'] },
+    ],
+  },
+  {
+    key: 'comunicacao',
+    label: 'Comunicação',
+    icon: MessageSquare,
+    minRole: 'MEMBER',
+    defaultOpen: true,
+    items: [
+      { title: 'Central de Atendimento', url: '/inbox', icon: MessageSquare, minRole: 'MEMBER', keywords: ['chat', 'mensagens', 'conversa', 'zap', 'wa', 'inbox', 'atendimento', 'suporte'] },
+    ],
+  },
+  {
+    key: 'studio',
+    label: 'Studio',
+    icon: Bot,
+    minRole: 'ADMIN',
+    defaultOpen: true,
+    items: [
+      { title: 'Studio de Agentes', url: '/agent-studio', icon: Bot, minRole: 'ADMIN', keywords: ['ia', 'agentes', 'configuracao', 'studio', 'personalizacao'] },
+      { title: 'Builder de Fluxos', url: '/flow-manager', icon: FolderTree, minRole: 'ADMIN', keywords: ['fluxos', 'automacao', 'manychat', 'editor', 'builder'] },
     ],
   },
   {
@@ -168,7 +192,6 @@ const MENU_TREE: MenuGroup[] = [
     items: [
       { title: 'Análise Jurídica', url: '/nija', icon: Brain, minRole: 'MEMBER', keywords: ['ia', 'inteligencia', 'artificial', 'analise', 'parecer'] },
       { title: 'Uso do NIJA', url: '/nija-usage', icon: BarChart3, minRole: 'ADMIN', keywords: ['consumo', 'tokens', 'creditos', 'uso'] },
-      { title: 'Créditos / Pagamentos', url: '/nija/credits', icon: Coins, minRole: 'ADMIN', keywords: ['saldo', 'recarga', 'plano'] },
     ],
   },
   {
@@ -178,10 +201,11 @@ const MENU_TREE: MenuGroup[] = [
     minRole: 'MEMBER',
     defaultOpen: false,
     items: [
+      { title: 'Banco Jurídico', url: '/banco-juridico', icon: Scale, minRole: 'MEMBER', keywords: ['peticoes', 'teses', 'doutrinas', 'sumulas', 'banco', 'conhecimento'] },
+      { title: 'Contatos Judiciário', url: '/contatos-judiciario', icon: Building2, minRole: 'MEMBER', keywords: ['varas', 'tribunais', 'telefones', 'emails', 'judiciario'] },
       { title: 'Tipos de Documentos', url: '/document-types', icon: FileText, minRole: 'ADMIN', keywords: ['categorias', 'modelos', 'templates'] },
-      { title: 'Base de Conhecimento', url: '/knowledge', icon: Brain, minRole: 'ADMIN', keywords: ['artigos', 'tutoriais', 'ajuda'] },
-      { title: 'Geração de Peças', url: '/nija/docs', icon: FileText, minRole: 'MEMBER', keywords: ['criar', 'gerar', 'peticao', 'contestacao'] },
-      { title: 'Pesquisa e Precedentes', url: '/nija/research', icon: Search, minRole: 'MEMBER', keywords: ['jurisprudencia', 'decisoes', 'tribunais'] },
+      { title: 'Inteligência de Caso', url: '/knowledge', icon: Brain, minRole: 'ADMIN', keywords: ['artigos', 'tutoriais', 'ajuda'] },
+      { title: 'Base de Conhecimento', url: '/office-knowledge', icon: BookOpen, minRole: 'MEMBER', keywords: ['conhecimento', 'peças', 'teses'] },
       { title: 'Modelos do Kit Inicial', url: '/admin/modelos', icon: FileText, minRole: 'ADMIN', keywords: ['templates', 'padrao', 'kit'] },
       { title: 'Dicionário TJTO', url: '/admin/tjto-dictionary', icon: FileText, minRole: 'ADMIN', keywords: ['eventos', 'movimentacoes', 'tribunal'] },
       { title: 'Precedentes', url: '/admin/precedents', icon: ClipboardList, minRole: 'OWNER', keywords: ['jurisprudencia', 'decisoes', 'admin'] },
@@ -195,43 +219,15 @@ const MENU_TREE: MenuGroup[] = [
     defaultOpen: false,
     subMenus: [
       {
-        key: 'escritorio',
-        label: 'Escritório',
-        icon: Building2,
-        minRole: 'MEMBER',
-        defaultOpen: false,
-        items: [
-          { title: 'Meu Escritório', url: '/meu-escritorio', icon: Building2, minRole: 'MEMBER', keywords: ['perfil', 'empresa', 'dados'] },
-          { title: 'Aparência', url: '/sistema/aparencia', icon: Palette, minRole: 'ADMIN', keywords: ['tema', 'cores', 'logo', 'visual'] },
-        ],
-      },
-      {
-        key: 'manutencao',
-        label: 'Manutenção do Sistema',
-        icon: Wrench,
+        key: 'canais',
+        label: 'Canais',
+        icon: Link2,
         minRole: 'ADMIN',
-        defaultOpen: false,
         items: [
-          { title: 'Explorar Projeto', url: '/system/explore', icon: Search, minRole: 'ADMIN', keywords: ['arquivos', 'codigo', 'estrutura'] },
-          { title: 'Arquitetura', url: '/system/architecture', icon: FolderTree, minRole: 'ADMIN', keywords: ['diagrama', 'componentes', 'modulos'] },
-          { title: 'Auditoria do Sistema', url: '/system-audit', icon: ClipboardList, minRole: 'ADMIN', keywords: ['logs', 'eventos', 'trilha'] },
-          { title: 'Auditoria Técnica', url: '/system/auditoria-tecnica', icon: Shield, minRole: 'ADMIN', keywords: ['seguranca', 'vulnerabilidades'] },
-          { title: 'Centro de Governança', url: '/system/governanca', icon: Shield, minRole: 'ADMIN', keywords: ['politicas', 'regras', 'conformidade'] },
-          { title: 'Auditoria', url: '/system/auditoria', icon: ClipboardList, minRole: 'ADMIN', keywords: ['logs', 'historico'] },
-          { title: 'Diagramas', url: '/system/diagramas', icon: FolderTree, minRole: 'ADMIN', keywords: ['fluxo', 'mermaid', 'visual'] },
-          { title: 'Matriz de Acesso', url: '/system/matriz-acesso', icon: Users, minRole: 'ADMIN', keywords: ['permissoes', 'roles', 'rls'] },
-          { title: 'Integrações RPC/Edge', url: '/system/integracoes', icon: Link2, minRole: 'ADMIN', keywords: ['functions', 'api', 'supabase'] },
-          { title: 'Rebuild Engine', url: '/system/rebuild', icon: Wrench, minRole: 'ADMIN', keywords: ['reconstruir', 'cache', 'limpar'] },
-          { title: 'Saúde', url: '/system/saude', icon: Eye, minRole: 'ADMIN', keywords: ['status', 'monitoramento', 'health'] },
-          { title: 'Simulador', url: '/system/policy-simulator', icon: Shield, minRole: 'ADMIN', keywords: ['teste', 'rls', 'politicas'] },
-          { title: 'Ambientes', url: '/system/environments', icon: Settings, minRole: 'OWNER', keywords: ['dev', 'prod', 'staging'] },
-          { title: 'Manutenção', url: '/system/maintenance', icon: Wrench, minRole: 'OWNER', keywords: ['admin', 'configuracao'] },
-          { title: 'Storage', url: '/system/storage-maintenance', icon: HardDrive, minRole: 'OWNER', keywords: ['arquivos', 'bucket', 'limpeza'] },
-          { title: 'Integrações', url: '/integrations', icon: Link2, minRole: 'ADMIN', keywords: ['apis', 'webhooks', 'terceiros'] },
-          { title: 'Dev Diagnostics', url: '#dev-panel', icon: Bug, minRole: 'OWNER', keywords: ['debug', 'desenvolvimento', 'dev'] },
-        ],
-      },
-    ],
+          { title: 'WhatsApp (Z-API)', url: '/settings/whatsapp', icon: MessageSquare, minRole: 'ADMIN', keywords: ['whatsapp', 'zapi', 'conexao', 'instancia'] },
+        ]
+      }
+    ]
   },
 ];
 
@@ -664,6 +660,7 @@ export function LegalSidebar() {
               >
                 <LexosMark
                   className={`${collapsed ? 'h-8 w-8' : 'h-10 w-10'} rounded-md shadow-sm shrink-0`}
+                  variant="light"
                   style={{
                     transform: `scale(var(--sidebar-logo-scale, 1))`,
                     transformOrigin: 'center center'
@@ -674,9 +671,16 @@ export function LegalSidebar() {
                     <span className="font-extrabold text-base text-sidebar-foreground leading-tight tracking-tight">
                       Lexos
                     </span>
-                    <span className="text-[10px] text-sidebar-foreground/50 font-bold tracking-widest uppercase">
-                      Inteligência Legal
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-sidebar-foreground/50 font-bold tracking-widest uppercase">
+                        Inteligência Legal
+                      </span>
+                      {branding?.nome_escritorio && (
+                        <span className="text-[9px] text-primary/70 font-mono truncate max-w-[120px]">
+                          {branding.nome_escritorio}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
               </button>
@@ -685,7 +689,7 @@ export function LegalSidebar() {
             <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-bold flex items-center gap-3">
-                  <LexosMark className="h-10 w-10 rounded-lg" />
+                  <LexosMark className="h-10 w-10 rounded-lg" variant="light" />
                   Visão Geral do LEXOS
                 </DialogTitle>
               </DialogHeader>
@@ -847,7 +851,20 @@ export function LegalSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-2">
-        <VersionButton collapsed={collapsed} />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Configurações">
+              <NavLink
+                to="/settings/office"
+                className="flex items-center gap-3 rounded-xl hover:bg-sidebar-accent px-3 py-2.5 transition-colors"
+                activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
+              >
+                <Settings className="h-4 w-4 shrink-0" />
+                {!collapsed && <span className="text-sm">Configurações</span>}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );

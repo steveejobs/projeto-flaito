@@ -11,7 +11,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { NijaOperationMode } from "@/nija";
+import type { NijaOperationMode } from "@/types/nija-contracts";
+
 
 export interface NijaExtractionModeToggleProps {
   mode: NijaOperationMode;

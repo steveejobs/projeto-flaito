@@ -46,7 +46,7 @@ export function DeleteCaseButton({
     setLoading(true);
     try {
       // Call the cascade delete RPC
-      const { data, error } = await supabase.rpc('delete_case_cascade', {
+      const { data, error } = await (supabase.rpc as any)('delete_case_cascade', {
         p_case_id: caseId,
       });
 

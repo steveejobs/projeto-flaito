@@ -21,7 +21,7 @@ O `office_id` é o identificador único do seu escritório no LEXOS. Para encont
 ## 2. URL do Endpoint
 
 ```
-https://uxrakfbedmkiqhidruxx.functions.supabase.co/zapier-plaud?office_id=<OFFICE_UUID>
+https://[PROJETO].functions.supabase.co/zapier-plaud?office_id=<OFFICE_UUID>
 ```
 
 **Exemplo completo:**
@@ -37,7 +37,7 @@ https://uxrakfbedmkiqhidruxx.functions.supabase.co/zapier-plaud?office_id=131964
 
 ### 3.1 Configurar o Secret no Supabase
 
-1. Acesse o [Supabase Dashboard → Settings → Edge Functions](https://supabase.com/dashboard/project/uxrakfbedmkiqhidruxx/settings/functions)
+1. Acesse o [Supabase Dashboard](https://supabase.com/dashboard/project/_/functions)
 2. Clique em **Add new secret**
 3. Configure:
    - **Name:** `ZAPIER_PLAUD_TOKEN`

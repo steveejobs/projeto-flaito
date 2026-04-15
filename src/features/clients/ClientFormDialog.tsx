@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, RefreshCw, Loader2 } from 'lucide-react';
+import { Plus, RefreshCw, Loader2, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ClientSignaturePanel } from './ClientSignaturePanel';
@@ -145,21 +145,21 @@ export function ClientFormDialog({
   const [stateUf, setStateUf] = useState('');
   const [complement, setComplement] = useState('');
   const [loadingCep, setLoadingCep] = useState(false);
-  
+
   // Kit regeneration dialog state
   const [showRegenerateKitDialog, setShowRegenerateKitDialog] = useState(false);
   const [regeneratingKit, setRegeneratingKit] = useState(false);
   const [pendingUpdatedClient, setPendingUpdatedClient] = useState<Client | null>(null);
   const [kitAnswers, setKitAnswers] = useState<KitAnswers>(getDefaultKitAnswers());
-  
+
   // Initial kit creation dialog state
   const [showInitialKitDialog, setShowInitialKitDialog] = useState(false);
   const [creatingInitialKit, setCreatingInitialKit] = useState(false);
-  
+
   // NEW: Contract setup modal state (fluxo limpo)
   const [showContractModal, setShowContractModal] = useState(false);
   const [generatingBasicKit, setGeneratingBasicKit] = useState(false);
-  
+
   // AI extraction tracking
   const [aiExtracted, setAiExtracted] = useState(false);
 
@@ -187,18 +187,18 @@ export function ClientFormDialog({
           representative_marital_status: editingClient.representative_marital_status || '',
           representative_profession: editingClient.representative_profession || '',
         });
-        
+
         // Carregar campos de endereço separados
         setCep(formatCep(editingClient.cep || ''));
         setCity(editingClient.city || '');
         setStateUf(editingClient.state || '');
-        
+
         // Extrair logradouro, número e bairro do address_line
         const addressParts = (editingClient.address_line || '').split(',').map(p => p.trim());
         if (addressParts.length >= 1) setStreet(addressParts[0] || '');
         if (addressParts.length >= 2) setNumberAddress(addressParts[1]?.replace(/[^\d]/g, '') || '');
         if (addressParts.length >= 3) setNeighborhood(addressParts[2] || '');
-        
+
         setActiveTab('dados');
       } else {
         resetForm();
@@ -292,10 +292,10 @@ export function ClientFormDialog({
       let repCpf = '';
       if (data.qsa && Array.isArray(data.qsa) && data.qsa.length > 0) {
         // Prioriza quem tem "administrador" ou "sócio-administrador" na qualificação
-        const admin = data.qsa.find((s: any) => 
+        const admin = data.qsa.find((s: any) =>
           s.qual_socio?.toLowerCase().includes('administrador')
         ) || data.qsa[0];
-        
+
         repNome = admin.nome_socio || '';
         // A BrasilAPI não retorna CPF dos sócios por questão de privacidade,
         // mas algumas APIs alternativas podem retornar
@@ -348,7 +348,7 @@ export function ClientFormDialog({
     return `${digits.slice(0, 5)}-${digits.slice(5)}`;
   };
 
-  const fetchAddressFromCep = async (digits: string) => {
+  const fetchAddressFromCep = async (digits: string, silent: boolean = false) => {
     if (digits.length !== 8) return;
 
     setLoadingCep(true);
@@ -358,22 +358,26 @@ export function ClientFormDialog({
       });
 
       if (res.error) {
-        toast({
-          title: 'Erro ao consultar CEP',
-          description: 'Não foi possível consultar o CEP. Tente novamente.',
-          variant: 'destructive',
-        });
+        if (!silent) {
+          toast({
+            title: 'Erro ao consultar CEP',
+            description: 'Não foi possível consultar o CEP. Tente novamente.',
+            variant: 'destructive',
+          });
+        }
         return;
       }
 
       const data = res.data;
 
       if (data?.erro) {
-        toast({
-          title: 'CEP não encontrado',
-          description: 'Verifique o CEP informado.',
-          variant: 'destructive',
-        });
+        if (!silent) {
+          toast({
+            title: 'CEP não encontrado',
+            description: 'Verifique o CEP informado.',
+            variant: 'destructive',
+          });
+        }
         return;
       }
 
@@ -402,7 +406,7 @@ export function ClientFormDialog({
   const handleDataExtracted = (data: Record<string, string | null | undefined>) => {
     // Mark as AI extracted
     setAiExtracted(true);
-    
+
     setFormData((prev) => ({
       ...prev,
       full_name: data.full_name || prev.full_name,
@@ -413,7 +417,7 @@ export function ClientFormDialog({
       marital_status: data.marital_status || prev.marital_status,
       profession: data.profession || prev.profession,
     }));
-    
+
     // Update address fields if extracted
     if (data.address_line) setStreet(data.address_line);
     if (data.neighborhood) setNeighborhood(data.neighborhood);
@@ -421,9 +425,9 @@ export function ClientFormDialog({
     if (data.state) setStateUf(data.state);
     if (data.cep) {
       setCep(formatCep(data.cep));
-      fetchAddressFromCep(data.cep.replace(/\D/g, ''));
+      fetchAddressFromCep(data.cep.replace(/\D/g, ''), true);
     }
-    
+
     // Switch to data tab after extraction
     setActiveTab('dados');
   };
@@ -478,7 +482,14 @@ export function ClientFormDialog({
       return;
     }
 
-    if (!officeId || !userId) return;
+    if (!userId) {
+      toast({
+        title: 'Erro de Autenticação',
+        description: 'Não foi possível identificar seu usuário. Tente atualizar a página.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     setSaving(true);
 
@@ -524,6 +535,23 @@ export function ClientFormDialog({
 
         toast({ title: 'Cliente atualizado', description: 'Os dados foram atualizados.' });
         onClientSaved(updatedClient, false);
+
+        // Salvar documentos escaneados adicionais
+        if (scannedDocuments.length > 0 && officeId) {
+          const saveResult = await saveScannedDocumentsToClientFiles(scannedDocuments, editingClient.id, officeId);
+          if (saveResult.success && saveResult.errors.length === 0) {
+            toast({
+              title: "Documentos salvos",
+              description: `${scannedDocuments.length} arquivo(s) anexado(s) ao cliente.`,
+            });
+          } else if (saveResult.errors.length > 0) {
+            toast({
+              title: "Aviso",
+              description: `Alguns arquivos não foram salvos: ${saveResult.errors.slice(0, 2).join(", ")}`,
+              variant: "destructive",
+            });
+          }
+        }
 
         // Verificar se o cliente já tem kit gerado
         const { data: existingKit } = await supabase
@@ -572,6 +600,7 @@ export function ClientFormDialog({
             representative_profession: !isPF ? toTitleCase(formData.representative_profession) : null,
             created_by: userId,
             ai_extracted: aiExtracted,
+            status: 'active',
           })
           .select()
           .single();
@@ -587,9 +616,9 @@ export function ClientFormDialog({
           return;
         }
 
-        toast({ 
-          title: 'Cliente cadastrado', 
-          description: 'Assinatura pendente para gerar o KIT (Procuração e Declaração).' 
+        toast({
+          title: 'Cliente cadastrado',
+          description: 'Assinatura pendente para gerar o KIT (Procuração e Declaração).'
         });
         onClientSaved(newClient, true);
 
@@ -600,7 +629,7 @@ export function ClientFormDialog({
           // Salvar documentos escaneados
           if (scannedDocuments.length > 0 && officeId) {
             const saveResult = await saveScannedDocumentsToClientFiles(scannedDocuments, newClient.id, officeId);
-            
+
             if (saveResult.success && saveResult.errors.length === 0) {
               toast({
                 title: "Documentos salvos",
@@ -633,17 +662,34 @@ export function ClientFormDialog({
   const createInitialDocsKit = async (clientId: string, variables?: Record<string, any>) => {
     try {
       const { data, error } = await supabase.functions.invoke('create-client-kit', {
-        body: { 
+        body: {
           client_id: clientId,
           template_codes: ['PROC', 'DECL', 'CONTRATO'],
           variables: variables || {},
         },
       });
 
+      let errorReason = data?.reason || error?.message || 'Não foi possível gerar os documentos.';
+
+      // Tenta extrair a mensagem de erro enviada pela edge function (422/500)
+      const errorWithCtx = error as { context?: { json: () => Promise<Record<string, unknown>> } };
+      if (errorWithCtx?.context && typeof errorWithCtx.context.json === 'function') {
+        try {
+          const body = await errorWithCtx.context.json();
+          if (body && body.reason) {
+            errorReason = body.reason;
+          } else if (body && body.errors) {
+            errorReason = Array.isArray(body.errors) ? typeof body.errors[0] === 'string' ? body.errors[0] : JSON.stringify(body.errors) : JSON.stringify(body.errors);
+          }
+        } catch (e) {
+          // Ignora se não for JSON
+        }
+      }
+
       if (error || !data?.ok) {
         toast({
-          title: 'Erro ao criar documentos iniciais',
-          description: data?.reason || 'Não foi possível gerar os documentos.',
+          title: 'Erro ao criar documentos iniciais (Detalhado)',
+          description: errorReason,
           variant: 'destructive',
         });
         return;
@@ -664,16 +710,16 @@ export function ClientFormDialog({
   // Build variables from kitAnswers for kit generation
   const buildKitVariables = () => {
     const { tipo_remuneracao, percentual_honorarios, valor_fixo_honorarios, forma_pagamento, valor_entrada, numero_parcelas, valor_parcela, metodo_pagamento, chave_pix } = kitAnswers;
-    
+
     const valorFixoNum = parseCurrencyToNumber(valor_fixo_honorarios);
     const valorEntradaNum = parseCurrencyToNumber(valor_entrada);
     const valorParcelaNum = parseCurrencyToNumber(valor_parcela);
     const numParcelas = parseInt(numero_parcelas, 10) || 0;
-    
+
     // Calcular datas das parcelas
     const datasParcelas = numParcelas > 0 ? calcularDatasParcelas(kitAnswers.data_primeira_parcela, numParcelas) : [];
     const datasFormatadas = datasParcelas.map(d => format(d, "dd/MM/yyyy", { locale: ptBR }));
-    
+
     // Montar descrição completa dos honorários
     let honorariosDescricao = "";
     if (tipo_remuneracao === "percentual") {
@@ -683,7 +729,7 @@ export function ClientFormDialog({
     } else if (tipo_remuneracao === "misto") {
       honorariosDescricao = `${percentual_honorarios}% sobre o proveito econômico, mais o valor fixo de ${formatCurrency(valor_fixo_honorarios)} (${valorPorExtenso(valorFixoNum)})`;
     }
-    
+
     // Montar descrição da forma de pagamento
     let formaPagamentoDescricao = "";
     if (forma_pagamento === "a_vista") {
@@ -693,7 +739,7 @@ export function ClientFormDialog({
     } else if (forma_pagamento === "entrada_parcelas") {
       formaPagamentoDescricao = `mediante entrada de ${formatCurrency(valor_entrada)} (${valorPorExtenso(valorEntradaNum)}) no ato da assinatura, e o saldo em ${numParcelas} (${valorPorExtenso(numParcelas)}) parcelas mensais de ${formatCurrency(valor_parcela)} (${valorPorExtenso(valorParcelaNum)}), com vencimentos em ${datasFormatadas.join(", ")}`;
     }
-    
+
     // Descrição do método de pagamento
     const metodoLabels: Record<MetodoPagamento, string> = {
       pix: "PIX",
@@ -705,7 +751,7 @@ export function ClientFormDialog({
     if (metodo_pagamento === "pix" && chave_pix) {
       metodoPagamentoDescricao += ` para a chave: ${chave_pix}`;
     }
-    
+
     // Cláusula de inadimplemento (apenas para parcelamento)
     let clausulaInadimplemento = "";
     if (forma_pagamento !== "a_vista") {
@@ -745,7 +791,7 @@ export function ClientFormDialog({
   // Validate kit form before generation
   const validateKitForm = (): boolean => {
     const { tipo_remuneracao, percentual_honorarios, valor_fixo_honorarios, forma_pagamento, valor_entrada, numero_parcelas, valor_parcela, metodo_pagamento, chave_pix } = kitAnswers;
-    
+
     if (tipo_remuneracao === "percentual" && !percentual_honorarios) {
       toast({ title: "Informe o percentual de honorários", variant: "destructive" });
       return false;
@@ -758,7 +804,7 @@ export function ClientFormDialog({
       toast({ title: "Informe o percentual e o valor fixo dos honorários", variant: "destructive" });
       return false;
     }
-    
+
     if (forma_pagamento === "parcelado" && (!numero_parcelas || !valor_parcela)) {
       toast({ title: "Informe o número de parcelas e o valor de cada parcela", variant: "destructive" });
       return false;
@@ -767,27 +813,27 @@ export function ClientFormDialog({
       toast({ title: "Informe o valor da entrada, número de parcelas e valor de cada parcela", variant: "destructive" });
       return false;
     }
-    
+
     if (metodo_pagamento === "pix" && !chave_pix) {
       toast({ title: "Informe a chave PIX", variant: "destructive" });
       return false;
     }
-    
+
     return true;
   };
 
   const handleRegenerateKit = async () => {
     if (!pendingUpdatedClient) return;
-    
+
     // Validate kit form
     if (!validateKitForm()) return;
-    
+
     setRegeneratingKit(true);
     try {
       const variables = buildKitVariables();
-      
+
       const { data, error } = await supabase.functions.invoke('create-client-kit', {
-        body: { 
+        body: {
           client_id: pendingUpdatedClient.id,
           template_codes: ['PROC', 'DECL', 'CONTRATO'],
           variables,
@@ -859,10 +905,10 @@ export function ClientFormDialog({
 
   const handleConfirmInitialKit = async () => {
     if (!newlyCreatedClientId) return;
-    
+
     // Validar formulário de honorários
     if (!validateKitForm()) return;
-    
+
     setCreatingInitialKit(true);
     try {
       const variables = buildKitVariables();
@@ -884,427 +930,472 @@ export function ClientFormDialog({
         onOpenChange(o);
         if (!o) resetForm();
       }}>
-        <DialogTrigger asChild>
-          <Button disabled={!officeId}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Cliente
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="sm:max-w-3xl h-[85vh] p-0 overflow-hidden border-white/10 glass-panel flex flex-col">
+          <DialogHeader className="p-6 pb-2 border-b border-white/5 bg-background/50 backdrop-blur-sm">
+            <DialogTitle className="text-2xl font-bold tracking-tight">
               {editingClient ? 'Editar Cliente' : newlyCreatedClientId ? 'Completar Cadastro' : 'Novo Cliente'}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-muted-foreground/80">
               {editingClient
-                ? 'Atualize os dados do cliente.'
+                ? 'Atualize os dados e configurações do perfil do cliente.'
                 : newlyCreatedClientId
-                ? '2. Confira os dados → 3. Colete a assinatura → 4. Finalize'
-                : '1. Digitalize o documento → 2. Preencha os dados → 3. Salve'}
+                  ? 'Verifique as informações extraídas e finalize o cadastro.'
+                  : 'Digitalize os documentos ou inicie o preenchimento manual.'}
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-            <TabsList className="grid grid-cols-3 w-full">
-              <TabsTrigger value="scanner" disabled={!!editingClient || !!newlyCreatedClientId}>
-                1. Digitalizar
-              </TabsTrigger>
-              <TabsTrigger value="dados">2. Dados</TabsTrigger>
-              <TabsTrigger value="assinatura" disabled={!newlyCreatedClientId && !editingClient}>
-                3. Assinatura
-              </TabsTrigger>
-            </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden min-h-0">
+            <div className="px-6 pt-3 pb-2">
+              <TabsList className="grid grid-cols-3 w-full bg-muted/20 p-1">
+                <TabsTrigger value="scanner" disabled={!!newlyCreatedClientId} className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  1. Digitalizar
+                </TabsTrigger>
+                <TabsTrigger value="dados" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">2. Dados</TabsTrigger>
+                <TabsTrigger value="assinatura" disabled={!newlyCreatedClientId && !editingClient} className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  3. Assinatura
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             {/* Scanner Tab */}
-            <TabsContent value="scanner" className="mt-4">
-              <DocumentScanner
-                scannedDocuments={scannedDocuments}
-                onScannedDocumentsChange={setScannedDocuments}
-                onDataExtracted={handleDataExtracted}
-              />
-              <div className="flex justify-end gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => setActiveTab('dados')}>
+            <TabsContent value="scanner" className="flex-1 min-h-0 data-[state=active]:flex data-[state=active]:flex-col overflow-hidden m-0 p-0">
+              <div className="flex-1 overflow-y-auto minimal-scrollbar px-6 py-4">
+                <div className="capture-animate-in">
+                  <DocumentScanner
+                    scannedDocuments={scannedDocuments}
+                    onScannedDocumentsChange={setScannedDocuments}
+                    onDataExtracted={handleDataExtracted}
+                  />
+                </div>
+              </div>
+              <div className="glass-footer flex justify-end gap-3 px-6">
+                <Button type="button" variant="outline" onClick={() => setActiveTab('dados')} className="btn-tactile">
                   Pular e preencher manualmente
                 </Button>
               </div>
             </TabsContent>
 
             {/* Data Tab */}
-            <TabsContent value="dados" className="mt-4">
-              <form onSubmit={handleSubmit}>
-                <div className="grid gap-4">
-                  {/* Person Type */}
-                  <div className="space-y-1">
-                    <Label>Tipo de pessoa *</Label>
-                    <Select
-                      value={formData.person_type}
-                      onValueChange={(v: 'PF' | 'PJ') => setFormData((d) => ({ ...d, person_type: v }))}
-                      disabled={!!newlyCreatedClientId}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="PF">Pessoa Física</SelectItem>
-                        <SelectItem value="PJ">Pessoa Jurídica</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* PJ: CNPJ first (before Razão Social) */}
-                  {formData.person_type === 'PJ' && (
-                    <div className="space-y-1">
-                      <Label>CNPJ *</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          value={formData.cnpj}
-                          onChange={(e) => setFormData((d) => ({ ...d, cnpj: formatCnpj(e.target.value) }))}
-                          placeholder="00.000.000/0000-00"
-                          className="flex-1"
-                          disabled={!!newlyCreatedClientId}
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => fetchCnpjData(formData.cnpj)}
-                          disabled={isCnpjLoading || !!newlyCreatedClientId}
-                        >
-                          {isCnpjLoading ? 'Buscando...' : 'Buscar CNPJ'}
-                        </Button>
+            <TabsContent value="dados" className="flex-1 min-h-0 data-[state=active]:flex data-[state=active]:flex-col overflow-hidden m-0 p-0">
+              <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden min-h-0">
+                <div className="flex-1 overflow-y-auto minimal-scrollbar px-6 py-4 space-y-6">
+                  <div className="grid gap-6 capture-animate-in">
+                    {/* Basic Info Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="h-4 w-1 bg-primary rounded-full" />
+                        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Informações Básicas</h3>
                       </div>
-                      {formErrors.cnpj && <p className="text-xs text-destructive">{formErrors.cnpj}</p>}
-                    </div>
-                  )}
 
-                  {/* Full Name / Razão Social */}
-                  <div className="space-y-1">
-                    <Label>{formData.person_type === 'PF' ? 'Nome completo *' : 'Razão Social *'}</Label>
-                    <Input
-                      value={formData.full_name}
-                      onChange={(e) => setFormData((d) => ({ ...d, full_name: e.target.value }))}
-                      placeholder={formData.person_type === 'PF' ? 'Nome do cliente' : 'Razão social da empresa'}
-                      disabled={!!newlyCreatedClientId}
-                    />
-                    {formErrors.full_name && <p className="text-xs text-destructive">{formErrors.full_name}</p>}
-                  </div>
-
-                  {/* PF: CPF and RG */}
-                  {formData.person_type === 'PF' && (
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label>CPF *</Label>
-                        <Input
-                          value={formData.cpf}
-                          onChange={(e) => setFormData((d) => ({ ...d, cpf: formatCpf(e.target.value) }))}
-                          placeholder="000.000.000-00"
-                          disabled={!!newlyCreatedClientId}
-                        />
-                        {formErrors.cpf && <p className="text-xs text-destructive">{formErrors.cpf}</p>}
-                      </div>
-                      <div className="space-y-1">
-                        <Label>RG</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            value={formData.rg}
-                            onChange={(e) => setFormData((d) => ({ ...d, rg: e.target.value }))}
-                            placeholder="Número"
-                            className="flex-1"
-                            disabled={!!newlyCreatedClientId}
-                          />
-                          <Input
-                            value={formData.rg_issuer}
-                            onChange={(e) => setFormData((d) => ({ ...d, rg_issuer: e.target.value }))}
-                            placeholder="Órgão"
-                            className="w-24"
-                            disabled={!!newlyCreatedClientId}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* PF Additional Fields */}
-                  {formData.person_type === 'PF' && (
-                    <>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label>Nacionalidade</Label>
-                          <Input
-                            value={formData.nationality}
-                            onChange={(e) => setFormData((d) => ({ ...d, nationality: e.target.value }))}
-                            placeholder="Brasileiro(a)"
-                            disabled={!!newlyCreatedClientId}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label>Estado civil</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Tipo de pessoa *</Label>
                           <Select
-                            value={formData.marital_status}
-                            onValueChange={(v) => setFormData((d) => ({ ...d, marital_status: v }))}
+                            value={formData.person_type}
+                            onValueChange={(v: 'PF' | 'PJ') => setFormData((d) => ({ ...d, person_type: v }))}
                             disabled={!!newlyCreatedClientId}
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
+                            <SelectTrigger className="bg-muted/10 border-white/5 focus:ring-primary/20">
+                              <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {MARITAL_STATUS_OPTIONS.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
+                              <SelectItem value="PF">Pessoa Física</SelectItem>
+                              <SelectItem value="PJ">Pessoa Jurídica</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
-                      </div>
-                      <div className="space-y-1">
-                        <Label>Profissão</Label>
-                        <Input
-                          value={formData.profession}
-                          onChange={(e) => setFormData((d) => ({ ...d, profession: e.target.value }))}
-                          placeholder="Ex.: Empresário, Aposentado, etc."
-                          disabled={!!newlyCreatedClientId}
-                        />
-                      </div>
-                    </>
-                  )}
 
-                  {/* PJ Representative Fields */}
-                  {formData.person_type === 'PJ' && (
-                    <div className="border rounded-md p-3 space-y-3 bg-muted/30">
-                      <p className="text-sm font-medium">Representante Legal</p>
-                      <div className="space-y-1">
-                        <Label>Nome do representante</Label>
-                        <Input
-                          value={formData.representative_name}
-                          onChange={(e) => setFormData((d) => ({ ...d, representative_name: e.target.value }))}
-                          placeholder="Nome completo do sócio/administrador"
-                          disabled={!!newlyCreatedClientId}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label>CPF do representante</Label>
+                        {formData.person_type === 'PJ' && (
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">CNPJ *</Label>
+                            <div className="flex gap-2">
+                              <Input
+                                value={formData.cnpj}
+                                onChange={(e) => setFormData((d) => ({ ...d, cnpj: formatCnpj(e.target.value) }))}
+                                placeholder="00.000.000/0000-00"
+                                className="flex-1 bg-muted/10 border-white/5 focus:ring-primary/20 h-10"
+                                disabled={!!newlyCreatedClientId}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="shrink-0 btn-tactile h-10 w-10"
+                                onClick={() => formData.cnpj && fetchCnpjData(formData.cnpj)}
+                                disabled={!formData.cnpj || isCnpjLoading || !!newlyCreatedClientId}
+                              >
+                                {isCnpjLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                            {formErrors.cnpj && <p className="text-[10px] text-destructive font-medium">{formErrors.cnpj}</p>}
+                          </div>
+                        )}
+
+                        <div className="space-y-2 md:col-span-2">
+                          <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">
+                            {formData.person_type === 'PF' ? 'Nome completo *' : 'Razão Social *'}
+                          </Label>
                           <Input
-                            value={formData.representative_cpf}
-                            onChange={(e) => setFormData((d) => ({ ...d, representative_cpf: formatCpf(e.target.value) }))}
-                            placeholder="000.000.000-00"
+                            value={formData.full_name}
+                            onChange={(e) => setFormData((d) => ({ ...d, full_name: e.target.value }))}
+                            placeholder={formData.person_type === 'PF' ? 'Nome do cliente' : 'Razão social da empresa'}
+                            className="bg-muted/10 border-white/5 focus:ring-primary/20 h-11 text-lg font-medium"
+                            disabled={!!newlyCreatedClientId}
+                          />
+                          {formErrors.full_name && <p className="text-[10px] text-destructive font-medium">{formErrors.full_name}</p>}
+                        </div>
+
+                        {formData.person_type === 'PF' && (
+                          <>
+                            <div className="space-y-2">
+                              <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">CPF *</Label>
+                              <Input
+                                value={formData.cpf}
+                                onChange={(e) => setFormData((d) => ({ ...d, cpf: formatCpf(e.target.value) }))}
+                                placeholder="000.000.000-00"
+                                className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                                disabled={!!newlyCreatedClientId}
+                              />
+                              {formErrors.cpf && <p className="text-[10px] text-destructive font-medium">{formErrors.cpf}</p>}
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">RG</Label>
+                              <Input
+                                value={formData.rg}
+                                onChange={(e) => setFormData((d) => ({ ...d, rg: e.target.value }))}
+                                placeholder="Número do RG"
+                                className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                                disabled={!!newlyCreatedClientId}
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Nacionalidade</Label>
+                              <Input
+                                value={formData.nationality}
+                                onChange={(e) => setFormData((d) => ({ ...d, nationality: e.target.value }))}
+                                placeholder="Brasileiro(a)"
+                                className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                                disabled={!!newlyCreatedClientId}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Estado civil</Label>
+                              <Select
+                                value={formData.marital_status}
+                                onValueChange={(v) => setFormData((d) => ({ ...d, marital_status: v }))}
+                                disabled={!!newlyCreatedClientId}
+                              >
+                                <SelectTrigger className="bg-muted/10 border-white/5 focus:ring-primary/20">
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {MARITAL_STATUS_OPTIONS.map((opt) => (
+                                    <SelectItem key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {formData.person_type === 'PF' && (
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Profissão</Label>
+                          <Input
+                            value={formData.profession}
+                            onChange={(e) => setFormData((d) => ({ ...d, profession: e.target.value }))}
+                            placeholder="Ex.: Empresário, Aposentado, etc."
+                            className="bg-muted/10 border-white/5 focus:ring-primary/20"
                             disabled={!!newlyCreatedClientId}
                           />
                         </div>
-                        <div className="space-y-1">
-                          <Label>RG do representante</Label>
+                      )}
+                    </div>
+
+                    {/* Representative Legal Section for PJ */}
+                    {formData.person_type === 'PJ' && (
+                      <div className="space-y-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-4 w-1 bg-amber-500 rounded-full" />
+                          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Representante Legal</h3>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Nome completo</Label>
                           <Input
-                            value={formData.representative_rg}
-                            onChange={(e) => setFormData((d) => ({ ...d, representative_rg: e.target.value }))}
-                            placeholder="Número do RG"
+                            value={formData.representative_name}
+                            onChange={(e) => setFormData((d) => ({ ...d, representative_name: e.target.value }))}
+                            placeholder="Nome completo do sócio/administrador"
+                            className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                            disabled={!!newlyCreatedClientId}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">CPF</Label>
+                            <Input
+                              value={formData.representative_cpf}
+                              onChange={(e) => setFormData((d) => ({ ...d, representative_cpf: formatCpf(e.target.value) }))}
+                              placeholder="000.000.000-00"
+                              className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                              disabled={!!newlyCreatedClientId}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">RG</Label>
+                            <Input
+                              value={formData.representative_rg}
+                              onChange={(e) => setFormData((d) => ({ ...d, representative_rg: e.target.value }))}
+                              placeholder="Número do RG"
+                              className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                              disabled={!!newlyCreatedClientId}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Nacionalidade</Label>
+                            <Input
+                              value={formData.representative_nationality}
+                              onChange={(e) => setFormData((d) => ({ ...d, representative_nationality: e.target.value }))}
+                              placeholder="Brasileiro(a)"
+                              className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                              disabled={!!newlyCreatedClientId}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Estado civil</Label>
+                            <Select
+                              value={formData.representative_marital_status}
+                              onValueChange={(v) => setFormData((d) => ({ ...d, representative_marital_status: v }))}
+                              disabled={!!newlyCreatedClientId}
+                            >
+                              <SelectTrigger className="bg-muted/10 border-white/5 focus:ring-primary/20">
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {MARITAL_STATUS_OPTIONS.map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Profissão</Label>
+                          <Input
+                            value={formData.representative_profession}
+                            onChange={(e) => setFormData((d) => ({ ...d, representative_profession: e.target.value }))}
+                            placeholder="Ex.: Empresário, Administrador, etc."
+                            className="bg-muted/10 border-white/5 focus:ring-primary/20"
                             disabled={!!newlyCreatedClientId}
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label>Nacionalidade</Label>
-                          <Input
-                            value={formData.representative_nationality}
-                            onChange={(e) => setFormData((d) => ({ ...d, representative_nationality: e.target.value }))}
-                            placeholder="Brasileiro(a)"
-                            disabled={!!newlyCreatedClientId}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label>Estado civil</Label>
-                          <Select
-                            value={formData.representative_marital_status}
-                            onValueChange={(v) => setFormData((d) => ({ ...d, representative_marital_status: v }))}
-                            disabled={!!newlyCreatedClientId}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {MARITAL_STATUS_OPTIONS.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <Label>Profissão</Label>
-                        <Input
-                          value={formData.representative_profession}
-                          onChange={(e) => setFormData((d) => ({ ...d, representative_profession: e.target.value }))}
-                          placeholder="Ex.: Empresário, Administrador, etc."
-                          disabled={!!newlyCreatedClientId}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Contact */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label>E-mail</Label>
-                      <Input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData((d) => ({ ...d, email: e.target.value }))}
-                        placeholder="email@exemplo.com"
-                        disabled={!!newlyCreatedClientId}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label>Telefone *</Label>
-                      <Input
-                        value={formData.phone}
-                        onChange={(e) => setFormData((d) => ({ ...d, phone: formatPhone(e.target.value) }))}
-                        placeholder="(00) 00000-0000"
-                        disabled={!!newlyCreatedClientId}
-                      />
-                      {formErrors.phone && <p className="text-xs text-destructive">{formErrors.phone}</p>}
-                    </div>
-                  </div>
-
-                  {/* Address */}
-                  <div className="border rounded-md p-3 space-y-3 bg-muted/30">
-                    <p className="text-sm font-medium">Endereço</p>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="space-y-1">
-                        <Label>CEP *</Label>
-                        <Input
-                          value={cep}
-                          onChange={(e) => handleCepChange(e.target.value)}
-                          placeholder="00000-000"
-                          disabled={loadingCep || !!newlyCreatedClientId}
-                        />
-                        {formErrors.cep && <p className="text-xs text-destructive">{formErrors.cep}</p>}
-                      </div>
-                      <div className="space-y-1 col-span-2">
-                        <Label>Logradouro *</Label>
-                        <Input
-                          value={street}
-                          onChange={(e) => setStreet(e.target.value)}
-                          placeholder="Rua, Avenida, etc."
-                          disabled={!!newlyCreatedClientId}
-                        />
-                        {formErrors.address_line && <p className="text-xs text-destructive">{formErrors.address_line}</p>}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-4 gap-3">
-                      <div className="space-y-1">
-                        <Label>Número</Label>
-                        <Input
-                          value={numberAddress}
-                          onChange={(e) => setNumberAddress(e.target.value)}
-                          placeholder="Nº"
-                          disabled={!!newlyCreatedClientId}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label>Bairro *</Label>
-                        <Input
-                          value={neighborhood}
-                          onChange={(e) => setNeighborhood(e.target.value)}
-                          placeholder="Bairro"
-                          disabled={!!newlyCreatedClientId}
-                        />
-                        {formErrors.neighborhood && <p className="text-xs text-destructive">{formErrors.neighborhood}</p>}
-                      </div>
-                      <div className="space-y-1">
-                        <Label>Cidade *</Label>
-                        <Input
-                          value={city}
-                          onChange={(e) => setCity(e.target.value)}
-                          placeholder="Cidade"
-                          disabled={!!newlyCreatedClientId}
-                        />
-                        {formErrors.city && <p className="text-xs text-destructive">{formErrors.city}</p>}
-                      </div>
-                      <div className="space-y-1">
-                        <Label>UF *</Label>
-                        <Input
-                          value={stateUf}
-                          onChange={(e) => setStateUf(e.target.value.toUpperCase().slice(0, 2))}
-                          placeholder="UF"
-                          maxLength={2}
-                          disabled={!!newlyCreatedClientId}
-                        />
-                        {formErrors.state && <p className="text-xs text-destructive">{formErrors.state}</p>}
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Label>Complemento</Label>
-                      <Input
-                        value={complement}
-                        onChange={(e) => setComplement(e.target.value)}
-                        placeholder="Apto, Bloco, etc."
-                        disabled={!!newlyCreatedClientId}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Submit */}
-                  <div className="flex justify-between gap-3 pt-2">
-                    {!editingClient && !newlyCreatedClientId && (
-                      <Button type="button" variant="outline" onClick={() => setActiveTab('scanner')}>
-                        Voltar
-                      </Button>
                     )}
-                    {newlyCreatedClientId ? (
-                      <Button type="button" onClick={() => setActiveTab('assinatura')} className="ml-auto">
-                        Continuar para assinatura
-                      </Button>
-                    ) : (
-                      <Button type="submit" disabled={saving}>
-                        {saving ? 'Salvando...' : 'Salvar e Continuar'}
-                      </Button>
-                    )}
+
+                    {/* Contact Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="h-4 w-1 bg-blue-500 rounded-full" />
+                        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Contato</h3>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">E-mail</Label>
+                          <Input
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => setFormData((d) => ({ ...d, email: e.target.value }))}
+                            placeholder="email@exemplo.com"
+                            className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                            disabled={!!newlyCreatedClientId}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Telefone *</Label>
+                          <Input
+                            value={formData.phone}
+                            onChange={(e) => setFormData((d) => ({ ...d, phone: formatPhone(e.target.value) }))}
+                            placeholder="(00) 00000-0000"
+                            className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                            disabled={!!newlyCreatedClientId}
+                          />
+                          {formErrors.phone && <p className="text-[10px] text-destructive font-medium">{formErrors.phone}</p>}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Address Section */}
+                    <div className="space-y-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="h-4 w-1 bg-emerald-500 rounded-full" />
+                        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Endereço</h3>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">CEP *</Label>
+                          <Input
+                            value={cep}
+                            onChange={(e) => handleCepChange(e.target.value)}
+                            placeholder="00000-000"
+                            className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                            disabled={loadingCep || !!newlyCreatedClientId}
+                          />
+                          {formErrors.cep && <p className="text-[10px] text-destructive font-medium">{formErrors.cep}</p>}
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Logradouro *</Label>
+                          <Input
+                            value={street}
+                            onChange={(e) => setStreet(e.target.value)}
+                            placeholder="Rua, Avenida, etc."
+                            className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                            disabled={!!newlyCreatedClientId}
+                          />
+                          {formErrors.address_line && <p className="text-[10px] text-destructive font-medium">{formErrors.address_line}</p>}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Número</Label>
+                          <Input
+                            value={numberAddress}
+                            onChange={(e) => setNumberAddress(e.target.value)}
+                            placeholder="Nº"
+                            className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                            disabled={!!newlyCreatedClientId}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Bairro *</Label>
+                          <Input
+                            value={neighborhood}
+                            onChange={(e) => setNeighborhood(e.target.value)}
+                            placeholder="Bairro"
+                            className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                            disabled={!!newlyCreatedClientId}
+                          />
+                          {formErrors.neighborhood && <p className="text-[10px] text-destructive font-medium">{formErrors.neighborhood}</p>}
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Cidade *</Label>
+                          <Input
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                            placeholder="Cidade"
+                            className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                            disabled={!!newlyCreatedClientId}
+                          />
+                          {formErrors.city && <p className="text-[10px] text-destructive font-medium">{formErrors.city}</p>}
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">UF *</Label>
+                          <Input
+                            value={stateUf}
+                            onChange={(e) => setStateUf(e.target.value.toUpperCase().slice(0, 2))}
+                            placeholder="UF"
+                            maxLength={2}
+                            className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                            disabled={!!newlyCreatedClientId}
+                          />
+                          {formErrors.state && <p className="text-[10px] text-destructive font-medium">{formErrors.state}</p>}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-medium uppercase tracking-tight text-muted-foreground/70">Complemento</Label>
+                        <Input
+                          value={complement}
+                          onChange={(e) => setComplement(e.target.value)}
+                          placeholder="Apto, Bloco, etc."
+                          className="bg-muted/10 border-white/5 focus:ring-primary/20"
+                          disabled={!!newlyCreatedClientId}
+                        />
+                      </div>
+                    </div>
                   </div>
+                </div>
+
+                {/* Data Tab Footer */}
+                <div className="glass-footer flex justify-between gap-3 px-6">
+                  {!editingClient && !newlyCreatedClientId && (
+                    <Button type="button" variant="outline" onClick={() => setActiveTab('scanner')} className="btn-tactile">
+                      Voltar
+                    </Button>
+                  )}
+                  {newlyCreatedClientId ? (
+                    <Button type="button" onClick={() => setActiveTab('assinatura')} className="ml-auto btn-tactile">
+                      Continuar para assinatura
+                    </Button>
+                  ) : (
+                    <Button type="submit" disabled={saving} className="btn-tactile bg-primary hover:bg-primary/90">
+                      {saving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : 'Salvar e Continuar'}
+                    </Button>
+                  )}
                 </div>
               </form>
             </TabsContent>
 
             {/* Signature Tab */}
-            <TabsContent value="assinatura" className="mt-4">
-              {(newlyCreatedClientId || editingClient?.id) && (
-                <ClientSignaturePanel clientId={newlyCreatedClientId || editingClient?.id || ''} />
-              )}
-              <div className="flex justify-between gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => setActiveTab('dados')}>
+            <TabsContent value="assinatura" className="flex-1 min-h-0 data-[state=active]:flex data-[state=active]:flex-col overflow-hidden m-0 p-0">
+              <div className="flex-1 overflow-y-auto minimal-scrollbar px-6 py-4">
+                <div className="space-y-4 capture-animate-in">
+                  {(newlyCreatedClientId || editingClient?.id) && (
+                    <ClientSignaturePanel clientId={newlyCreatedClientId || editingClient?.id || ''} />
+                  )}
+
+                  {!editingClient && newlyCreatedClientId && (
+                    <div className="flex items-center space-x-3 mt-6 p-4 bg-primary/5 border border-primary/10 rounded-xl">
+                      <Checkbox
+                        id="createDocsCheckbox"
+                        checked={createInitialDocs}
+                        onCheckedChange={(v) => setCreateInitialDocs(v === true)}
+                        className="border-primary/20"
+                      />
+                      <Label htmlFor="createDocsCheckbox" className="text-sm font-medium cursor-pointer text-primary/80">
+                        Gerar kit inicial de documentos (procuração, contrato, etc.)
+                      </Label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="glass-footer flex justify-between gap-3 px-6">
+                <Button type="button" variant="outline" onClick={() => setActiveTab('dados')} className="btn-tactile">
                   Voltar
                 </Button>
-                <Button type="button" onClick={handleFinalize}>
+                <Button type="button" onClick={handleFinalize} className="btn-tactile bg-primary hover:bg-primary/90">
                   Finalizar{createInitialDocs ? ' e gerar kit' : ''}
                 </Button>
               </div>
-
-              {!editingClient && newlyCreatedClientId && (
-                <div className="flex items-center space-x-2 mt-4 p-3 bg-muted/30 rounded-md">
-                  <Checkbox
-                    id="createDocsCheckbox"
-                    checked={createInitialDocs}
-                    onCheckedChange={(v) => setCreateInitialDocs(v === true)}
-                  />
-                  <label htmlFor="createDocsCheckbox" className="text-sm cursor-pointer">
-                    Gerar kit inicial de documentos (procuração, contrato, etc.)
-                  </label>
-                </div>
-              )}
             </TabsContent>
           </Tabs>
-        </DialogContent>
-      </Dialog>
+        </DialogContent >
+      </Dialog >
 
       {/* Dialog de regeneração do kit com formulário de honorários */}
-      <KitFormDialog
+      < KitFormDialog
         open={showRegenerateKitDialog}
         onOpenChange={(open) => {
           if (!open && !regeneratingKit) {
             handleSkipRegeneration();
           }
-        }}
+        }
+        }
         kitAnswers={kitAnswers}
         setKitAnswers={setKitAnswers}
         loading={regeneratingKit}
@@ -1315,7 +1406,7 @@ export function ClientFormDialog({
       />
 
       {/* Dialog de criação do kit inicial com formulário de honorários */}
-      <KitFormDialog
+      < KitFormDialog
         open={showInitialKitDialog}
         onOpenChange={(open) => {
           if (!open && !creatingInitialKit) {
@@ -1332,21 +1423,23 @@ export function ClientFormDialog({
       />
 
       {/* NEW: Modal de configuração de contrato (fluxo limpo) */}
-      {newlyCreatedClientId && (
-        <ContractSetupModal
-          open={showContractModal}
-          onOpenChange={setShowContractModal}
-          clientId={newlyCreatedClientId}
-          clientName={formData.full_name}
-          onSuccess={() => {
-            // Fechar diálogo principal após sucesso do contrato
-            setTimeout(() => {
-              onClose();
-              resetForm();
-            }, 500);
-          }}
-        />
-      )}
+      {
+        newlyCreatedClientId && (
+          <ContractSetupModal
+            open={showContractModal}
+            onOpenChange={setShowContractModal}
+            clientId={newlyCreatedClientId}
+            clientName={formData.full_name}
+            onSuccess={() => {
+              // Fechar diálogo principal após sucesso do contrato
+              setTimeout(() => {
+                onClose();
+                resetForm();
+              }, 500);
+            }}
+          />
+        )
+      }
     </>
   );
 }

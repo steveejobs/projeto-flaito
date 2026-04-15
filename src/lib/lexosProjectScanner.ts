@@ -168,10 +168,11 @@ const KNOWN_TABLES = [
 ];
 
 export async function scanLexosProject(): Promise<LexosProjectScan> {
-  // Only scan JS/TS/CSS/JSON files - avoid SQL and other non-parseable files
-  const modules = import.meta.glob([
-    "../**/*.{ts,tsx,js,jsx,css,scss,json}",
-  ], { eager: false });
+  // Só comentando para previnir o vite import.meta.glob de estourar The Rollup AST tree com todas as types
+  // const modules = import.meta.glob([
+  //   "../**/*.{ts,tsx,js,jsx,css,scss,json}",
+  // ], { eager: false });
+  const modules: Record<string, () => Promise<unknown>> = {};
 
   const files: LexosFileEntry[] = Object.keys(modules)
     .map((raw) => normalizePath(raw))

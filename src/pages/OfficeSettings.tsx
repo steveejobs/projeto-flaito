@@ -15,8 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Loader2, Save, RotateCcw, Upload, Building2, Trash2, 
   ZoomIn, AlignLeft, AlignCenter, AlignRight, Settings, ArrowLeft,
-  Scale, MapPin, Mail, Phone, Palette, Image, FileText
+  Scale, MapPin, Mail, Phone, Palette, Image, FileText, Layout
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface OfficeData {
   id: string;
@@ -138,6 +139,24 @@ export default function OfficeSettings() {
   const [signatureUrl, setSignatureUrl] = useState<string | null>(null);
   const [logoSettings, setLogoSettings] = useState<LogoSettings>(DEFAULT_LOGO_SETTINGS);
   const [signatureSettings, setSignatureSettings] = useState<SignatureSettings>(DEFAULT_SIGNATURE_SETTINGS);
+  
+  // WhatsApp Config State
+  type MessagingContextType = 'MEDICAL' | 'LEGAL' | 'GLOBAL';
+  const [activeWhatsappContext, setActiveWhatsappContext] = useState<MessagingContextType>("MEDICAL");
+  
+  const [whatsappConfigs, setWhatsappConfigs] = useState<Record<MessagingContextType, any>>({
+    MEDICAL: { endpoint: "", token: "", instanceId: "", clientToken: "", enabled: false, template: "", provider_type: 'NON_OFFICIAL_PROVIDER' },
+    LEGAL: { endpoint: "", token: "", instanceId: "", clientToken: "", enabled: false, template: "", provider_type: 'NON_OFFICIAL_PROVIDER' },
+    GLOBAL: { endpoint: "", token: "", instanceId: "", clientToken: "", enabled: false, template: "", provider_type: 'NON_OFFICIAL_PROVIDER' }
+  });
+
+  const updateWhatsappConfig = (context: MessagingContextType, field: string, value: any) => {
+    setWhatsappConfigs(prev => ({
+      ...prev,
+      [context]: { ...prev[context], [field]: value }
+    }));
+  };
+
   const logoPreviewRef = useRef<HTMLDivElement>(null);
   const signaturePreviewRef = useRef<HTMLDivElement>(null);
 
@@ -184,7 +203,7 @@ export default function OfficeSettings() {
 
     setLoading(true);
     try {
-      const { data: healthRaw, error: healthError } = await supabase.rpc("lexos_healthcheck_session");
+      const { data: healthRaw, error: healthError } = await (supabase.rpc("lexos_healthcheck_session") as any);
       
       if (healthError) throw healthError;
       
@@ -198,15 +217,51 @@ export default function OfficeSettings() {
 
       setOfficeId(health.office_id);
 
+      // Fetch WhatsApp Configs (All contexts)
+      const { data: whatsappConfigsData, error: whatsappError } = await (supabase
+        .from("notificacao_config" as any) as any)
+        .select("*")
+        .eq("office_id", health.office_id);
+
+      if (whatsappError) throw whatsappError;
+
+      if (whatsappConfigsData && whatsappConfigsData.length > 0) {
+        const newConfigs = { ...whatsappConfigs };
+        whatsappConfigsData.forEach((cfg: any) => {
+          const ctx = (cfg.context_type || 'GLOBAL') as MessagingContextType;
+          if (newConfigs[ctx]) {
+            newConfigs[ctx] = {
+              endpoint: cfg.api_endpoint || "",
+              token: cfg.api_token || "",
+              instanceId: cfg.whatsapp_instance_id || "",
+              clientToken: cfg.whatsapp_client_token || "",
+              enabled: cfg.enabled ?? cfg.whatsapp_habilitado ?? false,
+              template: cfg.template_lembrete || "",
+              provider_type: cfg.provider_type || 'NON_OFFICIAL_PROVIDER'
+            };
+          }
+        });
+        setWhatsappConfigs(newConfigs);
+        
+        // Auto-switch to GLOBAL if only it exists
+        if (whatsappConfigsData.some(c => c.context_type === 'GLOBAL') && 
+            !whatsappConfigsData.some(c => c.context_type === 'MEDICAL')) {
+          setActiveWhatsappContext('GLOBAL');
+        }
+      }
+
       const role = health.role;
+      // Verificação de permissão desativada a pedido do usuário
+      /*
       if (role !== "OWNER" && role !== "ADMIN") {
         toast.error("Acesso negado. Apenas OWNER ou ADMIN podem editar.");
         navigate("/meu-escritorio");
         return;
       }
+      */
 
-      const { data: office, error: officeError } = await supabase
-        .from("offices")
+      const { data: office, error: officeError } = await (supabase
+        .from("offices" as any) as any)
         .select(`
           id, name, slug, cnpj,
           responsible_lawyer_name, responsible_lawyer_oab_number, responsible_lawyer_oab_uf,
@@ -275,6 +330,18 @@ export default function OfficeSettings() {
   const handleSave = async () => {
     if (!officeId) return;
 
+    // Validate enabled whatsapp configs
+    for (const ctx of Object.keys(whatsappConfigs) as MessagingContextType[]) {
+      const cfg = whatsappConfigs[ctx];
+      if (cfg.enabled) {
+        if (!cfg.endpoint?.trim() || !cfg.token?.trim() || !cfg.instanceId?.trim()) {
+           toast.error(`A configuração do WhatsApp (${ctx}) está incompleta. Preencha Endpoint, Instance ID e Token, ou desabilite-a.`);
+           setActiveWhatsappContext(ctx);
+           return;
+        }
+      }
+    }
+
     setSaving(true);
     try {
       const updatedMetadata = {
@@ -283,8 +350,8 @@ export default function OfficeSettings() {
         signature_settings: signatureSettings,
       };
 
-      const { error } = await supabase
-        .from("offices")
+      const { error } = await (supabase
+        .from("offices" as any) as any)
         .update({
           name: formData.name,
           slug: formData.slug,
@@ -308,6 +375,35 @@ export default function OfficeSettings() {
         .eq("id", officeId);
 
       if (error) throw error;
+
+      // 5. Save WhatsApp Configs (for all contexts: MEDICAL, LEGAL, GLOBAL)
+      const savePromises = (Object.keys(whatsappConfigs) as MessagingContextType[]).map(ctx => {
+        const cfg = whatsappConfigs[ctx];
+        
+        // Only save if at least one parameter is present
+        if (!cfg.endpoint && !cfg.token && !cfg.instanceId && !cfg.clientToken && !cfg.template) {
+           return Promise.resolve({ data: null, error: null });
+        }
+
+        return (supabase
+          .from("notificacao_config" as any) as any)
+          .upsert({
+            office_id: officeId,
+            context_type: ctx,
+            api_endpoint: cfg.endpoint,
+            api_token: cfg.token,
+            whatsapp_instance_id: cfg.instanceId,
+            whatsapp_client_token: cfg.clientToken,
+            whatsapp_habilitado: cfg.enabled,
+            enabled: cfg.enabled,
+            template_lembrete: cfg.template,
+            provider_type: cfg.provider_type || 'NON_OFFICIAL_PROVIDER'
+          }, { onConflict: 'office_id,context_type' });
+      });
+
+      const whatsappResults = await Promise.all(savePromises);
+      const firstError = whatsappResults.find(r => r.error);
+      if (firstError) throw firstError.error;
 
       toast.success("Configurações salvas com sucesso!");
       await refreshBranding();
@@ -349,8 +445,8 @@ export default function OfficeSettings() {
         ? { logo_storage_bucket: bucket, logo_storage_path: path }
         : { signature_storage_bucket: bucket, signature_storage_path: path };
 
-      const { error: updateError } = await supabase
-        .from("offices")
+      const { error: updateError } = await (supabase
+        .from("offices" as any) as any)
         .update(updateData)
         .eq("id", officeId);
 
@@ -385,8 +481,8 @@ export default function OfficeSettings() {
         ? { logo_storage_bucket: null, logo_storage_path: null }
         : { signature_storage_bucket: null, signature_storage_path: null };
 
-      const { error } = await supabase
-        .from("offices")
+      const { error } = await (supabase
+        .from("offices" as any) as any)
         .update(updateData)
         .eq("id", officeId);
 
@@ -419,7 +515,7 @@ export default function OfficeSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pb-20">
       <div className="container max-w-6xl py-8 space-y-8">
         
         {/* ═══════════════════════════════════════════════════════════════
@@ -427,10 +523,8 @@ export default function OfficeSettings() {
         ═══════════════════════════════════════════════════════════════ */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card via-card to-muted/20 border border-border/60 shadow-sm">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/[0.02] rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
           
           <div className="relative px-6 py-8 md:px-10 md:py-10">
-            {/* Botão Voltar - linha separada no topo */}
             <Button 
               variant="ghost" 
               size="sm"
@@ -442,7 +536,6 @@ export default function OfficeSettings() {
             </Button>
             
             <div className="flex flex-col md:flex-row md:items-start gap-6">
-              {/* Logo Preview */}
               <div className="flex-shrink-0">
                 {logoUrl ? (
                   <div className="w-20 h-20 rounded-xl bg-white/80 backdrop-blur border shadow-sm flex items-center justify-center p-2 overflow-hidden">
@@ -455,755 +548,369 @@ export default function OfficeSettings() {
                 )}
               </div>
               
-              {/* Title & Meta - Enhanced Typography */}
               <div className="flex-1 min-w-0 space-y-2">
                 <div className="space-y-1">
                   <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight leading-tight">
                     Configurações
                   </h1>
                   <p className="text-xs text-muted-foreground/60 font-medium tracking-widest uppercase">
-                    Dados institucionais • Branding • Identidade visual
+                    Gestão Institucional • CRM • Identidade
                   </p>
                 </div>
-                <Badge 
-                  variant="outline" 
-                  className="text-[10px] font-medium bg-background/50 border-border/60 text-muted-foreground uppercase tracking-wider"
-                >
-                  Modo Edição
-                </Badge>
+                <div className="flex flex-wrap gap-2">
+                   <Badge variant="outline" className="text-[10px] bg-background/50 border-border/60 text-muted-foreground uppercase tracking-wider">
+                    Modo Edição
+                  </Badge>
+                   <Badge variant="outline" className="text-[10px] bg-emerald-500/5 border-emerald-500/10 text-emerald-500 uppercase tracking-wider">
+                    Sincronizado
+                  </Badge>
+                </div>
               </div>
               
-              {/* Actions - Differentiated */}
-              <div className="flex flex-col gap-2 flex-shrink-0 md:pt-1">
+              <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0 md:pt-1">
                 <Button 
                   onClick={handleSave} 
                   disabled={saving} 
                   size="lg"
-                  className="gap-2 shadow-sm"
+                  className="gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   Salvar Alterações
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  onClick={handleResetDefaults} 
-                  className="gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  <span className="hidden sm:inline">Restaurar Padrão</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ═══════════════════════════════════════════════════════════════
+            TABS DE CONFIGURAÇÃO - Reorganizado
+        ═══════════════════════════════════════════════════════════════ */}
+        <Tabs defaultValue={window.location.hash === '#whatsapp-config' ? 'whatsapp' : 'identidade'} className="space-y-6">
+          <TabsList className="bg-background/40 backdrop-blur border border-border/60 p-1 h-14 w-full md:w-auto overflow-x-auto justify-start">
+            <TabsTrigger value="identidade" className="gap-2 px-6 h-full data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <Building2 className="h-4 w-4" />
+              Institucional
+            </TabsTrigger>
+            <TabsTrigger value="branding" className="gap-2 px-6 h-full data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <Palette className="h-4 w-4" />
+              Branding
+            </TabsTrigger>
+            <TabsTrigger value="whatsapp" className="gap-2 px-6 h-full border-2 border-emerald-500/0 data-[state=active]:border-emerald-500/20 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-500 text-emerald-500/70">
+              <Phone className="h-4 w-4" />
+              Configurar WhatsApp
+            </TabsTrigger>
+          </TabsList>
+
+          {/* ─────────────────────────────────────────────────────────────
+              TAB 1: INSTITUCIONAL
+          ───────────────────────────────────────────────────────────── */}
+          <TabsContent value="identidade" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="shadow-sm border-border/60">
+                <CardHeader>
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                    <Layout className="h-4 w-4 text-muted-foreground" />
+                    Identidade Jurídica
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <EditableField label="Nome do Escritório" value={formData.name || null} onChange={(v) => handleInputChange("name", v)} placeholder="Ex: Escritório Advocacia" />
+                  <EditableField label="Slug (URL)" value={formData.slug || null} onChange={(v) => handleInputChange("slug", v)} placeholder="seu-escritorio" />
+                  <EditableField label="CNPJ" value={formData.cnpj || null} onChange={(v) => handleInputChange("cnpj", v)} placeholder="00.000.000/0000-00" />
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm border-border/60">
+                <CardHeader>
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                    <Scale className="h-4 w-4 text-muted-foreground" />
+                    Responsável Técnico
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <EditableField label="Nome Completo" value={formData.responsible_lawyer_name || null} onChange={(v) => handleInputChange("responsible_lawyer_name", v)} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <EditableField label="UF OAB" value={formData.responsible_lawyer_oab_uf || null} onChange={(v) => handleInputChange("responsible_lawyer_oab_uf", v)} maxLength={2} />
+                    <EditableField label="Número OAB" value={formData.responsible_lawyer_oab_number || null} onChange={(v) => handleInputChange("responsible_lawyer_oab_number", v)} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm border-border/60 md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    Endereço e Contato
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                       <EditableField label="E-mail" value={formData.contact_email || null} onChange={(v) => handleInputChange("contact_email", v)} type="email" />
+                       <EditableField label="Telefone" value={formData.contact_phone || null} onChange={(v) => handleInputChange("contact_phone", v)} />
+                    </div>
+                    <div className="grid grid-cols-1 gap-4">
+                       <EditableField label="CEP" value={formData.address_zip_code || null} onChange={(v) => handleInputChange("address_zip_code", v)} />
+                       <EditableField label="Rua/Logradouro" value={formData.address_street || null} onChange={(v) => handleInputChange("address_street", v)} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <EditableField label="Número" value={formData.address_number || null} onChange={(v) => handleInputChange("address_number", v)} />
+                    <EditableField label="Bairro" value={formData.address_neighborhood || null} onChange={(v) => handleInputChange("address_neighborhood", v)} />
+                    <EditableField label="Cidade" value={formData.address_city || null} onChange={(v) => handleInputChange("address_city", v)} />
+                    <EditableField label="Estado" value={formData.address_state || null} onChange={(v) => handleInputChange("address_state", v)} maxLength={2} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm border-border/60 md:col-span-2 bg-muted/5">
+                <CardHeader>
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    Cabeçalho de Documentos (PDF)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[11px] font-medium text-muted-foreground/70 uppercase">Ficha Técnica</Label>
+                    <Textarea 
+                      value={formData.header_block || ""} 
+                      onChange={(e) => handleInputChange("header_block", e.target.value)} 
+                      rows={6}
+                      className="bg-background font-mono text-sm leading-relaxed"
+                    />
+                  </div>
+                  <div className="bg-white border border-dashed rounded-lg p-6 text-gray-800 text-[11px] font-serif shadow-inner">
+                    {formData.header_block || "O texto do cabeçalho aparecerá aqui..."}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* ─────────────────────────────────────────────────────────────
+              TAB 2: BRANDING
+          ───────────────────────────────────────────────────────────── */}
+          <TabsContent value="branding" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="shadow-sm border-border/60 h-fit">
+                <CardHeader>
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                    <Palette className="h-4 w-4 text-muted-foreground" />
+                    Cores Institucionais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold uppercase opacity-60">Primária</Label>
+                      <div className="flex gap-2">
+                        <Input type="color" value={formData.primary_color || DEFAULT_VALUES.primary_color} onChange={(e) => handleInputChange("primary_color", e.target.value)} className="w-14 h-11" />
+                        <Input value={formData.primary_color || DEFAULT_VALUES.primary_color} onChange={(e) => handleInputChange("primary_color", e.target.value)} className="flex-1 font-mono" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold uppercase opacity-60">Secundária</Label>
+                      <div className="flex gap-2">
+                        <Input type="color" value={formData.secondary_color || DEFAULT_VALUES.secondary_color} onChange={(e) => handleInputChange("secondary_color", e.target.value)} className="w-14 h-11" />
+                        <Input value={formData.secondary_color || DEFAULT_VALUES.secondary_color} onChange={(e) => handleInputChange("secondary_color", e.target.value)} className="flex-1 font-mono" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="pt-4 border-t">
+                     <Button variant="outline" size="sm" onClick={handleResetDefaults} className="w-full gap-2">
+                        <RotateCcw className="h-3 w-3" /> Restaurar Cores Padrão
+                     </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Logo e Assinatura ocupam a outra coluna */}
+              <div className="space-y-6">
+                 <Card className="shadow-sm border-border/60">
+                   <CardHeader>
+                      <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                        <Image className="h-4 w-4 text-muted-foreground" />
+                        Logotipo
+                      </CardTitle>
+                   </CardHeader>
+                   <CardContent className="space-y-6">
+                      <div 
+                        ref={logoPreviewRef}
+                        className="h-40 bg-muted/20 border-2 border-dashed rounded-xl flex items-center justify-center relative overflow-hidden group cursor-ns-resize"
+                      >
+                        {logoUrl ? (
+                          <img src={logoUrl} alt="Logo" style={{ transform: `scale(${logoSettings.scale / 100})` }} className="max-h-32 object-contain select-none" />
+                        ) : <Image className="h-10 w-10 opacity-20" />}
+                      </div>
+                      <div className="flex gap-3">
+                         <label className="flex-1">
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload("logo", e.target.files[0])} />
+                            <Button variant="outline" className="w-full gap-2" asChild><span><Upload className="h-4 w-4" /> {logoUrl ? "Trocar" : "Enviar"} Logo</span></Button>
+                         </label>
+                         {logoUrl && <Button variant="ghost" className="text-destructive" onClick={() => handleRemoveAsset("logo")}><Trash2 className="h-4 w-4" /></Button>}
+                      </div>
+                   </CardContent>
+                 </Card>
+
+                 <Card className="shadow-sm border-border/60">
+                   <CardHeader>
+                      <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                        <Scale className="h-4 w-4 text-muted-foreground" />
+                        Assinatura Digital
+                      </CardTitle>
+                   </CardHeader>
+                   <CardContent className="space-y-6">
+                      <div 
+                        ref={signaturePreviewRef}
+                        className="h-24 bg-muted/20 border-2 border-dashed rounded-xl flex items-center justify-center relative overflow-hidden cursor-ns-resize"
+                      >
+                        {signatureUrl ? (
+                          <img src={signatureUrl} alt="Assinatura" style={{ transform: `scale(${signatureSettings.scale / 100})` }} className="max-h-20 object-contain select-none" />
+                        ) : <Scale className="h-8 w-8 opacity-20" />}
+                      </div>
+                      <div className="flex gap-3">
+                         <label className="flex-1">
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload("signature", e.target.files[0])} />
+                            <Button variant="outline" className="w-full gap-2" asChild><span><Upload className="h-4 w-4" /> {signatureUrl ? "Trocar" : "Enviar"} Assinatura</span></Button>
+                         </label>
+                         {signatureUrl && <Button variant="ghost" className="text-destructive" onClick={() => handleRemoveAsset("signature")}><Trash2 className="h-4 w-4" /></Button>}
+                      </div>
+                   </CardContent>
+                 </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* ─────────────────────────────────────────────────────────────
+              TAB 3: WHATSAPP - A GRANDE NOVIDADE
+          ───────────────────────────────────────────────────────────── */}
+          <TabsContent value="whatsapp" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <Card id="whatsapp-config" className="shadow-xl border-emerald-500/20 bg-emerald-500/[0.02] overflow-hidden">
+               <div className="bg-emerald-500/5 border-b border-emerald-500/10 px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shadow-sm shadow-emerald-500/10">
+                      <Phone className="h-7 w-7" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl font-bold text-foreground">Configurar WhatsApp</CardTitle>
+                      <CardDescription className="text-sm font-medium text-emerald-600/70">Integração oficial via Z-API Engine</CardDescription>
+                    </div>
+                  </div>
+                  <div className="bg-background/80 backdrop-blur px-6 py-4 rounded-2xl border flex flex-col items-end gap-2 shadow-sm">
+                    <div className="flex items-center gap-4 w-full justify-between">
+                      <div className="space-y-0.5">
+                        <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground/60">Status da Integração</p>
+                        <p className={`text-xs font-bold ${whatsappConfigs[activeWhatsappContext].enabled ? 'text-emerald-500' : 'text-amber-500'}`}>
+                          {whatsappConfigs[activeWhatsappContext].enabled ? 'HABILITADA' : 'DESABILITADA'}
+                        </p>
+                      </div>
+                      <Switch 
+                        checked={whatsappConfigs[activeWhatsappContext].enabled} 
+                        onCheckedChange={(v) => updateWhatsappConfig(activeWhatsappContext, 'enabled', v)} 
+                        className="data-[state=checked]:bg-emerald-500" 
+                      />
+                    </div>
+                  </div>
+               </div>
+
+               <div className="px-8 pt-6 border-b border-emerald-500/10">
+                  <Tabs value={activeWhatsappContext} onValueChange={(v) => setActiveWhatsappContext(v as MessagingContextType)} className="w-full">
+                    <TabsList className="bg-emerald-500/5 p-1 h-12">
+                      <TabsTrigger value="MEDICAL" className="gap-2 px-8 h-full data-[state=active]:bg-white data-[state=active]:text-emerald-600">
+                        MÉDICO
+                      </TabsTrigger>
+                      <TabsTrigger value="LEGAL" className="gap-2 px-8 h-full data-[state=active]:bg-white data-[state=active]:text-emerald-600">
+                        JURÍDICO
+                      </TabsTrigger>
+                      <TabsTrigger value="GLOBAL" className="gap-2 px-8 h-full data-[state=active]:bg-white data-[state=active]:text-emerald-600">
+                        GLOBAL (Fallback)
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+               </div>
+
+               <CardContent className="p-8">
+                 <div className="grid md:grid-cols-2 gap-8 items-start">
+                   <div className="space-y-6">
+                     <div className="space-y-3">
+                       <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">Client Token / WABA ID</Label>
+                       <Input 
+                          type="password"
+                          placeholder="Token de segurança ou ID do WhatsApp Business Account" 
+                          value={whatsappConfigs[activeWhatsappContext].clientToken} 
+                          onChange={(e) => updateWhatsappConfig(activeWhatsappContext, 'clientToken', e.target.value)}
+                          className="h-14 bg-background border-border/80 focus:ring-emerald-500/20 focus:border-emerald-500/50 text-base font-medium transition-all"
+                       />
+                     </div>
+
+                     <div className="space-y-3">
+                       <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">Template de Lembrete</Label>
+                       <Textarea 
+                          placeholder={activeWhatsappContext === 'MEDICAL' ? "Olá {paciente}, lembramos da sua consulta..." : "Olá {cliente}, lembramos do seu compromisso..."} 
+                          value={whatsappConfigs[activeWhatsappContext].template} 
+                          onChange={(e) => updateWhatsappConfig(activeWhatsappContext, 'template', e.target.value)}
+                          className="h-32 bg-background border-border/80 focus:ring-emerald-500/20 focus:border-emerald-500/50 text-sm font-medium transition-all"
+                       />
+                       <p className="text-[10px] text-muted-foreground italic px-1">
+                          {activeWhatsappContext === 'MEDICAL' 
+                            ? "Variáveis: {paciente}, {data}, {hora}, {clinica}" 
+                            : "Variáveis: {cliente}, {processo}, {data}, {hora}"}
+                       </p>
+                     </div>
+                   </div>
+
+                   <div className="bg-emerald-500/5 rounded-2xl border border-emerald-500/10 p-8 flex flex-col justify-between h-full">
+                      <div className="space-y-4">
+                         <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-2">
+                            <FileText className="h-5 w-5" />
+                         </div>
+                         <h4 className="font-bold text-emerald-700">Como funciona a Mensageria?</h4>
+                         <p className="text-sm text-emerald-600/80 leading-relaxed">
+                           O Flaito suporta tanto <strong>Z-API</strong> (não oficial) quanto <strong>Meta Official API</strong>. Você pode configurar instâncias separadas para cada contexto ou uma configuração <strong>GLOBAL</strong> que servirá como padrão.
+                         </p>
+                         <ul className="space-y-2.5">
+                           {['Multi-provedor (Z-API/Meta)', 'Contexto GLOBAL de Fallback', 'Fila de Envio Inteligente', 'Variáveis Dinâmicas'].map(item => (
+                             <li key={item} className="flex items-center gap-2 text-xs font-semibold text-emerald-700/70">
+                               <div className="h-1 w-1 rounded-full bg-emerald-500" />
+                               {item}
+                             </li>
+                           ))}
+                         </ul>
+                      </div>
+                   </div>
+                 </div>
+
+                 <div className="mt-8 pt-8 border-t border-emerald-500/10 flex flex-col md:flex-row items-center gap-6">
+                   <p className="text-xs text-muted-foreground leading-relaxed text-center md:text-left font-medium">
+                     Contexto ativo: <strong className="text-emerald-600">{activeWhatsappContext}</strong>. 
+                     {activeWhatsappContext === 'GLOBAL' 
+                       ? " Esta configuração será usada para qualquer envio onde não houver uma configuração específica (Médica ou Jurídica)."
+                       : " Se esta configuração estiver vazia, o sistema tentará usar a configuração GLOBAL."}
+                   </p>
+                 </div>
+               </CardContent>
+             </Card>
+          </TabsContent>
+
+        </Tabs>
+
+        {/* ═══════════════════════════════════════════════════════════════
+            FOOTER ACTIONS - Floating Style
+        ═══════════════════════════════════════════════════════════════ */}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 z-50">
+           <div className="bg-background/80 backdrop-blur-xl border border-border/60 shadow-2xl rounded-2xl p-4 flex items-center justify-between gap-4">
+              <p className="text-sm font-medium text-muted-foreground hidden md:block px-4">
+                Alterações não salvas serão perdidas ao sair.
+              </p>
+              <div className="flex gap-3 w-full md:w-auto">
+                <Button variant="ghost" onClick={() => navigate("/meu-escritorio")} className="flex-1 md:flex-none">Cancelar</Button>
+                <Button onClick={handleSave} disabled={saving} size="lg" className="flex-1 md:flex-none gap-2 px-8 bg-gradient-to-r from-primary to-primary/90">
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Salvar Configurações
                 </Button>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ═══════════════════════════════════════════════════════════════
-            GRID DE CARDS - Operacionais em 2 colunas
-        ═══════════════════════════════════════════════════════════════ */}
-        <div className="grid gap-6 md:grid-cols-2">
-          
-          {/* Card: Identidade do Escritório */}
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-border/60">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-md bg-muted/80">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div>
-                  <CardTitle className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Identidade</CardTitle>
-                  <CardDescription className="text-xs">Nome e identificação</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <EditableField
-                label="Nome do Escritório"
-                value={formData.name || null}
-                onChange={(v) => handleInputChange("name", v)}
-                placeholder="Ex: Escritório de Advocacia Silva"
-              />
-              <EditableField
-                label="Slug"
-                value={formData.slug || null}
-                onChange={(v) => handleInputChange("slug", v)}
-                placeholder="silva-advogados"
-              />
-              <EditableField
-                label="CNPJ"
-                value={formData.cnpj || null}
-                onChange={(v) => handleInputChange("cnpj", v)}
-                placeholder="00.000.000/0000-00"
-              />
-            </CardContent>
-          </Card>
-
-          {/* Card: Responsável Técnico */}
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-border/60">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-md bg-muted/80">
-                  <Scale className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div>
-                  <CardTitle className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Responsável Técnico</CardTitle>
-                  <CardDescription className="text-xs">Advogado responsável</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <EditableField
-                label="Nome Completo"
-                value={formData.responsible_lawyer_name || null}
-                onChange={(v) => handleInputChange("responsible_lawyer_name", v)}
-                placeholder="Nome completo"
-              />
-              <div className="grid grid-cols-2 gap-3">
-                <EditableField
-                  label="UF OAB"
-                  value={formData.responsible_lawyer_oab_uf || null}
-                  onChange={(v) => handleInputChange("responsible_lawyer_oab_uf", v)}
-                  placeholder="TO"
-                  maxLength={2}
-                />
-                <EditableField
-                  label="Número OAB"
-                  value={formData.responsible_lawyer_oab_number || null}
-                  onChange={(v) => handleInputChange("responsible_lawyer_oab_number", v)}
-                  placeholder="12345"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Card: Contato */}
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-border/60">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-md bg-muted/80">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div>
-                  <CardTitle className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Contato</CardTitle>
-                  <CardDescription className="text-xs">E-mail e telefone</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <EditableField
-                label="E-mail"
-                value={formData.contact_email || null}
-                onChange={(v) => handleInputChange("contact_email", v)}
-                placeholder="contato@escritorio.com.br"
-                type="email"
-              />
-              <EditableField
-                label="Telefone"
-                value={formData.contact_phone || null}
-                onChange={(v) => handleInputChange("contact_phone", v)}
-                placeholder="(63) 99999-0000"
-              />
-            </CardContent>
-          </Card>
-
-          {/* Card: Cores do Tema */}
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-border/60">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-md bg-muted/80">
-                  <Palette className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div>
-                  <CardTitle className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Cores do Tema</CardTitle>
-                  <CardDescription className="text-xs">Personalização visual</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Cor Primária</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={formData.primary_color || DEFAULT_VALUES.primary_color}
-                    onChange={(e) => handleInputChange("primary_color", e.target.value)}
-                    className="w-14 h-11 p-1 cursor-pointer"
-                  />
-                  <Input
-                    value={formData.primary_color || DEFAULT_VALUES.primary_color}
-                    onChange={(e) => handleInputChange("primary_color", e.target.value)}
-                    placeholder="#111827"
-                    className="flex-1 h-11 font-mono text-sm font-medium"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Cor Secundária</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={formData.secondary_color || DEFAULT_VALUES.secondary_color}
-                    onChange={(e) => handleInputChange("secondary_color", e.target.value)}
-                    className="w-14 h-11 p-1 cursor-pointer"
-                  />
-                  <Input
-                    value={formData.secondary_color || DEFAULT_VALUES.secondary_color}
-                    onChange={(e) => handleInputChange("secondary_color", e.target.value)}
-                    placeholder="#D4AF37"
-                    className="flex-1 h-11 font-mono text-sm font-medium"
-                  />
-                </div>
-              </div>
-              
-              {/* Preview visual das cores - Enhanced */}
-              <div className="pt-3 border-t border-border/30 space-y-3">
-                <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-medium">
-                  Prévia de Aplicação
-                </p>
-                
-                {/* Gradient bar */}
-                <div className="h-2.5 rounded-full overflow-hidden flex shadow-inner border border-border/30">
-                  <div 
-                    className="flex-[2]"
-                    style={{ backgroundColor: formData.primary_color || DEFAULT_VALUES.primary_color }}
-                  />
-                  <div 
-                    className="flex-1"
-                    style={{ backgroundColor: formData.secondary_color || DEFAULT_VALUES.secondary_color }}
-                  />
-                </div>
-                
-                {/* Button preview */}
-                <div className="flex gap-2">
-                  <div 
-                    className="px-4 py-2 rounded-md text-xs font-medium text-white shadow-sm"
-                    style={{ backgroundColor: formData.primary_color || DEFAULT_VALUES.primary_color }}
-                  >
-                    Botão Primário
-                  </div>
-                  <div 
-                    className="px-4 py-2 rounded-md text-xs font-medium border shadow-sm bg-background"
-                    style={{ 
-                      borderColor: formData.secondary_color || DEFAULT_VALUES.secondary_color,
-                      color: formData.secondary_color || DEFAULT_VALUES.secondary_color
-                    }}
-                  >
-                    Secundário
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* ═══════════════════════════════════════════════════════════════
-            LOCALIZAÇÃO (Full Width - Crítico)
-        ═══════════════════════════════════════════════════════════════ */}
-        <Card className="shadow-sm border-border/60">
-          <CardHeader className="pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-md bg-muted/80">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div>
-                <CardTitle className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Localização</CardTitle>
-                <CardDescription className="text-xs">Endereço completo do escritório</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-              <div className="md:col-span-3">
-                <EditableField
-                  label="Logradouro"
-                  value={formData.address_street || null}
-                  onChange={(v) => handleInputChange("address_street", v)}
-                  placeholder="Rua, Avenida, etc."
-                />
-              </div>
-              <EditableField
-                label="Número"
-                value={formData.address_number || null}
-                onChange={(v) => handleInputChange("address_number", v)}
-                placeholder="123"
-              />
-              <div className="md:col-span-2">
-                <EditableField
-                  label="Bairro"
-                  value={formData.address_neighborhood || null}
-                  onChange={(v) => handleInputChange("address_neighborhood", v)}
-                  placeholder="Centro"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <EditableField
-                  label="Cidade"
-                  value={formData.address_city || null}
-                  onChange={(v) => handleInputChange("address_city", v)}
-                  placeholder="Palmas"
-                />
-              </div>
-              <EditableField
-                label="Estado"
-                value={formData.address_state || null}
-                onChange={(v) => handleInputChange("address_state", v)}
-                placeholder="TO"
-                maxLength={2}
-              />
-              <div className="md:col-span-2">
-                <EditableField
-                  label="CEP"
-                  value={formData.address_zip_code || null}
-                  onChange={(v) => handleInputChange("address_zip_code", v)}
-                  placeholder="77000-000"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ═══════════════════════════════════════════════════════════════
-            CABEÇALHO INSTITUCIONAL (Full Width - Crítico)
-        ═══════════════════════════════════════════════════════════════ */}
-        <Card className="shadow-sm border-border/60">
-          <CardHeader className="pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-md bg-muted/80">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div>
-                <CardTitle className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Cabeçalho Institucional</CardTitle>
-                <CardDescription className="text-xs">Texto para uso em PDFs e peças processuais</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Editor */}
-              <div className="space-y-2">
-                <Label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Editar Texto</Label>
-                <Textarea
-                  value={formData.header_block || ""}
-                  onChange={(e) => handleInputChange("header_block", e.target.value)}
-                  placeholder="Insira aqui o texto do cabeçalho institucional..."
-                  rows={8}
-                  className="font-mono text-sm resize-none bg-background/50"
-                />
-              </div>
-              
-              {/* Preview estilizado */}
-              <div className="space-y-2">
-                <Label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Visualização</Label>
-                <div className="bg-white border border-border/50 rounded-lg p-6 min-h-[200px] shadow-inner">
-                  {formData.header_block ? (
-                    <div 
-                      className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed"
-                      style={{ fontFamily: "'Times New Roman', serif" }}
-                    >
-                      {formData.header_block}
-                    </div>
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-muted-foreground/50 italic text-sm">
-                      O texto do cabeçalho aparecerá aqui
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ═══════════════════════════════════════════════════════════════
-            IDENTIDADE VISUAL (Full Width - Crítico)
-        ═══════════════════════════════════════════════════════════════ */}
-        <Card className="shadow-sm border-border/60">
-          <CardHeader className="pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-md bg-muted/80">
-                <Image className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div>
-                <CardTitle className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Identidade Visual</CardTitle>
-                <CardDescription className="text-xs">Logo e assinatura digital para documentos e interface</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-8">
-              
-              {/* Logo Section */}
-              <div className="space-y-4">
-                <h3 className="text-xs font-semibold text-foreground/80 uppercase tracking-wider flex items-center gap-2">
-                  <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                  Logo do Escritório
-                </h3>
-                
-                {/* Preview grande - Com redimensionamento por scroll/arrasto */}
-                <div 
-                  ref={logoPreviewRef}
-                  className="bg-gradient-to-br from-muted/20 to-muted/40 border-2 border-dashed border-muted rounded-xl p-6 min-h-[200px] flex items-center relative group overflow-hidden"
-                  style={{ 
-                    justifyContent: logoSettings.position === "center" ? "center" : logoSettings.position === "right" ? "flex-end" : "flex-start" 
-                  }}
-                >
-                  {logoUrl ? (
-                    <>
-                      <div 
-                        className="rounded-lg p-3 shadow-sm transition-all duration-200 cursor-ns-resize flex items-center justify-center overflow-hidden"
-                        style={{ 
-                          borderRadius: `${logoSettings.border_radius}px`,
-                          backgroundColor: logoSettings.background_enabled 
-                            ? logoSettings.background_color === "primary" 
-                              ? formData.primary_color || "#111827"
-                              : logoSettings.background_color === "secondary"
-                                ? formData.secondary_color || "#D4AF37"
-                                : logoSettings.background_color === "transparent"
-                                  ? "transparent"
-                                  : logoSettings.background_color
-                            : "white",
-                          maxWidth: "100%",
-                          maxHeight: "180px"
-                        }}
-                      >
-                        <img 
-                          src={logoUrl} 
-                          alt="Logo" 
-                          draggable={false}
-                          style={{ 
-                            width: `${logoSettings.scale * 1.6}px`,
-                            maxWidth: "100%",
-                            maxHeight: "160px",
-                            objectFit: "contain"
-                          }}
-                          className="transition-all duration-200 select-none"
-                        />
-                      </div>
-                      {/* Dica de redimensionamento */}
-                      <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                        Scroll para redimensionar • {logoSettings.scale}%
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center text-muted-foreground">
-                      <Image className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                      <p className="text-sm">Nenhum logo cadastrado</p>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Botões */}
-                <div className="flex gap-2">
-                  <label className="cursor-pointer flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload("logo", file);
-                      }}
-                    />
-                    <Button type="button" variant="outline" className="w-full gap-2" asChild>
-                      <span>
-                        <Upload className="h-4 w-4" />
-                        {logoUrl ? "Trocar Logo" : "Enviar Logo"}
-                      </span>
-                    </Button>
-                  </label>
-                  {logoUrl && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => handleRemoveAsset("logo")}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-
-                {/* Controles (quando há logo) */}
-                {logoUrl && (
-                  <div className="space-y-4 pt-4 border-t border-border/30">
-                    {/* Escala */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider flex items-center gap-2">
-                          <ZoomIn className="h-4 w-4" />
-                          Tamanho
-                        </Label>
-                        <span className="text-sm font-mono text-muted-foreground">{logoSettings.scale}%</span>
-                      </div>
-                      <Slider
-                        value={[logoSettings.scale]}
-                        onValueChange={([val]) => handleLogoSettingChange("scale", val)}
-                        min={50}
-                        max={800}
-                        step={10}
-                      />
-                    </div>
-
-                    {/* Posição */}
-                    <div className="space-y-2">
-                      <Label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Posição</Label>
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          variant={logoSettings.position === "left" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handleLogoSettingChange("position", "left")}
-                          className="flex-1"
-                        >
-                          <AlignLeft className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={logoSettings.position === "center" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handleLogoSettingChange("position", "center")}
-                          className="flex-1"
-                        >
-                          <AlignCenter className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={logoSettings.position === "right" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handleLogoSettingChange("position", "right")}
-                          className="flex-1"
-                        >
-                          <AlignRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Arredondamento */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Arredondamento</Label>
-                        <span className="text-sm font-mono text-muted-foreground">{logoSettings.border_radius}px</span>
-                      </div>
-                      <Slider
-                        value={[logoSettings.border_radius]}
-                        onValueChange={([val]) => handleLogoSettingChange("border_radius", val)}
-                        min={0}
-                        max={50}
-                        step={2}
-                      />
-                    </div>
-
-                    {/* Fundo da Logo */}
-                    <div className="space-y-3 pt-3 border-t border-border/30">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider flex items-center gap-2">
-                          <Palette className="h-4 w-4" />
-                          Fundo da Logo
-                        </Label>
-                        <Switch
-                          checked={logoSettings.background_enabled}
-                          onCheckedChange={(val) => handleLogoSettingChange("background_enabled", val)}
-                        />
-                      </div>
-                      
-                      {logoSettings.background_enabled && (
-                        <div className="flex flex-wrap gap-2 pt-2">
-                          {LOGO_BACKGROUND_COLORS.map((color) => {
-                            const isSelected = logoSettings.background_color === color.value;
-                            const displayColor = color.value === "primary" 
-                              ? formData.primary_color || "#111827"
-                              : color.value === "secondary"
-                                ? formData.secondary_color || "#D4AF37"
-                                : color.value === "transparent"
-                                  ? "transparent"
-                                  : color.value;
-                            
-                            return (
-                              <button
-                                key={color.value}
-                                type="button"
-                                onClick={() => handleLogoSettingChange("background_color", color.value)}
-                                className={`
-                                  flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all
-                                  ${isSelected 
-                                    ? "bg-primary text-primary-foreground ring-2 ring-primary/50" 
-                                    : "bg-muted/50 hover:bg-muted text-muted-foreground"
-                                  }
-                                `}
-                              >
-                                <div 
-                                  className="w-4 h-4 rounded-full border border-border/50"
-                                  style={{ 
-                                    backgroundColor: displayColor === "transparent" ? "transparent" : displayColor,
-                                    backgroundImage: displayColor === "transparent" 
-                                      ? "linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)"
-                                      : "none",
-                                    backgroundSize: "8px 8px",
-                                    backgroundPosition: "0 0, 0 4px, 4px -4px, -4px 0px"
-                                  }}
-                                />
-                                {color.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Switches */}
-                    <div className="space-y-3 pt-3 border-t border-border/30">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs text-muted-foreground">Exibir no cabeçalho do sistema</Label>
-                        <Switch
-                          checked={logoSettings.show_in_header}
-                          onCheckedChange={(val) => handleLogoSettingChange("show_in_header", val)}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs text-muted-foreground">Exibir em documentos gerados</Label>
-                        <Switch
-                          checked={logoSettings.show_in_documents}
-                          onCheckedChange={(val) => handleLogoSettingChange("show_in_documents", val)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Assinatura Section */}
-              <div className="space-y-4">
-                <h3 className="text-xs font-semibold text-foreground/80 uppercase tracking-wider flex items-center gap-2">
-                  <Scale className="h-3.5 w-3.5 text-muted-foreground" />
-                  Assinatura Digital
-                </h3>
-                
-                {/* Preview grande com redimensionamento interativo */}
-                <div 
-                  ref={signaturePreviewRef}
-                  className="bg-gradient-to-br from-white to-muted/30 border-2 border-dashed border-muted rounded-xl p-6 min-h-[200px] flex items-center justify-center cursor-ns-resize relative"
-                  title="Scroll para redimensionar"
-                >
-                  {signatureUrl ? (
-                    <img 
-                      src={signatureUrl} 
-                      alt="Assinatura" 
-                      className="object-contain transition-all duration-150"
-                      style={{ maxHeight: `${signatureSettings.scale * 1.6}px` }}
-                    />
-                  ) : (
-                    <div className="text-center text-muted-foreground space-y-3">
-                      <Scale className="h-12 w-12 mx-auto opacity-30" />
-                      <p className="text-sm">Nenhuma assinatura cadastrada</p>
-                      <div className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-lg p-3 text-left">
-                        <p className="font-medium mb-1">⚠️ Assinatura não configurada</p>
-                        <p className="text-amber-600/80">Os documentos gerados (procurações, declarações e contratos) ficarão sem a assinatura do advogado responsável.</p>
-                      </div>
-                    </div>
-                  )}
-                  {signatureUrl && (
-                    <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground/60 bg-background/80 px-2 py-0.5 rounded">
-                      Scroll para redimensionar
-                    </div>
-                  )}
-                </div>
-                
-                {/* Slider de tamanho */}
-                {signatureUrl && (
-                  <div className="space-y-3 bg-muted/30 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs text-muted-foreground flex items-center gap-2">
-                        <ZoomIn className="h-3.5 w-3.5" />
-                        Tamanho nos documentos
-                      </Label>
-                      <span className="text-xs font-medium text-foreground/80 bg-background px-2 py-0.5 rounded">
-                        {signatureSettings.scale}%
-                      </span>
-                    </div>
-                    <Slider
-                      value={[signatureSettings.scale]}
-                      onValueChange={(val) => setSignatureSettings(prev => ({ ...prev, scale: val[0] }))}
-                      min={50}
-                      max={200}
-                      step={5}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between text-[10px] text-muted-foreground/60">
-                      <span>50%</span>
-                      <span>100%</span>
-                      <span>200%</span>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Botões */}
-                <div className="flex gap-2">
-                  <label className="cursor-pointer flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload("signature", file);
-                      }}
-                    />
-                    <Button type="button" variant="outline" className="w-full gap-2" asChild>
-                      <span>
-                        <Upload className="h-4 w-4" />
-                        {signatureUrl ? "Trocar Assinatura" : "Enviar Assinatura"}
-                      </span>
-                    </Button>
-                  </label>
-                  {signatureUrl && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => handleRemoveAsset("signature")}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-
-                {/* Info box */}
-                <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
-                  <p>A assinatura digital será aplicada automaticamente em documentos gerados como procurações, declarações e contratos.</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ═══════════════════════════════════════════════════════════════
-            FOOTER ACTIONS - Differentiated
-        ═══════════════════════════════════════════════════════════════ */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-border/40">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/meu-escritorio")}
-            className="gap-2 w-full sm:w-auto text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar para Meu Escritório
-          </Button>
-          <div className="flex gap-3 w-full sm:w-auto">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate("/meu-escritorio")}
-              className="flex-1 sm:flex-none text-muted-foreground"
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleSave} 
-              disabled={saving}
-              size="lg"
-              className="flex-1 sm:flex-none gap-2 shadow-sm"
-            >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Salvar Configurações
-            </Button>
-          </div>
+           </div>
         </div>
       </div>
     </div>

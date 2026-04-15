@@ -5,7 +5,8 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Eye, Loader2, Trash2 } from "lucide-react";
-import type { QuickMetadata } from "@/nija";
+import type { QuickMetadata } from "@/nija/core/engine";
+
 
 // ======================================================
 // TYPES

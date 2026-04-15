@@ -23,19 +23,27 @@ serve(async (req) => {
     const isFocusAddress = focusOn === 'address';
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY não configurada");
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+
+    if (!LOVABLE_API_KEY && (!OPENAI_API_KEY || OPENAI_API_KEY === 'sua_chave_openai_aqui' || OPENAI_API_KEY.includes('sua_chave'))) {
+      console.error("LOVABLE_API_KEY e OPENAI_API_KEY não configurados");
       return new Response(
-        JSON.stringify({ error: "Chave de API não configurada" }),
+        JSON.stringify({ error: "Chave de API (Lovable ou OpenAI) não configurada no Supabase." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("[lexos-extract-document-data] Iniciando extração...");
+    const useOpenAI = !LOVABLE_API_KEY;
+    const apiUrl = useOpenAI
+      ? "https://api.openai.com/v1/chat/completions"
+      : "https://ai.gateway.lovable.dev/v1/chat/completions";
+    const apiKey = useOpenAI ? OPENAI_API_KEY : LOVABLE_API_KEY;
+
+    console.log("[lexos-extract-document-data] Iniciando extração, usando:", useOpenAI ? "OpenAI" : "Lovable Gateway");
 
     // Preparar a imagem para a API
     let imageContent: { type: "image_url"; image_url: { url: string } };
-    
+
     if (imageBase64) {
       // Se recebeu base64, usar diretamente
       imageContent = {
@@ -77,18 +85,18 @@ Analise a imagem do documento e extraia os seguintes dados quando disponíveis:
 Retorne APENAS um JSON válido com os campos encontrados. Use null para campos não encontrados.
 Não inclua explicações, apenas o JSON.`;
 
-    const userPrompt = isFocusAddress 
+    const userPrompt = isFocusAddress
       ? "Extraia os dados de ENDEREÇO deste comprovante de residência:"
       : "Extraia os dados deste documento brasileiro:";
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: useOpenAI ? "gpt-4o-mini" : "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
           {
@@ -148,8 +156,17 @@ Não inclua explicações, apenas o JSON.`;
       }
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
+
+      let parsedErrorStr = "Erro ao processar imagem";
+      try {
+        const parsed = JSON.parse(errorText);
+        parsedErrorStr = parsed.error?.message || parsedErrorStr;
+      } catch (e) {
+        parsedErrorStr = errorText;
+      }
+
       return new Response(
-        JSON.stringify({ error: "Erro ao processar imagem" }),
+        JSON.stringify({ error: `Erro na API da OpenAI/Lovable: ${parsedErrorStr}` }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -177,7 +194,7 @@ Não inclua explicações, apenas o JSON.`;
 
     // Extrair dados do tool call
     let extractedData: Record<string, string | null> = {};
-    
+
     const toolCall = result.choices?.[0]?.message?.tool_calls?.[0];
     if (toolCall?.function?.arguments) {
       try {
@@ -209,7 +226,7 @@ Não inclua explicações, apenas o JSON.`;
     if (extractedData.neighborhood) extractedData.neighborhood = toTitleCase(extractedData.neighborhood);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
         data: extractedData,
         fieldsFound: Object.keys(extractedData).filter(k => extractedData[k] !== null && extractedData[k] !== "")

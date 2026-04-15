@@ -17,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, pageNumber = 1 } = await req.json();
+    const { imageBase64, pageNumber = 1, mode = "judicial" } = await req.json();
 
     if (!imageBase64) {
       return new Response(
@@ -35,10 +35,10 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[nija-extract-image] Processando página ${pageNumber}, imagem ~${Math.round(imageBase64.length / 1024)}KB`);
+    console.log(`[nija-extract-image] [Mode: ${mode}] Processando página ${pageNumber}, imagem ~${Math.round(imageBase64.length / 1024)}KB`);
 
     // Prompt especializado para OCR de documentos judiciais
-    const systemPrompt = `Você é um assistente especializado em OCR de documentos judiciais brasileiros.
+    const judicialSystemPrompt = `Você é um assistente especializado em OCR de documentos judiciais brasileiros.
 Sua tarefa é extrair TODO o texto visível na imagem de forma precisa e completa.
 
 INSTRUÇÕES:
@@ -52,7 +52,34 @@ INSTRUÇÕES:
 
 IMPORTANTE: Extraia TODO o texto legível, mesmo que pareça incompleto.`;
 
-    const userPrompt = `Extraia todo o texto visível nesta imagem de documento judicial (página ${pageNumber}).`;
+    const patientIntakeSystemPrompt = `Você é um assistente de extração de dados especializado em documentos de identidade brasileiros (RG, CNH, CPF).
+Sua tarefa é extrair e estruturar os dados do documento visível na imagem.
+
+INSTRUÇÕES:
+1. Identifique o tipo de documento (RG, CNH, CPF, Registro de Nascimento, etc.).
+2. Extraia os campos: Nome Completo, CPF, RG, Órgão Emissor, UF, Data de Nascimento, Filiação (Nome da Mãe e Pai), Nacionalidade, Naturalidade, Endereço, CEP, Data de Emissão.
+3. Normalize os dados: CPF (apenas números), Datas (ISO YYYY-MM-DD), Estado (Sigla UF).
+4. Forneça uma pontuação de confiança (0-1) para cada campo extraído baseada na legibilidade.
+5. Se o documento for "frente e verso" e ambos estiverem visíveis, extraia de ambos.
+
+RETORNO: Retorne EXCLUSIVAMENTE um objeto JSON estruturado com os campos:
+{
+  "document_type": "...",
+  "fields": {
+    "name": { "value": "...", "confidence": 0.95 },
+    "cpf": { "value": "...", "confidence": 0.98 },
+    "birth_date": { "value": "...", "confidence": 0.90 },
+    ...
+  },
+  "raw_text": "..."
+}
+
+IMPORTANTE: Não invente dados. Se um campo não estiver visível ou for ilegível, retorne null no value.`;
+
+    const systemPrompt = mode === "patient_intake" ? patientIntakeSystemPrompt : judicialSystemPrompt;
+    const userPrompt = mode === "patient_intake" 
+      ? "Extraia os dados deste documento de identidade para cadastro de paciente."
+      : `Extraia todo o texto visível nesta imagem de documento judicial (página ${pageNumber}).`;
 
     // Preparar conteúdo da imagem
     let imageContent: { type: string; image_url: { url: string } };
@@ -76,7 +103,7 @@ IMPORTANTE: Extraia TODO o texto legível, mesmo que pareça incompleto.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.0-flash", // Update to a more stable model if needed, but current is fine
         messages: [
           { role: "system", content: systemPrompt },
           {
@@ -88,6 +115,7 @@ IMPORTANTE: Extraia TODO o texto legível, mesmo que pareça incompleto.`;
           }
         ],
         max_tokens: 8000,
+        response_format: mode === "patient_intake" ? { type: "json_object" } : { type: "text" }
       }),
     });
 
@@ -116,8 +144,29 @@ IMPORTANTE: Extraia TODO o texto legível, mesmo que pareça incompleto.`;
     }
 
     const data = await response.json();
-    const extractedText = data.choices?.[0]?.message?.content || "";
+    const content = data.choices?.[0]?.message?.content || "";
 
+    if (mode === "patient_intake") {
+      try {
+        const extraction = JSON.parse(content);
+        return new Response(
+          JSON.stringify({
+            success: true,
+            extraction,
+            page_number: pageNumber,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } catch (e) {
+        console.error("[nija-extract-image] Erro ao parsear JSON:", e, content);
+        return new Response(
+          JSON.stringify({ success: false, error: "Falha ao processar resposta estruturada da IA" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    const extractedText = content;
     console.log(`[nija-extract-image] Texto extraído: ${extractedText.length} caracteres`);
 
     // Detectar sistema judicial
@@ -164,4 +213,5 @@ IMPORTANTE: Extraia TODO o texto legível, mesmo que pareça incompleto.`;
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
+
 });

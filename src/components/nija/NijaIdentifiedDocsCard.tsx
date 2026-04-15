@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileCheck, Trash2 } from "lucide-react";
-import type { EnrichedDoc } from "@/nija";
+import type { EnrichedDoc } from "@/nija/connectors/tjto/dictionary";
 
 // ======================================================
 // TYPES

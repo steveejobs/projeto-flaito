@@ -1,0 +1,49 @@
+{
+  "numero_cnj": "5001234-56.2023.8.27.0001",
+  "titulo_polo_ativo": "JOÃO SILVA SANTOS",
+  "titulo_polo_passivo": "ESTADO DO TOCANTINS",
+  "ano_inicio": 2023,
+  "data_inicio": "2023-01-15",
+  "instancia": 1,
+  "comarca": "PALMAS",
+  "tribunal": {
+    "sigla": "TJTO",
+    "nome": "Tribunal de Justiça do Estado do Tocantins"
+  },
+  "orgao_julgador": "1ª VARA DA FAZENDA E REGISTROS PÚBLICOS DE PALMAS",
+  "assuntos": [
+    {
+      "nome": "Indenização por Dano Moral",
+      "nome_com_pai": "Responsabilidade Civil -> Indenização por Dano Moral"
+    }
+  ],
+  "envolvidos": [
+    {
+      "nome": "JOÃO SILVA SANTOS",
+      "tipo": "AUTOR",
+      "advogados": [
+        {
+          "nome": "DR. ADVOGADO EXEMPLO",
+          "oab": "12345/TO"
+        }
+      ]
+    },
+    {
+      "nome": "ESTADO DO TOCANTINS",
+      "tipo": "RÉU",
+      "advogados": []
+    }
+  ],
+  "movimentacoes": [
+    {
+      "data": "2023-02-10",
+      "texto": "SENTENÇA JULGADA PROCEDENTE",
+      "tipo": "SENTENÇA"
+    },
+    {
+      "data": "2023-01-20",
+      "texto": "DESPACHO DE CITAÇÃO EXPEDIDO",
+      "tipo": "DESPACHO"
+    }
+  ]
+}

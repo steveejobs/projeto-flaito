@@ -199,7 +199,7 @@ export default function AdminMaintenance() {
       }
 
       const response = await fetch(
-        "https://uxrakfbedmkiqhidruxx.supabase.co/functions/v1/admin-run-kit-worker",
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-run-kit-worker`,
         {
           method: "POST",
           headers: {

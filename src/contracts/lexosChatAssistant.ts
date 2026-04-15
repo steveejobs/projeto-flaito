@@ -4,7 +4,8 @@ export type LexosChatMode =
   | "summarize"
   | "next_step"
   | "generate_draft"
-  | "checklist";
+  | "checklist"
+  | "dashboard";
 
 export interface LexosChatAssistantPayload {
   mode: LexosChatMode;
@@ -34,6 +35,7 @@ export function assertLexosChatPayload(p: unknown): asserts p is LexosChatAssist
     "next_step",
     "generate_draft",
     "checklist",
+    "dashboard",
   ];
   if (typeof mode !== "string" || !validModes.includes(mode as LexosChatMode)) {
     throw new Error("Payload inválido: 'mode' inválido");

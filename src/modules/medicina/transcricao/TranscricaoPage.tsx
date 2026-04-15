@@ -27,6 +27,10 @@ import {
     Square,
     Volume2
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useOfficeRole } from "@/hooks/useOfficeRole";
+import { useToast } from "@/hooks/use-toast";
+import { clientService } from "@/services/domain/clientService";
 
 const TranscricaoPage = () => {
     const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -41,13 +45,21 @@ const TranscricaoPage = () => {
     const audioChunksRef = useRef<BlobPart[]>([]);
     const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Mock de resultado estruturado
-    const mockResult = {
-        queixa: 'Cefaleia tensional persistente há 3 semanas, com piora no período vespertino. Dor holocraniana, intensidade 6/10, sem aura.',
-        sintomas: 'Cefaleia tensional, tensão muscular cervical, fadiga vespertina, dificuldade de concentração, bruxismo noturno relatado pela paciente.',
-        historico: 'Paciente feminina, 38 anos. Sem antecedentes neurológicos. Uso prévio de ibuprofeno com alívio parcial. Trabalha 10h/dia em escritório com uso prolongado de computador.',
-        conduta: 'Solicitação de hemograma completo, perfil tireoidiano e vitamina D. Orientação ergonômica. Avaliação de magnésio sérico. Retorno em 15 dias com exames.',
-    };
+    const { officeId } = useOfficeRole();
+    const { toast } = useToast();
+    const [pacientes, setPacientes] = useState<any[]>([]);
+    const [selectedPacienteId, setSelectedPacienteId] = useState<string>('');
+    const [resultado, setResultado] = useState<any>(null);
+    const [transcricaoManual, setTranscricaoManual] = useState('');
+
+    useEffect(() => {
+        if (!officeId) return;
+        const fetchPacientes = async () => {
+            const data = await clientService.listMedicalPatients(officeId);
+            if (data) setPacientes(data);
+        };
+        fetchPacientes();
+    }, [officeId]);
 
     // Cleanup timer on unmount
     useEffect(() => {
@@ -70,9 +82,46 @@ const TranscricaoPage = () => {
         if (file) setAudioFile(file);
     };
 
-    const handleProcessar = () => {
+    const handleProcessar = async () => {
+        if (!officeId) {
+            toast({ title: "Erro", description: "Escritório não identificado.", variant: "destructive" });
+            return;
+        }
+
         setStatus('processing');
-        setTimeout(() => setStatus('done'), 3000);
+
+        // Simular chamada via delay (Aqui entraria a integração de IA)
+        await new Promise(r => setTimeout(r, 3000));
+
+        const generatedResult = {
+            queixa: 'Cefaleia tensional persistente há 3 semanas, com piora no período vespertino. Dor holocraniana, intensidade 6/10, sem aura.',
+            sintomas: 'Cefaleia tensional, tensão muscular cervical, fadiga vespertina, dificuldade de concentração, bruxismo noturno relatado.',
+            historico: 'Paciente jovem adulta. Sem antecedentes neurológicos aparentes. Uso prévio de ibuprofeno.',
+            conduta: 'Solicitação de exames, orientação ergonômica, retorno em 15 dias.',
+        };
+        setResultado(generatedResult);
+
+        // Salvar no BD
+        try {
+            const { error } = await supabase.from('transcricoes').insert([{
+                office_id: officeId,
+                paciente_id: selectedPacienteId || null,
+                transcricao_bruta: inputMode === 'manual' ? transcricaoManual : 'Áudio capturado em anexo.',
+                queixa_extraida: generatedResult.queixa,
+                sintomas_extraidos: generatedResult.sintomas,
+                historico_extraido: generatedResult.historico,
+                conduta_extraida: generatedResult.conduta,
+                status: 'concluida'
+            }]);
+
+            if (error) throw error;
+            toast({ title: "Sucesso", description: "Transcrição salva com sucesso no banco de dados." });
+            setStatus('done');
+        } catch (error) {
+            console.error("Erro ao salvar transcrição:", error);
+            toast({ title: "Erro", description: "Falha ao salvar a transcrição.", variant: "destructive" });
+            setStatus('idle');
+        }
     };
 
     const formatTime = (seconds: number) => {
@@ -327,6 +376,8 @@ const TranscricaoPage = () => {
                         <Card className="bento-card p-6 space-y-4">
                             <Label className="text-sm font-semibold">Transcrição Manual da Consulta</Label>
                             <Textarea
+                                value={transcricaoManual}
+                                onChange={(e) => setTranscricaoManual(e.target.value)}
                                 placeholder="Cole ou digite a transcrição da consulta aqui. O sistema irá extrair automaticamente as informações clínicas estruturadas..."
                                 className="min-h-[300px] text-sm"
                             />
@@ -336,14 +387,15 @@ const TranscricaoPage = () => {
                     {/* Patient selection */}
                     <Card className="bento-card p-5 space-y-4">
                         <Label className="text-sm font-semibold">Vincular a Paciente (opcional)</Label>
-                        <Select>
+                        <Select value={selectedPacienteId} onValueChange={setSelectedPacienteId}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecionar paciente..." />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="1">Maria Silva Santos</SelectItem>
-                                <SelectItem value="2">João Pedro Oliveira</SelectItem>
-                                <SelectItem value="3">Ana Beatriz Costa</SelectItem>
+                                <SelectItem value="none">Nenhum</SelectItem>
+                                {pacientes.map((p) => (
+                                    <SelectItem key={p.paciente_id || p.id} value={p.paciente_id || p.id}>{p.nome}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </Card>
@@ -352,7 +404,7 @@ const TranscricaoPage = () => {
                     {!(inputMode === 'record' && (isRecording || audioFile)) && (
                         <Button
                             onClick={handleProcessar}
-                            disabled={status === 'processing' || (!audioFile && inputMode !== 'manual')}
+                            disabled={status === 'processing' || (!audioFile && inputMode !== 'manual') || (inputMode === 'manual' && transcricaoManual.trim() === '')}
                             className="w-full gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/20 h-12 text-base"
                         >
                             {status === 'processing' ? (
@@ -403,7 +455,7 @@ const TranscricaoPage = () => {
                                     <MessageSquare className="h-5 w-5 text-blue-400 mt-0.5 shrink-0" />
                                     <div>
                                         <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2">Queixa Principal</p>
-                                        <p className="text-sm text-foreground leading-relaxed">{mockResult.queixa}</p>
+                                        <p className="text-sm text-foreground leading-relaxed">{resultado?.queixa}</p>
                                     </div>
                                 </div>
                             </Card>
@@ -413,7 +465,7 @@ const TranscricaoPage = () => {
                                     <Activity className="h-5 w-5 text-amber-400 mt-0.5 shrink-0" />
                                     <div>
                                         <p className="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2">Sintomas Identificados</p>
-                                        <p className="text-sm text-foreground leading-relaxed">{mockResult.sintomas}</p>
+                                        <p className="text-sm text-foreground leading-relaxed">{resultado?.sintomas}</p>
                                     </div>
                                 </div>
                             </Card>
@@ -423,7 +475,7 @@ const TranscricaoPage = () => {
                                     <ClipboardList className="h-5 w-5 text-cyan-400 mt-0.5 shrink-0" />
                                     <div>
                                         <p className="text-xs font-semibold text-cyan-400 uppercase tracking-wider mb-2">Histórico Relevante</p>
-                                        <p className="text-sm text-foreground leading-relaxed">{mockResult.historico}</p>
+                                        <p className="text-sm text-foreground leading-relaxed">{resultado?.historico}</p>
                                     </div>
                                 </div>
                             </Card>
@@ -433,7 +485,7 @@ const TranscricaoPage = () => {
                                     <CheckCircle2 className="h-5 w-5 text-emerald-400 mt-0.5 shrink-0" />
                                     <div>
                                         <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">Conduta</p>
-                                        <p className="text-sm text-foreground leading-relaxed">{mockResult.conduta}</p>
+                                        <p className="text-sm text-foreground leading-relaxed">{resultado?.conduta}</p>
                                     </div>
                                 </div>
                             </Card>

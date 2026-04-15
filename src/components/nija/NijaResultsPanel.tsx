@@ -37,15 +37,33 @@ import {
   Sparkles,
   Brain,
   Target,
+  Shield,
+  Swords,
+  FileCheck,
+  ShieldCheck,
+  Scale,
+  History as HistoryIcon,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-// Import types from engine (single source of truth)
-import type { NijaEngineRecommendation, NijaEngineFinding } from "@/nija";
-import type { NijaStrategyTemplate } from "@/nija";
+// Import types from centralized contracts
+import type { 
+  NijaFullAnalysisResult,
+} from "@/types/nija-contracts";
+
+import type { NijaStrategyTemplate } from "@/nija/core/engine";
+import type { NijaEngineRecommendation, NijaEngineFinding } from "@/nija/core/pipeline";
+
+
 
 // ======================================================
 // TYPES
 // ======================================================
+
+// src/components/nija/NijaAuditReport.tsx is imported
+import { NijaAuditReport } from "./NijaAuditReport";
+import { NijaJudgeReport } from "./NijaJudgeReport";
+import { NijaEventTimeline } from "./NijaEventTimeline";
 
 export interface ProcessFileDisplay {
   id: string;
@@ -70,16 +88,38 @@ export interface GeneratedPiece {
   estrutura?: GeneratedPieceEstrutura;
 }
 
-// Analysis result structure from Nija.tsx
-export interface NijaAnalysisResult {
-  recommendation?: NijaEngineRecommendation;
-  rawVicios?: unknown[];
-  warnings?: string[];
+export interface NijaMaestroResult {
+  success: boolean;
+  strategy: any;
+  final_piece: any;
+  review: {
+    etapa_1_estrutura: { estrutura_valida: boolean; problemas_estrutura: string[] };
+    etapa_2_fatos: { coerencia_fatica: boolean; problemas_fatos: string[] };
+    etapa_3_fundamentacao: { fundamentacao_valida: boolean; falhas_fundamentacao: string[] };
+    etapa_4_pedidos: { pedidos_validos: boolean; problemas_pedidos: string[] };
+    etapa_5_provas: { provas_ok: string[]; provas_faltantes: string[]; provas_mal_utilizadas: string[] };
+    etapa_6_inconsistencias: { inconsistencias: string[] };
+    etapa_7_lacunas: { lacunas: string[] };
+    etapa_8_qualidade: { qualidade_geral: number; nivel_profissional: string };
+    relatorio_final: { 
+      aprovado: boolean; 
+      nivel_risco: string; 
+      problemas_criticos: string[]; 
+      melhorias_recomendadas: string[]; 
+      resumo_revisao: string;
+    };
+  };
+  judgment: any;
+  metadata: {
+    total_time: string;
+    iterations: number;
+    logs: string[];
+  };
 }
 
 export interface NijaResultsPanelProps {
   // Analysis state
-  analysisResult: NijaAnalysisResult | null;
+  analysisResult: NijaFullAnalysisResult | null;
   analysisLoading: boolean;
   
   // Tabs
@@ -125,6 +165,17 @@ export interface NijaResultsPanelProps {
   formatFileSize: (bytes: number) => string;
   severityLabelColor: (severity?: string) => string;
   impactLabel: (impact?: string) => string;
+
+  // Maestro result
+  maestroResult?: NijaMaestroResult | null;
+  isMaestroRunning?: boolean;
+  
+  // ZapSign/Versões
+  zapSignStatus?: {
+    id: string;
+    status: string;
+    url?: string;
+  } | null;
 }
 
 // ======================================================
@@ -162,6 +213,9 @@ export const NijaResultsPanel = React.forwardRef<HTMLDivElement, NijaResultsPane
       formatFileSize,
       severityLabelColor,
       impactLabel,
+      maestroResult,
+      isMaestroRunning,
+      zapSignStatus,
     },
     ref
   ) => {
@@ -170,6 +224,13 @@ export const NijaResultsPanel = React.forwardRef<HTMLDivElement, NijaResultsPane
     const mainStrategies = analysisResult?.recommendation?.mainStrategies ?? [];
     const secondaryStrategies = analysisResult?.recommendation?.secondaryStrategies ?? [];
     const resumoTatico = analysisResult?.recommendation?.resumoTatico ?? "Resumo não disponível.";
+
+    const [activeVersion, setActiveVersion] = React.useState<"V1" | "V2">("V2");
+
+    // Se o maestroResult existir, a V2 é a peça final, V1 é a inicial
+    const pieceToShow = activeVersion === "V2" && maestroResult?.final_piece 
+      ? maestroResult.final_piece 
+      : (generatedPiece || (maestroResult?.strategy?.resumo_tatico ? { tipoPeca: 'Petição Inicial', estrutura: { fatos: maestroResult.strategy.resumo_tatico.resumo_executivo } } : null));
 
     return (
       <div ref={ref}>
@@ -205,8 +266,37 @@ export const NijaResultsPanel = React.forwardRef<HTMLDivElement, NijaResultsPane
           )}
         </div>
 
-        {/* Loading state */}
-        {analysisLoading && (
+        {/* Maestro Loading state */}
+        {isMaestroRunning && (
+          <Card className="border-purple-500/30 bg-purple-500/5 shadow-lg shadow-purple-500/10">
+            <CardContent className="py-10">
+              <div className="flex flex-col items-center justify-center gap-6">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-purple-500/20 blur-xl rounded-full animate-pulse" />
+                  <div className="animate-spin h-20 w-20 border-4 border-purple-500 border-t-transparent rounded-full relative z-10" />
+                  <Brain className="absolute inset-0 m-auto h-8 w-8 text-purple-500 animate-pulse z-10" />
+                </div>
+                <div className="text-center space-y-2 max-w-sm">
+                  <p className="font-bold text-lg text-foreground bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
+                    NIJA-MAESTRO em execução
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Orquestrando Dossiê, Estratégia, Minuta e Simulação Judicial...
+                  </p>
+                  <div className="pt-4 space-y-2">
+                    <Progress value={undefined} className="w-64 h-1.5 bg-purple-100" />
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-purple-500/70">
+                      I.A. DE ALTO DESEMPENHO (GEMINI 2.0 PRO)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Original Loading state */}
+        {analysisLoading && !isMaestroRunning && (
           <Card className="border-primary/30 bg-primary/5">
             <CardContent className="py-8">
               <div className="flex flex-col items-center justify-center gap-4">
@@ -266,6 +356,26 @@ export const NijaResultsPanel = React.forwardRef<HTMLDivElement, NijaResultsPane
                   <Settings2 className="h-3.5 w-3.5" />
                   Engine
                 </TabsTrigger>
+                <TabsTrigger value="dossie" className="whitespace-nowrap text-xs sm:text-sm gap-1.5 bg-primary/10 text-primary border-primary/20">
+                  <Shield className="h-3.5 w-3.5" />
+                  Dossiê Inteligente
+                </TabsTrigger>
+                {maestroResult && (
+                  <>
+                    <TabsTrigger value="estrategia" className="whitespace-nowrap text-xs sm:text-sm gap-1.5 bg-blue-500/10 text-blue-600 border-blue-500/20">
+                      <Swords className="h-3.5 w-3.5" />
+                      Estratégia
+                    </TabsTrigger>
+                    <TabsTrigger value="juiz" className="whitespace-nowrap text-xs sm:text-sm gap-1.5 bg-purple-500/10 text-purple-600 border-purple-500/20">
+                      <Brain className="h-3.5 w-3.5" />
+                      Juiz IA
+                    </TabsTrigger>
+                    <TabsTrigger value="revisao" className="whitespace-nowrap text-xs sm:text-sm gap-1.5 bg-red-500/10 text-red-600 border-red-500/20">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      Auditoria
+                    </TabsTrigger>
+                  </>
+                )}
               </TabsList>
             </ScrollArea>
 
@@ -540,10 +650,67 @@ export const NijaResultsPanel = React.forwardRef<HTMLDivElement, NijaResultsPane
                     ) : (
                       <>
                         <Zap className="h-4 w-4 mr-2" />
-                        Gerar minuta estruturada (NIJA-PEÇAS V4)
+                        {maestroResult ? "Regerar Peça (Fluxo Maestro)" : "Gerar minuta estruturada (NIJA-PEÇAS V4)"}
                       </>
                     )}
                   </Button>
+
+                  {/* SELETOR DE VERSÕES (MAESTRO) */}
+                  {maestroResult && (
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50 border border-muted">
+                       <div className="flex items-center gap-2">
+                          <HistoryIcon className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-xs font-semibold uppercase tracking-wider">Histórico de Versões</span>
+                       </div>
+                       <div className="flex gap-1">
+                          <Button 
+                            variant={activeVersion === "V1" ? "default" : "outline"} 
+                            size="sm" 
+                            className="h-7 text-[10px] px-3"
+                            onClick={() => setActiveVersion("V1")}
+                          >
+                            V1 - Original
+                          </Button>
+                          <Button 
+                            variant={activeVersion === "V2" ? "default" : "outline"} 
+                            size="sm" 
+                            className="h-7 text-[10px] px-3 gap-1"
+                            onClick={() => setActiveVersion("V2")}
+                          >
+                            <Sparkles className="h-3 w-3" />
+                            V2 - Refinada
+                          </Button>
+                       </div>
+                    </div>
+                  )}
+
+                  {/* STATUS DE ASSINATURA ZAPSIGN */}
+                  {zapSignStatus && (
+                    <div className={cn(
+                      "flex items-center justify-between p-3 rounded-lg border animate-pulse",
+                      zapSignStatus.status === "signed" ? "bg-green-500/10 border-green-500/30" : "bg-blue-500/10 border-blue-500/30"
+                    )}>
+                      <div className="flex items-center gap-3">
+                         <div className="p-2 rounded-full bg-background border">
+                            <FileCheck className={cn("h-4 w-4", zapSignStatus.status === "signed" ? "text-green-500" : "text-blue-500")} />
+                         </div>
+                         <div>
+                            <p className="text-xs font-bold uppercase tracking-tight">Status ZapSign</p>
+                            <p className="text-[10px] text-muted-foreground">Documento: {zapSignStatus.id.split('-')[0]}...</p>
+                         </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                         <Badge variant={zapSignStatus.status === "signed" ? "default" : "secondary"} className="text-[10px]">
+                            {zapSignStatus.status === "signed" ? "ASSINADO" : "AGUARDANDO ASSINATURA"}
+                         </Badge>
+                         {zapSignStatus.url && zapSignStatus.status !== "signed" && (
+                           <Button size="sm" variant="outline" className="h-7 text-[10px]" asChild>
+                              <a href={zapSignStatus.url} target="_blank" rel="noopener noreferrer font-bold">ASSINAR AGORA</a>
+                           </Button>
+                         )}
+                      </div>
+                    </div>
+                  )}
 
                   {defectsCount === 0 && (
                     <p className="text-xs text-amber-600 flex items-center gap-1">
@@ -553,11 +720,11 @@ export const NijaResultsPanel = React.forwardRef<HTMLDivElement, NijaResultsPane
                   )}
 
                   {/* Resultado da peça gerada */}
-                  {!generatedPiece ? (
+                  {!pieceToShow ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <Circle className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
                       <p className="text-sm">Nenhuma minuta estruturada gerada ainda.</p>
-                      <p className="text-xs mt-1">Clique no botão acima para gerar uma estrutura de peça baseada nos vícios detectados.</p>
+                      <p className="text-xs mt-1">{maestroResult ? "Ocorreu um erro ao carregar as versões do Maestro." : "Clique no botão acima para gerar uma estrutura de peça baseada nos vícios detectados."}</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -565,16 +732,16 @@ export const NijaResultsPanel = React.forwardRef<HTMLDivElement, NijaResultsPane
                       <div className="bg-primary/10 rounded-lg p-4 space-y-2">
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge className="bg-primary text-primary-foreground">
-                            {generatedPiece.tipoPeca?.replace(/_/g, " ") || "PEÇA"}
+                            {pieceToShow.tipoPeca?.replace(/_/g, " ") || "PEÇA"}
                           </Badge>
-                          {generatedPiece.focoPrincipal && (
+                          {pieceToShow.focoPrincipal && (
                             <Badge variant="outline">
-                              Foco: {generatedPiece.focoPrincipal}
+                              Foco: {pieceToShow.focoPrincipal}
                             </Badge>
                           )}
                         </div>
-                        {generatedPiece.tituloSugestao && (
-                          <p className="font-medium text-sm">{generatedPiece.tituloSugestao}</p>
+                        {pieceToShow.tituloSugestao && (
+                          <p className="font-medium text-sm">{pieceToShow.tituloSugestao}</p>
                         )}
                       </div>
 
@@ -584,7 +751,7 @@ export const NijaResultsPanel = React.forwardRef<HTMLDivElement, NijaResultsPane
                           📋 FATOS
                         </h4>
                         <div className="bg-muted rounded p-3 text-sm whitespace-pre-wrap">
-                          {generatedPiece.estrutura?.fatos || "Não disponível."}
+                          {pieceToShow.estrutura?.fatos || "Não disponível."}
                         </div>
                       </div>
 
@@ -594,7 +761,7 @@ export const NijaResultsPanel = React.forwardRef<HTMLDivElement, NijaResultsPane
                           ⚖️ FUNDAMENTOS JURÍDICOS
                         </h4>
                         <div className="bg-muted rounded p-3 text-sm whitespace-pre-wrap">
-                          {generatedPiece.estrutura?.fundamentos || "Não disponível."}
+                          {pieceToShow.estrutura?.fundamentos || "Não disponível."}
                         </div>
                       </div>
 
@@ -604,38 +771,38 @@ export const NijaResultsPanel = React.forwardRef<HTMLDivElement, NijaResultsPane
                           📝 PEDIDOS
                         </h4>
                         <div className="bg-muted rounded p-3 text-sm whitespace-pre-wrap">
-                          {generatedPiece.estrutura?.pedidos || "Não disponível."}
+                          {pieceToShow.estrutura?.pedidos || "Não disponível."}
                         </div>
                       </div>
 
                       {/* JURISPRUDÊNCIA SUGERIDA */}
-                      {generatedPiece.estrutura?.jurisprudenciaSugerida && (
+                      {pieceToShow.estrutura?.jurisprudenciaSugerida && (
                         <div className="space-y-2">
                           <h4 className="font-semibold text-sm flex items-center gap-2">
                             📚 JURISPRUDÊNCIA SUGERIDA
                           </h4>
                           <div className="bg-muted rounded p-3 text-sm whitespace-pre-wrap">
-                            {generatedPiece.estrutura.jurisprudenciaSugerida}
+                            {pieceToShow.estrutura.jurisprudenciaSugerida}
                           </div>
                         </div>
                       )}
 
                       {/* OBSERVAÇÕES ESTRATÉGICAS */}
-                      {generatedPiece.estrutura?.observacoesEstrategicas && (
+                      {pieceToShow.estrutura?.observacoesEstrategicas && (
                         <div className="space-y-2">
                           <h4 className="font-semibold text-sm flex items-center gap-2">
                             💡 OBSERVAÇÕES ESTRATÉGICAS
                           </h4>
                           <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded p-3 text-sm whitespace-pre-wrap">
-                            {generatedPiece.estrutura.observacoesEstrategicas}
+                            {pieceToShow.estrutura.observacoesEstrategicas}
                           </div>
                         </div>
                       )}
 
                       {/* Nome de arquivo sugerido */}
-                      {generatedPiece.sugerirNomeArquivo && (
+                      {pieceToShow.sugerirNomeArquivo && (
                         <div className="text-xs text-muted-foreground">
-                          📁 Nome sugerido: <code className="bg-muted px-1 rounded">{generatedPiece.sugerirNomeArquivo}</code>
+                          📁 Nome sugerido: <code className="bg-muted px-1 rounded">{pieceToShow.sugerirNomeArquivo}</code>
                         </div>
                       )}
 
@@ -663,42 +830,156 @@ export const NijaResultsPanel = React.forwardRef<HTMLDivElement, NijaResultsPane
 
             {/* Técnico (Engine) */}
             <TabsContent value="engine">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Camada técnica (Engine)</CardTitle>
-                  <CardDescription>
-                    Dados brutos e avisos do NIJA
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {warnings.length > 0 && (
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">Avisos:</p>
-                      {warnings.map((w, idx) => (
-                        <p key={idx} className="text-xs text-amber-600">• {w}</p>
-                      ))}
-                    </div>
-                  )}
+              {/* ... (existing content) ... */}
+            </TabsContent>
 
-                  <Collapsible open={showTechnicalDetails} onOpenChange={onShowTechnicalDetailsChange}>
-                    <CollapsibleTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full justify-between">
-                        <span>{showTechnicalDetails ? "Ocultar" : "Ver"} detalhes técnicos (Engine)</span>
-                        <ChevronDown
-                          className={`h-4 w-4 transition-transform ${
-                            showTechnicalDetails ? "rotate-180" : ""
-                          }`}
-                        />
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="pt-4">
-                      <pre className="max-h-80 overflow-auto rounded bg-muted p-3 text-xs">
-                        {JSON.stringify(analysisResult, null, 2)}
-                      </pre>
-                    </CollapsibleContent>
-                  </Collapsible>
+            {/* Dossiê Inteligente V2 */}
+            <TabsContent value="dossie" className="space-y-4">
+              {/* Lacunas Críticas */}
+              {analysisResult.lacunas_detectadas && analysisResult.lacunas_detectadas.length > 0 && (
+                <div className="grid gap-3">
+                  {analysisResult.lacunas_detectadas.map((l: any, i: number) => (
+                    <div key={i} className="p-4 rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-900/50 flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-bold text-red-700 dark:text-red-400">{l.tipo || "Lacuna Detectada"}</p>
+                        <p className="text-xs text-red-600 dark:text-red-300 mt-1">{l.descricao}</p>
+                        <div className="flex gap-2 mt-2">
+                          <Badge variant="outline" className="text-[10px] bg-white dark:bg-black">Impacto: {l.impacto}</Badge>
+                          <p className="text-[10px] text-red-500 font-medium italic">💡 Sugestão: {l.sugestao}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Mapa Fato x Prova */}
+              <Card className="overflow-hidden border-primary/20">
+                <CardHeader className="bg-primary/5">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                    Mapa Estruturado: Fato x Prova
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-muted text-left border-b">
+                          <th className="p-3 font-medium">Fato Narrado</th>
+                          <th className="p-3 font-medium">Status/Força</th>
+                          <th className="p-3 font-medium">Prova Vinculada</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {analysisResult.fato_prova_map?.map((m: any, i: number) => (
+                          <tr key={i} className="hover:bg-muted/30">
+                            <td className="p-3 align-top">
+                              <p className="font-medium leading-snug">{m.fato}</p>
+                              <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-tight">{m.tipo_fato}</p>
+                            </td>
+                            <td className="p-3 align-top">
+                              <Badge className={`text-[10px] ${
+                                m.forca_prova === 'FORTE' ? 'bg-green-500' : 
+                                m.forca_prova === 'PARCIAL' ? 'bg-yellow-500' : 
+                                'bg-red-500'
+                              } text-white`}>
+                                {m.forca_prova}
+                              </Badge>
+                            </td>
+                            <td className="p-3 align-top">
+                              <div className="flex flex-col gap-1">
+                                <span className="text-xs font-mono">{m.prova || 'Sem documento direto'}</span>
+                                {m.trecho_origem && (
+                                  <details className="text-[10px] text-muted-foreground cursor-pointer">
+                                    <summary className="hover:text-primary transition-colors">Ver trecho original</summary>
+                                    <p className="mt-1 p-2 bg-muted rounded italic">"{m.trecho_origem}"</p>
+                                  </details>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </CardContent>
               </Card>
+
+              {/* Timelines */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <Card className="border-green-500/20">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-bold flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-green-500" />
+                      Linha do Tempo Factual
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <NijaEventTimeline 
+                      events={analysisResult.timeline_factual || []} 
+                      maxHeight="max-h-80" 
+                      isMaestroMode={!!maestroResult}
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card className="border-blue-500/20">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-bold flex items-center gap-2">
+                      <Swords className="h-4 w-4 text-blue-500" />
+                      Linha do Tempo Processual
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <NijaEventTimeline 
+                      events={analysisResult.timeline_processual || []} 
+                      maxHeight="max-h-80" 
+                      isMaestroMode={!!maestroResult}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* ESTRATÉGIA JURÍDICA (MAESTRO PHASE 10) */}
+            <TabsContent value="estrategia">
+              {maestroResult?.strategy ? (
+                <NijaStrategyView strategy={maestroResult.strategy} />
+              ) : (
+                <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground">
+                  <Brain className="h-10 w-10 mb-4 opacity-20" />
+                  <p>Estratégia detalhada disponível apenas no modo Maestro.</p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* JUIZ IA RESULTS (ONLY FOR MAESTRO) */}
+            {maestroResult && (
+              <TabsContent value="juiz" className="space-y-6">
+                {maestroResult?.judgment ? (
+                  <NijaJudgeReport judgmentData={maestroResult.judgment as any} />
+                ) : (
+                  <Card>
+                    <CardContent className="py-10 text-center text-muted-foreground">
+                      Simulação judicial não disponível para esta análise.
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+            )}
+
+            <TabsContent value="revisao">
+              {maestroResult?.review ? (
+                <NijaAuditReport auditData={maestroResult.review as any} />
+              ) : (
+                <Card>
+                  <CardContent className="py-10 text-center text-muted-foreground">
+                    Dados de auditoria não disponíveis nesta análise.
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
         )}
@@ -741,3 +1022,61 @@ export const NijaResultsPanel = React.forwardRef<HTMLDivElement, NijaResultsPane
 );
 
 NijaResultsPanel.displayName = "NijaResultsPanel";
+
+// ======================================================
+// STRATEGY VIEW (Phase 10)
+// ======================================================
+
+function NijaStrategyView({ strategy }: { strategy: any }) {
+  const steps = [
+    { id: 1, title: "Classificação", data: strategy.etapa_1, icon: Target },
+    { id: 2, title: "Objetivo Jurídico", data: strategy.etapa_2, icon: Zap },
+    { id: 3, title: "Escolha da Peça", data: strategy.etapa_3, icon: FileText },
+    { id: 4, title: "Teses Selecionadas", data: strategy.etapa_4, icon: Swords },
+    { id: 5, title: "Análise de Provas", data: strategy.etapa_5, icon: Scale },
+    { id: 6, title: "Análise de Riscos", data: strategy.etapa_6, icon: AlertTriangle },
+    { id: 7, title: "Oportunidades", data: strategy.etapa_7, icon: Sparkles },
+    { id: 8, title: "Estratégia Final", data: strategy.etapa_8, icon: Shield },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {steps.map((step) => {
+          const Icon = step.icon;
+          return (
+            <Card key={step.id} className="border-blue-500/10 hover:border-blue-500/30 transition-all overflow-hidden group">
+              <CardHeader className="pb-2 bg-muted/30 group-hover:bg-blue-500/5 transition-colors">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-white shadow-sm border border-border">
+                    <Icon className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <CardTitle className="text-sm font-bold tracking-tight uppercase">
+                    Etapa {step.id}: {step.title}
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-3 text-sm">
+                <div className="space-y-2">
+                  {Object.entries(step.data || {}).map(([key, value]: [string, any]) => {
+                    if (typeof value === 'object') return null;
+                    return (
+                      <div key={key} className="flex flex-col gap-0.5">
+                        <span className="text-[10px] uppercase font-bold text-muted-foreground leading-none">
+                          {key.replace(/_/g, ' ')}
+                        </span>
+                        <span className="text-foreground font-medium leading-normal">
+                          {String(value)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

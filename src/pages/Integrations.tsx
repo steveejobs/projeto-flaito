@@ -65,7 +65,11 @@ export default function Integrations() {
         .limit(1)
         .single();
 
-      if (!memberData) throw new Error('Usuário sem escritório ativo');
+      if (!memberData) {
+        if (import.meta.env.DEV) console.log('[Integrations] No office member record yet. Hooks might still be provisioning.');
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('integration_jobs')

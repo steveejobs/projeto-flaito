@@ -1,17 +1,18 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  runNijaFullAnalysis,
-  NijaFullAnalysisResult,
-} from "@/services/nijaFullAnalysis";
+import { runNijaFullAnalysis } from "@/services/nijaFullAnalysis";
+import type { NijaFullAnalysisResult } from "@/types/nija-contracts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Brain, AlertTriangle, Shield, FileText, Clock, FileWarning, CheckCircle } from "lucide-react";
 import { NijaExtractionStatusCard, DocumentWithExtraction } from "@/components/NijaExtractionStatusCard";
-import { canAnalyzeDocuments, getBlockingReason, type ReadingStatus } from "@/nija";
+import { canAnalyzeDocuments, getBlockingReason } from "@/nija/connectors/pdf/pdfClientExtractor";
+import type { ReadingStatus } from "@/nija/connectors/pdf/pdfClientExtractor";
+
 import { useDocumentExtraction, type DocumentForExtraction } from "@/hooks/useDocumentExtraction";
 import { toast } from "sonner";
+import { AuditSeal } from "@/components/shared/AuditSeal";
 
 interface DocumentWithStatus {
   id: string;
@@ -115,7 +116,8 @@ export function NijaFullAnalysisCard(props: Props) {
         if (caseError) throw caseError;
 
         if (caseData?.nija_full_analysis) {
-          setResult(caseData.nija_full_analysis as unknown as NijaFullAnalysisResult);
+          const analysisData = caseData.nija_full_analysis as unknown;
+          setResult(analysisData as NijaFullAnalysisResult);
           setLastRunAt(caseData.nija_full_last_run_at);
         }
       } catch (e) {
@@ -347,12 +349,12 @@ export function NijaFullAnalysisCard(props: Props) {
         )}
 
         {showLastAnalysis && (
-          <div className="space-y-3">
+          <div className="space-y-3 relative group">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <div className="border rounded-lg p-2">
                 <p className="text-xs font-semibold">Ramo</p>
-                <p className="text-sm">{result.meta.ramo}</p>
-                {!result.meta.ramoConfiavel && (
+                <p className="text-sm">{result?.meta?.ramo}</p>
+                {!result?.meta?.ramoConfiavel && (
                   <p className="text-[11px] text-yellow-700 mt-1 flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" /> Verificar manualmente
                   </p>
@@ -360,14 +362,14 @@ export function NijaFullAnalysisCard(props: Props) {
               </div>
               <div className="border rounded-lg p-2">
                 <p className="text-xs font-semibold">Fase</p>
-                <p className="text-sm">{result.meta.faseProcessual}</p>
+                <p className="text-sm">{result?.meta?.faseProcessual}</p>
               </div>
               <div className="border rounded-lg p-2">
                 <p className="text-xs font-semibold">Polo</p>
                 <p className="text-sm">
-                  {result.meta.poloAtuacao === "AUTOR"
+                  {result?.meta?.poloAtuacao === "AUTOR"
                     ? "Autor"
-                    : result.meta.poloAtuacao === "REU"
+                    : result?.meta?.poloAtuacao === "REU"
                     ? "Réu"
                     : "Indefinido"}
                 </p>
@@ -376,9 +378,9 @@ export function NijaFullAnalysisCard(props: Props) {
                 <p className="text-xs font-semibold">Risco Global</p>
                 <Badge
                   variant="outline"
-                  className={`mt-1 ${RISCO_COLORS[result.meta.grauRiscoGlobal] ?? ""}`}
+                  className={`mt-1 ${result?.meta?.grauRiscoGlobal && RISCO_COLORS[result.meta.grauRiscoGlobal as string] ? RISCO_COLORS[result.meta.grauRiscoGlobal as string] : ""}`}
                 >
-                  {result.meta.grauRiscoGlobal}
+                  {result?.meta?.grauRiscoGlobal}
                 </Badge>
               </div>
             </div>
@@ -387,7 +389,7 @@ export function NijaFullAnalysisCard(props: Props) {
               <p className="text-xs font-semibold flex items-center gap-1">
                 <Shield className="w-3 h-3" /> Resumo tático
               </p>
-              <p className="text-sm whitespace-pre-line">{result.meta.resumoTatico}</p>
+              <p className="text-sm whitespace-pre-line">{result?.meta?.resumoTatico}</p>
             </div>
 
             {result.prescricao && (
@@ -397,7 +399,7 @@ export function NijaFullAnalysisCard(props: Props) {
                 </p>
                 <Badge
                   variant="outline"
-                  className={RISCO_COLORS[result.prescricao.risco] ?? ""}
+                  className={result.prescricao.risco ? (RISCO_COLORS[result.prescricao.risco as string] ?? "") : ""}
                 >
                   {result.prescricao.tipo}
                 </Badge>
@@ -418,7 +420,7 @@ export function NijaFullAnalysisCard(props: Props) {
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-semibold">{vicio.label}</span>
                         <div className="flex gap-1">
-                          <Badge className={GRAVIDADE_COLORS[vicio.gravidade] ?? ""}>
+                          <Badge className={(vicio.gravidade as string) ? (GRAVIDADE_COLORS[vicio.gravidade as keyof typeof GRAVIDADE_COLORS] ?? "") : ""}>
                             {vicio.gravidade}
                           </Badge>
                           <Badge variant="outline">{vicio.natureza}</Badge>
@@ -455,6 +457,14 @@ export function NijaFullAnalysisCard(props: Props) {
                   Foco: {result.sugestaoPeca.focoPrincipal}
                 </p>
               </div>
+            )}
+
+            {/* Audit Seal for NIJA Analysis */}
+            {result._audit && (
+              <AuditSeal 
+                audit={result._audit} 
+                className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 -bottom-1 -right-1" 
+              />
             )}
           </div>
         )}

@@ -179,13 +179,13 @@ export function CaseKnowledgePanel({ caseId, subject, onSubjectChange }: CaseKno
     let cancelled = false;
     setOfficeLoading(true);
 
-    supabase
-      .from("office_members")
+    (supabase
+      .from("office_members" as any)
       .select("office_id")
       .eq("user_id", user.id)
       .limit(1)
-      .maybeSingle()
-      .then(({ data, error }) => {
+      .maybeSingle() as any)
+      .then(({ data, error }: any) => {
         if (cancelled) return;
         if (error) {
           console.error("CaseKnowledgePanel: office fetch error", error);
@@ -327,7 +327,7 @@ export function CaseKnowledgePanel({ caseId, subject, onSubjectChange }: CaseKno
         .map((t) => t.trim().toLowerCase())
         .filter(Boolean);
 
-      const { error } = await supabase.from("video_transcriptions").insert({
+      const { error } = await supabase.from("video_transcriptions" as any).insert({
         office_id: officeId,
         title: videoForm.title.trim(),
         url: videoForm.url.trim() || null,
@@ -462,12 +462,12 @@ export function CaseKnowledgePanel({ caseId, subject, onSubjectChange }: CaseKno
 
       // Se não houver vídeos do RPC, buscar diretamente de video_transcriptions
       if (videos.length === 0 && officeId) {
-        const { data: transcriptions } = await supabase
-          .from("video_transcriptions")
+        const { data: transcriptions } = await (supabase
+          .from("video_transcriptions" as any)
           .select("id, title, url, tags, created_at")
           .eq("office_id", officeId)
           .order("created_at", { ascending: false })
-          .limit(settings.videos_limit);
+          .limit(settings.videos_limit) as any);
 
         if (transcriptions && transcriptions.length > 0) {
           videos = transcriptions.map((t) => ({
@@ -552,11 +552,11 @@ export function CaseKnowledgePanel({ caseId, subject, onSubjectChange }: CaseKno
     console.time("CaseKnowledgePanel.loadSettings");
     setSettingsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("office_settings")
+      const { data, error } = await (supabase
+        .from("office_settings" as any)
         .select("videos_limit, precedents_limit, prefer_curated")
         .eq("office_id", officeId)
-        .maybeSingle();
+        .maybeSingle() as any);
 
       if (error && error.code !== "PGRST116") {
         throw error;
@@ -600,13 +600,13 @@ export function CaseKnowledgePanel({ caseId, subject, onSubjectChange }: CaseKno
 
     setSettingsLoading(true);
     try {
-      const { error } = await supabase.from("office_settings").upsert({
+      const { error } = await (supabase.from("office_settings" as any).upsert({
         office_id: officeId,
         plan_code: "free",
         videos_limit: settings.videos_limit,
         precedents_limit: settings.precedents_limit,
         prefer_curated: settings.prefer_curated,
-      });
+      }) as any);
 
       if (error) throw error;
 
@@ -635,16 +635,16 @@ export function CaseKnowledgePanel({ caseId, subject, onSubjectChange }: CaseKno
     setKpisLoading(true);
     try {
       const [dayRes, subjectRes] = await Promise.all([
-        supabase
-          .from("vw_knowledge_kpis_day")
+        (supabase
+          .from("vw_knowledge_kpis_day" as any)
           .select("day, total_runs, cache_hits, cache_hit_rate, avg_videos, avg_precedents")
           .order("day", { ascending: false })
-          .limit(30),
-        supabase
-          .from("vw_knowledge_kpis_subject")
+          .limit(30) as any),
+        (supabase
+          .from("vw_knowledge_kpis_subject" as any)
           .select("subject, total_runs, cache_hits, last_run_at")
           .order("last_run_at", { ascending: false })
-          .limit(50),
+          .limit(50) as any),
       ]);
 
       if (dayRes.error) {

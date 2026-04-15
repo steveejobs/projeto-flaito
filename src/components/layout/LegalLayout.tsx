@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, RefreshCw, Building2, UserCog } from 'lucide-react';
+import { LogOut, RefreshCw, Building2, UserCog, Phone, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChatContext } from '@/contexts/ChatContext';
 import { useDevPanel } from '@/contexts/DevPanelContext';
@@ -11,6 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { LegalSidebar } from '@/components/layout/LegalSidebar';
+import { useActiveClient } from '@/contexts/ActiveClientContext';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -26,7 +27,6 @@ import { LegalClock } from '@/components/LegalClock';
 import { RouteTransitionOverlay } from '@/components/RouteTransitionOverlay';
 import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 import { DevDiagnosticsPanel } from '@/components/DevDiagnosticsPanel';
-import LexosMark from '@/components/brand/LexosMark';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -40,7 +40,8 @@ export function LegalLayout({ children }: AppLayoutProps) {
   const location = useLocation();
   const renderCountRef = useRef(0);
   renderCountRef.current += 1;
-  const { activeCaseId, activeClientId } = useChatContext();
+  const { activeCaseId, activeClientId: chatActiveClientId } = useChatContext();
+  const { activeProfile, setActiveClientId } = useActiveClient();
   const devPanel = useDevPanel();
   const [showRetry, setShowRetry] = useState(false);
   const [memberName, setMemberName] = useState<string | null>(null);
@@ -145,9 +146,9 @@ export function LegalLayout({ children }: AppLayoutProps) {
       if (parts.length >= 2) {
         return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
       }
-      return parts[0]?.slice(0, 2).toUpperCase() || 'U';
+      return parts[0]?.slice(0, 2)?.toUpperCase() || 'U';
     }
-    return user?.email?.slice(0, 2).toUpperCase() || 'U';
+    return user?.email?.slice(0, 2)?.toUpperCase() || 'U';
   };
 
   const userInitials = getInitials();
@@ -163,8 +164,24 @@ export function LegalLayout({ children }: AppLayoutProps) {
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="text-foreground/80 hover:text-primary transition-colors" />
                 <div className="h-6 w-px bg-border/50" />
-                <LexosMark className="h-8 w-8" />
                 <LegalClock />
+
+                {activeProfile && (
+                  <div className="ml-4 flex items-center pl-4 border-l border-white/10 hidden md:flex animate-in fade-in slide-in-from-left-4 duration-500">
+                    <div className="flex flex-col mr-3 text-left">
+                      <span className="text-[10px] uppercase font-bold text-primary tracking-wider">Cliente em Foco</span>
+                      <span className="text-sm font-semibold text-foreground leading-tight">{activeProfile.full_name}</span>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-8 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10" 
+                      onClick={() => setActiveClientId(null)}
+                    >
+                      Limpar
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
@@ -193,9 +210,17 @@ export function LegalLayout({ children }: AppLayoutProps) {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/meu-escritorio')}>
+                    <DropdownMenuItem onClick={() => navigate('/settings/office')}>
                       <Building2 className="mr-2 h-4 w-4" />
                       Meu Escritório
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/legal/whatsapp')}>
+                      <MessageSquare className="mr-2 h-4 w-4 text-primary" />
+                      <span className="font-semibold">Inbox WhatsApp</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/settings/office')}>
+                      <Phone className="mr-2 h-4 w-4" />
+                      Configurar WhatsApp
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/settings/profile')}>
                       <UserCog className="mr-2 h-4 w-4" />
@@ -246,7 +271,7 @@ export function LegalLayout({ children }: AppLayoutProps) {
           </div>
 
           {/* Global Chat Assistant */}
-          <LexosChatAssistant caseId={activeCaseId} clientId={activeClientId} />
+          <LexosChatAssistant caseId={activeCaseId} clientId={chatActiveClientId} />
 
           {/* DEV Diagnostics Panel - toggled via sidebar menu */}
           {import.meta.env.DEV && devPanel.isOpen && (

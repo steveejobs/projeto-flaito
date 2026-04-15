@@ -3,16 +3,22 @@
 // Integrates extraction, automatic detectors, prescription calculator, and AI analysis
 
 import { 
-  extractEprocDataPure, 
   type EprocExtractionResult,
   type EprocEventoExtraido,
-} from "@/nija/extraction/mode";
+} from "@/types/nija-contracts";
+
+import { extractEprocDataPure, detectProcessSystemFromText } from "@/nija/connectors/eproc/detector";
+
+import { extrairDadosContrato, type DadosContratoExtraido } from "../analysis/contractExtractor";
 
 import {
-  extrairDadosContrato,
   calcularPrescricao,
   calcularPrescricaoIntercorrente,
   inferirTipoTitulo,
+  type AnalisePrescricao,
+} from "../analysis/prescricaoCalculator";
+
+import {
   detectTacIndevida,
   detectTaxaJurosAbusiva,
   detectPenhoraExcessiva,
@@ -20,7 +26,6 @@ import {
   detectJurosCapitalizados,
   detectVencimentoAntecipadoAbusivo,
   detectImpenhorabilidade,
-  // Novos detectores V2
   detectNulidadeCitacao,
   detectCerceamentoDefesa,
   detectInepciaPeticaoInicial,
@@ -31,9 +36,7 @@ import {
   detectLitispendenciaCoisa,
   detectIncompetencia,
   detectSentencaExtraUltraCitra,
-  type DadosContratoExtraido,
-  type AnalisePrescricao,
-} from "@/nija/analysis";
+} from "../analysis/defectDetectors";
 
 import type { NijaPolo } from "@/nija/core/poloDetect";
 import type { NijaRamo } from "@/nija/core/engine";
@@ -395,6 +398,10 @@ export async function runFullNijaAnalysis(
   const { rawText, caseContext } = input;
 
   // 1. Run EPROC extraction
+  const detectedSystem = detectProcessSystemFromText(rawText);
+  if (detectedSystem !== "EPROC") {
+    console.warn(`[runFullNijaAnalysis] Sistema não identificado como EPROC (detectado: ${detectedSystem}). A qualidade de extração pode ser baixa.`);
+  }
   console.log("[runFullNijaAnalysis] Starting extraction...");
   const extraction = extractEprocDataPure(rawText);
 
@@ -509,7 +516,11 @@ export function runQuickNijaAnalysis(rawText: string): {
   preDetectedDefects: PreDetectedDefect[];
   timeline: UnifiedTimelineEvent[];
 } {
-  // Sync extraction
+  // Sync extraction (with defensive system gate)
+  const detectedSystem = detectProcessSystemFromText(rawText);
+  if (detectedSystem !== "EPROC") {
+    console.warn(`[runQuickNijaAnalysis] Sistema não identificado como EPROC (detectado: ${detectedSystem}). A qualidade de extração pode ser baixa.`);
+  }
   const extraction = extractEprocDataPure(rawText);
   const dadosContrato = extrairDadosContrato(rawText);
   const contractDataExtracted = dadosContrato.camposExtraidos.length > 0;

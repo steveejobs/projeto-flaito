@@ -126,7 +126,7 @@ export function ClientDocumentKit({ clientId, compact = false }: Props) {
 
       if (error) throw error;
       
-      const loaded = (data as KitDoc[]) || [];
+      const loaded = (data as unknown as KitDoc[]) || [];
       setDocs(loaded);
 
       return loaded;
@@ -362,13 +362,15 @@ export function ClientDocumentKit({ clientId, compact = false }: Props) {
 
       // Load saved contract terms if any (only for CONTRATO)
       if (hasContrato) {
-        const { data: terms } = await supabase
+        const { data: termsRaw } = await supabase
           .from("client_contract_terms")
           .select("tipo_remuneracao, percentual_honorarios, valor_fixo_honorarios, forma_pagamento, valor_entrada, numero_parcelas, valor_parcela, data_primeira_parcela, datas_parcelas, metodo_pagamento, chave_pix")
           .eq("client_id", safeClientId)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
+
+        const terms = termsRaw as any;
 
         if (terms) {
           setKitAnswers(prev => ({

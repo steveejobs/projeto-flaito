@@ -99,13 +99,12 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 
 export function LegalDashboard() {
   const { user } = useAuth();
-  const { role } = useOfficeRole();
+  const { role, officeId, loading: roleLoading } = useOfficeRole();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isAdmin = hasRole(role, 'ADMIN');
 
   // Data states
-  const [officeId, setOfficeId] = useState<string | null>(null);
   const [kpis, setKpis] = useState<KPIData | null>(null);
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([]);
@@ -121,9 +120,6 @@ export function LegalDashboard() {
   const [loadingAiLogs, setLoadingAiLogs] = useState(true);
   const [loadingHighRisk, setLoadingHighRisk] = useState(true);
 
-  // Flag to indicate we tried fetching office
-  const [officeChecked, setOfficeChecked] = useState(false);
-
   // Check onboarding on mount
   useEffect(() => {
     async function checkOnboarding() {
@@ -137,33 +133,9 @@ export function LegalDashboard() {
     }
   }, [user?.id, navigate]);
 
-  // Fetch office membership
+  // When role is resolved but no office was found, turn off loading
   useEffect(() => {
-    async function fetchOffice() {
-      if (!user?.id) return;
-
-      try {
-        const { data, error } = await supabase.rpc('get_my_active_office');
-        if (error) {
-          console.error('Error fetching active office:', error);
-          return;
-        }
-
-        const membership = Array.isArray(data) ? data[0] : data;
-        if (membership?.office_id) {
-          setOfficeId(membership.office_id);
-        }
-      } finally {
-        setOfficeChecked(true);
-      }
-    }
-
-    fetchOffice();
-  }, [user?.id]);
-
-  // When office is checked but no office was found, turn off loading
-  useEffect(() => {
-    if (officeChecked && !officeId) {
+    if (!roleLoading && !officeId) {
       setLoadingKpis(false);
       setLoadingDeadlines(false);
       setLoadingAgenda(false);
@@ -171,7 +143,7 @@ export function LegalDashboard() {
       setLoadingAiLogs(false);
       setLoadingHighRisk(false);
     }
-  }, [officeChecked, officeId]);
+  }, [roleLoading, officeId]);
 
   // Fetch KPIs
   useEffect(() => {
@@ -205,20 +177,17 @@ export function LegalDashboard() {
             .select('id', { count: 'exact', head: true })
             .eq('office_id', officeId)
             .is('deleted_at', null),
-          supabase
-            .from('case_deadlines')
+          (supabase.from('case_deadlines' as any) as any)
             .select('id', { count: 'exact', head: true })
             .eq('office_id', officeId)
             .gte('due_date', today)
             .neq('status', 'done'),
-          supabase
-            .from('case_deadlines')
+          (supabase.from('case_deadlines' as any) as any)
             .select('id', { count: 'exact', head: true })
             .eq('office_id', officeId)
             .lte('due_date', todayStr)
             .neq('status', 'done'),
-          supabase
-            .from('agenda_items')
+          (supabase.from('agenda_items' as any) as any)
             .select('id', { count: 'exact', head: true })
             .eq('office_id', officeId)
             .eq('date', todayStr)
@@ -260,8 +229,7 @@ export function LegalDashboard() {
       try {
         const sevenDaysAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd');
 
-        const { data, error } = await supabase
-          .from('case_deadlines')
+        const { data, error } = await (supabase.from('case_deadlines' as any) as any)
           .select('id, title, due_date, status, case_id, cases(title)')
           .eq('office_id', officeId)
           .gte('due_date', sevenDaysAgo)
@@ -271,14 +239,17 @@ export function LegalDashboard() {
 
         if (error) throw error;
 
-        const formatted: Deadline[] = (data ?? []).map((d: any) => ({
-          id: d.id,
-          title: d.title,
-          due_date: d.due_date,
-          status: d.status,
-          case_id: d.case_id,
-          case_title: d.cases?.title,
-        }));
+        const formatted: Deadline[] = (data ?? []).map((d) => {
+          const caseData = d.cases as { title: string } | null;
+          return {
+            id: d.id,
+            title: d.title,
+            due_date: d.due_date,
+            status: d.status,
+            case_id: d.case_id,
+            case_title: caseData?.title,
+          };
+        });
 
         setDeadlines(formatted);
       } catch (error) {
@@ -300,8 +271,7 @@ export function LegalDashboard() {
         const today = format(new Date(), 'yyyy-MM-dd');
         const sevenDaysFromNow = format(addDays(new Date(), 7), 'yyyy-MM-dd');
 
-        const { data, error } = await supabase
-          .from('agenda_items')
+        const { data, error } = await (supabase.from('agenda_items' as any) as any)
           .select('id, title, date, time, case_id')
           .eq('office_id', officeId)
           .gte('date', today)
@@ -339,8 +309,9 @@ export function LegalDashboard() {
         if (error) throw error;
 
         const statusMap: Record<string, number> = {};
-        (data ?? []).forEach((c: any) => {
-          statusMap[c.status] = (statusMap[c.status] || 0) + 1;
+        (data ?? []).forEach((c) => {
+          const status = c.status || 'INDEFINIDO';
+          statusMap[status] = (statusMap[status] || 0) + 1;
         });
 
         const total = data?.length ?? 0;
@@ -407,13 +378,16 @@ export function LegalDashboard() {
 
         if (error) throw error;
 
-        const mapped: HighRiskCase[] = (data ?? []).map((c: any) => ({
-          id: c.id,
-          title: c.title,
-          risco: c.nija_full_analysis?.meta?.grauRiscoGlobal ?? null,
-          risco_prescricao: c.nija_full_analysis?.prescricao?.risco ?? null,
-          updated_at: c.updated_at,
-        }));
+        const mapped: HighRiskCase[] = (data ?? []).map((c) => {
+          const analysis = c.nija_full_analysis as any; // Cast local para facilitar acesso a Json complexo
+          return {
+            id: c.id,
+            title: c.title,
+            risco: analysis?.meta?.grauRiscoGlobal ?? null,
+            risco_prescricao: analysis?.prescricao?.risco ?? null,
+            updated_at: c.updated_at,
+          };
+        });
 
         setHighRiskCases(mapped);
       } catch (error) {

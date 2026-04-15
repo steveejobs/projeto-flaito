@@ -3,8 +3,9 @@ import { Camera, X, FileImage, FileUp, Sparkles, Loader2, Clipboard } from "luci
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { convertPdfFirstPageToImage } from "@/nija";
+import { convertPdfFirstPageToImage } from "@/nija/connectors/pdf/pdfToImage";
 import { DocumentScannerModal } from "@/components/DocumentScannerModal";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +26,7 @@ export interface ExtractedDocumentData {
   cpf?: string;
   rg?: string;
   rg_issuer?: string;
+  birth_date?: string;
   nationality?: string;
   marital_status?: string;
   profession?: string;
@@ -56,8 +58,7 @@ const DOC_TYPES = [
   },
 ];
 
-const SUPABASE_FUNCTIONS_BASE = "https://uxrakfbedmkiqhidruxx.supabase.co/functions/v1";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4cmFrZmJlZG1raXFoaWRydXh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2Nzc0NDksImV4cCI6MjA4MTI1MzQ0OX0.urYN1qLC5O_NHuiLamFEGTmjkskrOu6bldycZmOX-bo";
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export function CaptureDocumentScanStep({
   files,
@@ -71,13 +72,34 @@ export function CaptureDocumentScanStep({
   const [extracting, setExtracting] = useState(false);
   const [pasteModalOpen, setPasteModalOpen] = useState<string | null>(null);
   const [scannerModalOpen, setScannerModalOpen] = useState(false);
-  const [scannerModalKind, setScannerModalKind] = useState<string>('IDENTIDADE');
+  const [scannerModalKind, setScannerModalKind] = useState<string>("IDENTIDADE");
+
+  const validateFile = (file: File): boolean => {
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`Arquivo muito grande (${(file.size / 1024 / 1024).toFixed(1)}MB). Limite de 5MB.`);
+      return false;
+    }
+    
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Formato não suportado. Use JPG, PNG, WEBP ou PDF.");
+      return false;
+    }
+
+    if (file.size === 0) {
+      toast.error("Arquivo parece estar vazio ou corrompido.");
+      return false;
+    }
+
+    return true;
+  };
 
   const handleScannerCapture = useCallback(async (capturedFiles: File[]) => {
     const newScannedFiles: ScannedFile[] = [];
     
-    for (let i = 0; i < capturedFiles.length; i++) {
-      const file = capturedFiles[i];
+    for (const file of capturedFiles) {
+      if (!validateFile(file)) continue;
+
       const dataUrl = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
@@ -93,11 +115,12 @@ export function CaptureDocumentScanStep({
       });
     }
     
-    // Replace existing files of same kind or add new
-    const otherFiles = files.filter(f => f.kind !== scannerModalKind);
-    onFilesChange([...otherFiles, ...newScannedFiles]);
-    setScannerModalOpen(false);
-    toast.success(`Documento capturado com sucesso!`);
+    if (newScannedFiles.length > 0) {
+      const otherFiles = files.filter(f => f.kind !== scannerModalKind);
+      onFilesChange([...otherFiles, ...newScannedFiles]);
+      setScannerModalOpen(false);
+      toast.success(`Documento capturado com sucesso!`);
+    }
   }, [scannerModalKind, files, onFilesChange]);
 
   const handlePaste = (e: React.ClipboardEvent, docKind: string) => {
@@ -108,6 +131,8 @@ export function CaptureDocumentScanStep({
       if (item.type.startsWith("image/")) {
         const file = item.getAsFile();
         if (file) {
+          if (!validateFile(file)) return;
+
           const reader = new FileReader();
           reader.onload = () => {
             const dataUrl = reader.result as string;
@@ -144,6 +169,11 @@ export function CaptureDocumentScanStep({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (!validateFile(file)) {
+      event.target.value = "";
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
@@ -155,7 +185,6 @@ export function CaptureDocumentScanStep({
         preview: file.type.startsWith("image/") ? dataUrl : undefined,
       };
 
-      // Replace existing file of same kind or add new
       const existingIndex = files.findIndex((f) => f.kind === kind);
       if (existingIndex >= 0) {
         const updated = [...files];
@@ -166,8 +195,6 @@ export function CaptureDocumentScanStep({
       }
     };
     reader.readAsDataURL(file);
-
-    // Reset input
     event.target.value = "";
   };
 
@@ -177,17 +204,42 @@ export function CaptureDocumentScanStep({
 
   const getFileForKind = (kind: string) => files.find((f) => f.kind === kind);
 
-  // Helper to convert PDF to image if needed
-  const getDocumentImage = async (file: ScannedFile): Promise<string | null> => {
-    // If it's already an image, return the dataUrl directly
-    if (file.mimeType.startsWith("image/")) {
-      return file.dataUrl;
-    }
+  const compressImage = async (dataUrl: string, maxWidth = 1600, quality = 0.8): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
 
-    // If it's a PDF, convert first page to image
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(dataUrl);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedDataUrl);
+      };
+      img.onerror = (err) => reject(err);
+      img.src = dataUrl;
+    });
+  };
+
+  const getDocumentImage = async (file: ScannedFile): Promise<string | null> => {
+    let finalDataUrl = file.dataUrl;
+
     if (file.mimeType === "application/pdf") {
       try {
-        // Convert dataUrl to File object for the conversion function
         const response = await fetch(file.dataUrl);
         const blob = await response.blob();
         const pdfFile = new File([blob], file.fileName, { type: "application/pdf" });
@@ -199,12 +251,11 @@ export function CaptureDocumentScanStep({
           return null;
         }
 
-        // Show warning for multi-page PDFs
         if (result.totalPages && result.totalPages > 1) {
           toast.info(`PDF com ${result.totalPages} páginas. Apenas a 1ª página será analisada.`);
         }
 
-        return result.imageBase64;
+        finalDataUrl = result.imageBase64;
       } catch (err) {
         console.error("Error converting PDF:", err);
         toast.error("Erro ao converter PDF. Tente anexar uma imagem.");
@@ -212,9 +263,16 @@ export function CaptureDocumentScanStep({
       }
     }
 
-    // Unsupported file type
-    toast.error("Formato não suportado. Use imagem ou PDF.");
-    return null;
+    // Compress anyway if it's an image or converted PDF
+    try {
+      console.log(`[IA] Comprimindo imagem original (${(finalDataUrl.length / 1024 / 1024).toFixed(2)} MB)...`);
+      const compressed = await compressImage(finalDataUrl);
+      console.log(`[IA] Imagem comprimida (${(compressed.length / 1024 / 1024).toFixed(2)} MB).`);
+      return compressed;
+    } catch (err) {
+      console.warn("[IA] Falha na compressão, usando original:", err);
+      return finalDataUrl;
+    }
   };
 
   const extractDataFromDocuments = async () => {
@@ -228,103 +286,97 @@ export function CaptureDocumentScanStep({
 
     setExtracting(true);
 
+    console.group("IA Extraction Debug");
+    console.log("Documents to process:", files.map(f => ({ doc: f.kind, size: f.dataUrl.length, type: f.mimeType })));
+    
     try {
       const extractedData: ExtractedDocumentData = {};
-      let fieldsExtracted = 0;
+      let totalFieldsFound = 0;
 
       // Extract from identity document
       if (identityFile) {
-        try {
-          const imageBase64 = await getDocumentImage(identityFile);
-          if (!imageBase64) {
-            // Skip this document but continue with others
-          } else {
-            const response = await fetch(`${SUPABASE_FUNCTIONS_BASE}/lexos-extract-document-data`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                apikey: SUPABASE_ANON_KEY,
-              },
-              body: JSON.stringify({
-                imageBase64,
-                focusOn: "identity",
-              }),
-            });
+        console.log("Processing Identity document...");
+        const imageBase64 = await getDocumentImage(identityFile);
+        if (imageBase64) {
+          const { data, error } = await supabase.functions.invoke("lexos-extract-document-data", {
+            body: { imageBase64, focusOn: "identity" }
+          });
 
-            if (response.status === 429) {
-              toast.error("Limite de requisições excedido. Tente novamente em alguns minutos.");
-              return;
-            }
-            if (response.status === 402) {
-              toast.error("Créditos insuficientes para extração. Continue manualmente.");
-              return;
-            }
+          console.log("Identity Function result:", { data, error });
 
-            const result = await response.json();
-            if (result.success && result.data) {
-              Object.assign(extractedData, result.data);
-              fieldsExtracted += result.fieldsFound?.length || Object.keys(result.data).length;
-            }
+          if (error) throw error;
+          
+          if (data?.success && data?.data) {
+            Object.assign(extractedData, data.data);
+            totalFieldsFound += data.fieldsFound?.length || 0;
           }
-        } catch (err) {
-          console.error("Error extracting identity:", err);
         }
       }
 
       // Extract from address document
       if (addressFile) {
-        try {
-          const imageBase64 = await getDocumentImage(addressFile);
-          if (!imageBase64) {
-            // Skip this document but continue with others
-          } else {
-            const response = await fetch(`${SUPABASE_FUNCTIONS_BASE}/lexos-extract-document-data`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                apikey: SUPABASE_ANON_KEY,
-              },
-              body: JSON.stringify({
-                imageBase64,
-                focusOn: "address",
-              }),
-            });
+        console.log("Processing Address document...");
+        const imageBase64 = await getDocumentImage(addressFile);
+        if (imageBase64) {
+          const { data, error } = await supabase.functions.invoke("lexos-extract-document-data", {
+            body: { imageBase64, focusOn: "address" }
+          });
 
-            if (response.status === 429) {
-              toast.error("Limite de requisições excedido. Tente novamente em alguns minutos.");
-              return;
-            }
-            if (response.status === 402) {
-              toast.error("Créditos insuficientes para extração. Continue manualmente.");
-              return;
-            }
+          console.log("Address Function result:", { data, error });
 
-            const result = await response.json();
-            if (result.success && result.data) {
-              // Merge address data (don't overwrite existing personal data)
-              if (result.data.address_line) extractedData.address_line = result.data.address_line;
-              if (result.data.neighborhood) extractedData.neighborhood = result.data.neighborhood;
-              if (result.data.city) extractedData.city = result.data.city;
-              if (result.data.state) extractedData.state = result.data.state;
-              if (result.data.cep) extractedData.cep = result.data.cep;
-              fieldsExtracted += result.fieldsFound?.length || Object.keys(result.data).length;
-            }
+          if (error) throw error;
+
+          if (data?.success && data?.data) {
+            if (data.data.address_line) extractedData.address_line = data.data.address_line;
+            if (data.data.neighborhood) extractedData.neighborhood = data.data.neighborhood;
+            if (data.data.city) extractedData.city = data.data.city;
+            if (data.data.state) extractedData.state = data.data.state;
+            if (data.data.cep) extractedData.cep = data.data.cep;
+            totalFieldsFound += data.fieldsFound?.length || 0;
           }
-        } catch (err) {
-          console.error("Error extracting address:", err);
         }
       }
 
-      if (fieldsExtracted > 0) {
-        toast.success(`${fieldsExtracted} campos extraídos automaticamente!`);
+      if (totalFieldsFound > 0) {
+        toast.success(`${totalFieldsFound} campos extraídos com sucesso!`);
         onExtractedData?.(extractedData);
       } else {
-        toast.info("Não foi possível extrair dados. Preencha manualmente.");
+        toast.warning("Não foi possível extrair dados legíveis destes documentos.");
       }
-    } catch (err) {
-      console.error("Extraction error:", err);
-      toast.error("Erro ao extrair dados. Tente novamente.");
+    } catch (err: any) {
+      console.error("Extraction error (FULL):", err);
+      
+      let errorMessage = "Erro de conexão com o servidor";
+      
+      // Attempt to extract message from Supabase Functions error
+      if (err.context) {
+        try {
+          const body = await err.context.json();
+          errorMessage = body.error || body.message || errorMessage;
+        } catch (e) {
+          errorMessage = err.message || errorMessage;
+        }
+      } else {
+        errorMessage = err.message || errorMessage;
+      }
+
+      const status = err.status || err.statusCode;
+
+      if (status === 402 || errorMessage.includes("Créditos")) {
+        toast.error("Créditos insuficientes para extrair dados automaticamente. Preencha manualmente.");
+      } else if (status === 401 || status === 403) {
+        toast.error("Sua sessão pode ter expirado ou permissão negada. Tente fazer login novamente.");
+      } else if (status === 429) {
+        toast.error("Muitas tentativas simultâneas. Aguarde um momento.");
+      } else if (err.name === "AbortError" || errorMessage.includes("timeout")) {
+        toast.error("A conexão demorou muito. Tente enviar uma imagem mais leve.");
+      } else {
+        // Detailed error for the user to report back
+        toast.error(`Falha no preenchimento: ${errorMessage}`);
+        console.warn("Dica: Verifique se a OPENAI_API_KEY está configurada no Supabase Secrets.");
+      }
     } finally {
+      console.groupEnd();
       setExtracting(false);
     }
   };
@@ -348,7 +400,6 @@ export function CaptureDocumentScanStep({
 
           return (
             <div key={docType.kind}>
-              {/* Hidden inputs */}
               <input
                 type="file"
                 accept="image/*"
@@ -462,27 +513,26 @@ export function CaptureDocumentScanStep({
         })}
       </div>
 
-      {/* AI Extraction Button */}
       {hasDocuments && (
         <Button
           type="button"
           onClick={extractDataFromDocuments}
           disabled={extracting}
-          className="w-full gap-2"
+          className="w-full gap-2 transition-all hover:scale-[1.01] active:scale-[0.99]"
           style={{
             backgroundColor: "var(--brand-primary)",
-            color: "#000",
+            color: "#FFF", // Alterado de #000 para #FFF para melhor visibilidade
           }}
         >
           {extracting ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Analisando documentos...
+              Processando documentos...
             </>
           ) : (
             <>
               <Sparkles className="w-4 h-4" />
-              Extrair dados com IA
+              Preencher Automático
             </>
           )}
         </Button>
@@ -490,11 +540,10 @@ export function CaptureDocumentScanStep({
 
       <p className="text-xs text-white/40 text-center">
         {hasDocuments
-          ? "Clique em 'Extrair dados com IA' para preencher o formulário automaticamente"
+          ? "Clique em 'Preencher Automático' para completar o formulário"
           : "Opcional: você pode pular e digitar os dados manualmente"}
       </p>
 
-      {/* Footer */}
       <div className="flex gap-3 pt-4">
         <Button
           type="button"
@@ -508,14 +557,13 @@ export function CaptureDocumentScanStep({
           type="button"
           onClick={onContinue}
           disabled={extracting}
-          className="flex-1"
+          className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40 transition-colors"
           variant="outline"
         >
           {hasDocuments ? "Continuar" : "Pular"}
         </Button>
       </div>
 
-      {/* Paste Modal */}
       <Dialog open={pasteModalOpen !== null} onOpenChange={() => setPasteModalOpen(null)}>
         <DialogContent className="bg-slate-900 border-white/20 max-w-sm">
           <DialogHeader>
@@ -537,7 +585,7 @@ export function CaptureDocumentScanStep({
               Toque e segure aqui
             </p>
             <p className="text-sm text-white/50 mt-1 text-center px-4">
-              Depois selecione "Colar" no menu
+              Depois selecione \"Colar\" no menu
             </p>
           </div>
 
@@ -547,12 +595,11 @@ export function CaptureDocumentScanStep({
         </DialogContent>
       </Dialog>
 
-      {/* Document Scanner Modal with visual guide */}
       <DocumentScannerModal
         open={scannerModalOpen}
         onClose={() => setScannerModalOpen(false)}
-        mode={scannerModalKind === 'IDENTIDADE' ? 'double' : 'single'}
-        documentLabel={scannerModalKind === 'IDENTIDADE' ? 'RG ou CNH' : 'Comprovante de Endereço'}
+        mode={scannerModalKind === "IDENTIDADE" ? "double" : "single"}
+        documentLabel={scannerModalKind === "IDENTIDADE" ? "RG ou CNH" : "Comprovante de Endereço"}
         onCapture={handleScannerCapture}
       />
     </div>

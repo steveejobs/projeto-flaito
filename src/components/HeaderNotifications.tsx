@@ -73,7 +73,7 @@ export function HeaderNotifications({ officeId }: HeaderNotificationsProps) {
       });
 
       if (error) throw error;
-      setNotifications((data as Notification[]) || []);
+      setNotifications((data as unknown as Notification[]) || []);
     } catch (err) {
       console.error("[HeaderNotifications] Error loading:", err);
       setNotifications([]);
@@ -186,7 +186,8 @@ export function HeaderNotifications({ officeId }: HeaderNotificationsProps) {
           ) : (
             <div className="divide-y">
               {notifications.map((notification) => {
-                const config = SEVERITY_CONFIG[notification.severity] || SEVERITY_CONFIG.INFO;
+                const severity = (notification.severity || 'INFO') as keyof typeof SEVERITY_CONFIG;
+                const config = SEVERITY_CONFIG[severity] || SEVERITY_CONFIG.INFO;
                 const Icon = config.icon;
                 const isUnread = !notification.read_at;
 

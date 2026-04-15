@@ -4,33 +4,22 @@ type Props = {
   className?: string;
   title?: string;
   style?: React.CSSProperties;
+  /** 'dark' = logo preta (padrão), 'light' = logo branca (invertida via CSS) */
+  variant?: 'dark' | 'light';
 };
 
-export default function LexosMark({ className, title = "Projeto Flaito", style }: Props) {
+export default function LexosMark({ className, title = "Projeto Flaito", style, variant = 'dark' }: Props) {
+  const mergedStyle: React.CSSProperties = {
+    ...style,
+    ...(variant === 'light' ? { filter: 'brightness(0) invert(1)' } : {}),
+  };
+
   return (
-    <svg
+    <img
       className={className}
-      style={style}
-      viewBox="0 0 64 64"
-      role="img"
-      aria-label={title}
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <title>{title}</title>
-      <rect width="64" height="64" rx="14" fill="#0F172A" />
-      <path
-        d="M22 14V50H42"
-        stroke="#E5E7EB"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M30 22V42"
-        stroke="#E5E7EB"
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-    </svg>
+      style={mergedStyle}
+      src="/logo.png"
+      alt={title}
+    />
   );
 }

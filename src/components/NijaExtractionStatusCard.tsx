@@ -19,7 +19,8 @@ import {
   FileWarning,
   Clock
 } from "lucide-react";
-import { type ReadingStatus, type ExtractionReport } from "@/nija";
+import type { ReadingStatus, ExtractionReport } from "@/nija/connectors/pdf/pdfClientExtractor";
+
 
 export interface DocumentWithExtraction {
   id: string;

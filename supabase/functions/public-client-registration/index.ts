@@ -398,6 +398,25 @@ serve(async (req) => {
       const displayId = clientId;
       console.log("Client created:", clientId);
 
+      // --- NEW BOOTSTRAP LAYER (W1-03 & W1-04) ---
+      try {
+        await bootstrapPublicRegistration(supabaseAdmin, {
+          clientId,
+          officeId,
+          createdBy,
+          clientType,
+          nome: normalizedNome,
+          email,
+          phone: telefone,
+          source: "public_capture"
+        });
+      } catch (bootErr) {
+        console.error("[bootstrap] Critical failure in downstream automation:", bootErr);
+        // We do NOT fail the whole request here to ensure the client record is kept
+        // but the failure is visible in the logs.
+      }
+      // --- END BOOTSTRAP LAYER ---
+
       // Upload signature if provided
       if (body.signature?.dataUrlPng) {
         try {
@@ -566,3 +585,107 @@ serve(async (req) => {
     );
   }
 });
+
+/**
+ * BOOTSTRAP LAYER (W1-03 & W1-04)
+ * Closes Wave 1 by automating downstream artifacts.
+ * Performs Case, CRM Lead, and CRM Activity creation with idempotency.
+ */
+async function bootstrapPublicRegistration(supabase: any, data: {
+  clientId: string,
+  officeId: string,
+  createdBy: string,
+  clientType: string,
+  nome: string,
+  email: string,
+  phone: string,
+  source: string
+}) {
+  const { clientId, officeId, createdBy, clientType, nome, email, phone, source } = data;
+  console.log(`[bootstrap] Starting downstream automation for client: ${clientId}`);
+
+  // 1. CASE BOOTSTRAP (W1-03)
+  // Idempotency check for case
+  const { data: existingCase } = await supabase
+    .from("cases")
+    .select("id")
+    .eq("client_id", clientId)
+    .maybeSingle();
+
+  if (!existingCase) {
+    console.log("[bootstrap] Creating initial case...");
+    const { error: caseErr } = await supabase
+      .from("cases")
+      .insert({
+        office_id: officeId,
+        client_id: clientId,
+        created_by: createdBy,
+        title: `Consulta Inicial - ${nome}`,
+        stage: "pre_processual",
+        status: "ativo",
+        side: "ATAQUE"
+      });
+    
+    if (caseErr) {
+      console.error("[bootstrap] Failed to create case:", caseErr.message);
+      // We throw to catch in the main handler's try-catch for logging
+      throw new Error(`case_bootstrap_failed: ${caseErr.message}`);
+    }
+  } else {
+    console.log("[bootstrap] Case already exists, skipping creation.");
+  }
+
+  // 2. CRM LEAD BOOTSTRAP (W1-04)
+  // Idempotency check for lead (by clientId)
+  const { data: existingLead } = await supabase
+    .from("crm_leads")
+    .select("id")
+    .eq("client_id", clientId)
+    .maybeSingle();
+
+  if (!existingLead) {
+    console.log("[bootstrap] Creating CRM lead...");
+    const { data: newLead, error: leadErr } = await supabase
+      .from("crm_leads")
+      .insert({
+        office_id: officeId,
+        client_id: clientId,
+        full_name: nome,
+        email: email || null,
+        phone: phone || null,
+        source: source,
+        pipeline_stage: "novo_contato",
+        status: "active"
+      })
+      .select("id")
+      .single();
+
+    if (leadErr) {
+      console.error("[bootstrap] Failed to create lead:", leadErr.message);
+      throw new Error(`crm_lead_failed: ${leadErr.message}`);
+    }
+
+    if (newLead) {
+      // 3. CRM ACTIVITY
+      console.log("[bootstrap] Creating CRM initial activity...");
+      const { error: actErr } = await supabase
+        .from("crm_activities")
+        .insert({
+          office_id: officeId,
+          lead_id: newLead.id,
+          activity_type: "automation_move",
+          description: "Captação Pública: Cadastro realizado pelo cliente externo.",
+          current_stage: "novo_contato"
+        });
+      
+      if (actErr) {
+        console.error("[bootstrap] Failed to create activity:", actErr.message);
+        // We don't throw here as the lead was already created
+      }
+    }
+  } else {
+    console.log("[bootstrap] CRM Lead already exists, skipping creation.");
+  }
+
+  console.log("[bootstrap] Downstream automation finished successfully.");
+}

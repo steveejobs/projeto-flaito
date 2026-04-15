@@ -85,15 +85,15 @@ export function ClientHeader({
   const [archiveLoading, setArchiveLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const c = client as any;
+  const c = client;
 
   const clientId: string = c.id;
   const displayId: string | null = c.display_id ?? null;
   const clientName: string = c.full_name ?? c.name ?? "Cliente";
   const isArchived: boolean = c.status === "archived" || c.deleted_at != null;
-  const source: string = c.source ?? "internal";
+  const source: string | null = c.source ?? null;
   const isPublicCapture = source === "public_capture";
-  const aiExtracted: boolean = c.ai_extracted === true;
+  const aiExtracted: boolean | null = c.ai_extracted ?? null;
 
   const personType: "PF" | "PJ" | null = c.person_type ?? null;
   const rawDoc: string | null = personType === "PJ" ? (c.cnpj ?? null) : (c.cpf ?? null);
@@ -129,7 +129,7 @@ export function ClientHeader({
       
       // Verificar resposta lógica da função
       if (data && typeof data === "object" && "success" in data && data.success === false) {
-        throw new Error((data as any).error || "Erro ao excluir cliente");
+        throw new Error((data as Record<string, unknown>).error as string || "Erro ao excluir cliente");
       }
       
       toast({ title: "Cliente excluído", description: `${clientName} foi excluído permanentemente.` });

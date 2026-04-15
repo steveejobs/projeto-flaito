@@ -1,4 +1,10 @@
-project_id = "uxrakfbedmkiqhidruxx"
+project_id = "ccvbosbjtlxewqybvwqj"
+
+[functions.public-client-registration]
+verify_jwt = false
+
+[functions.create-client-kit]
+verify_jwt = false
 
 [functions.createSignedUploadUrl]
 verify_jwt = false
@@ -58,45 +64,6 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.asaas-create-payment]
-verify_jwt = false
-
-[functions.asaas-webhook]
-verify_jwt = false
-
-[functions.gcal_sync_events]
-verify_jwt = false
-
-[functions.public-client-registration]
-verify_jwt = false
-
-[functions.cleanup-orphan-files]
-verify_jwt = false
-
-[functions.lexos-audit-snapshot]
-verify_jwt = false
-
-[functions.hard-delete-orphan-documents]
-verify_jwt = false
-
-[functions.lexos-html-to-pdf]
-verify_jwt = false
-
-[functions.zapier-plaud]
-verify_jwt = false
-
-[functions.plaud-ingest]
-verify_jwt = false
-
-[functions.plaud-analyze-worker]
-verify_jwt = false
-
-[functions.create-client-kit]
-verify_jwt = false
-
-[functions.kit-worker]
-verify_jwt = false
-
-[functions.admin-run-kit-worker]
 verify_jwt = true
 
 [functions.lexos-rebuild-engine]
@@ -113,3 +80,38 @@ verify_jwt = false
 
 [functions.zapsign-send-document]
 verify_jwt = false
+
+[functions.nija-pipeline-orchestrator]
+verify_jwt = false
+
+[functions.nija-consolidate-dossier]
+verify_jwt = false
+
+[functions.nija-legal-strategy]
+verify_jwt = false
+
+[functions.nija-gen-motor]
+verify_jwt = false
+
+[functions.nija-review-piece]
+verify_jwt = false
+
+[functions.nija-judge-simulation]
+verify_jwt = false
+
+[functions.billing-generate]
+verify_jwt = true
+
+[functions.billing-approve]
+verify_jwt = true
+
+[functions.google-calendar-sync]
+enabled = true
+verify_jwt = true
+import_map = "./functions/google-calendar-sync/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/google-calendar-sync/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/google-calendar-sync/*.html" ]

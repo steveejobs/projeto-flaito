@@ -18,12 +18,8 @@ interface Deadline {
   id: string;
   case_id: string | null;
   title: string;
-  kind: string;
-  start_date: string;
-  days: number;
   due_date: string | null;
   status: string;
-  notes: string | null;
   created_at: string;
 }
 
@@ -222,13 +218,13 @@ export function CaseDeadlines({ caseId, canEdit }: CaseDeadlinesProps) {
 
     setSaving(true);
     try {
+      const dueDate = new Date(formData.start_date);
+      dueDate.setDate(dueDate.getDate() + formData.days);
+
       const { error } = await supabase.from('case_deadlines').insert({
         case_id: caseId,
-        title: formData.title.trim(),
-        kind: formData.kind,
-        start_date: formData.start_date,
-        days: formData.days,
-        notes: formData.notes || null,
+        title: `${formData.title.trim()} (${formData.kind})`,
+        due_date: dueDate.toISOString(),
       });
 
       if (error) throw error;
@@ -248,13 +244,13 @@ export function CaseDeadlines({ caseId, canEdit }: CaseDeadlinesProps) {
   const handleCreateFromSuggestion = async (suggestion: SuggestedDeadline) => {
     setCreatingSuggested(suggestion.title);
     try {
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + suggestion.days);
+
       const { error } = await supabase.from('case_deadlines').insert({
         case_id: caseId,
-        title: suggestion.title,
-        kind: suggestion.kind,
-        start_date: new Date().toISOString().split('T')[0],
-        days: suggestion.days,
-        notes: `[NIJA] ${suggestion.notes}`,
+        title: `${suggestion.title} [NIJA]`,
+        due_date: dueDate.toISOString(),
       });
 
       if (error) throw error;
@@ -480,7 +476,6 @@ export function CaseDeadlines({ caseId, canEdit }: CaseDeadlinesProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>Título</TableHead>
-                <TableHead>Tipo</TableHead>
                 <TableHead>Vencimento</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -490,7 +485,6 @@ export function CaseDeadlines({ caseId, canEdit }: CaseDeadlinesProps) {
               {deadlines.map((d) => (
                 <TableRow key={d.id}>
                   <TableCell className="font-medium">{d.title}</TableCell>
-                  <TableCell className="capitalize">{d.kind}</TableCell>
                   <TableCell>
                     {d.due_date ? new Date(d.due_date).toLocaleDateString('pt-BR') : '-'}
                   </TableCell>

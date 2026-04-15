@@ -90,18 +90,24 @@ export const EPROC = {
   /**
    * Bloco completo da PÁGINA DE SEPARAÇÃO
    * Captura: número do evento, tipo, data, hora, usuário
-   * 
+   *
    * Grupos: [1]=eventNum, [2]=tipo, [3]=data, [4]=hora, [5]=usuario
-   * 
-   * CORREÇÃO: Regex mais flexível com limites de caracteres e suporte a números no tipo
+   *
+   * TOLERÂNCIA OCR: Data: e Hora: são opcionais (grupo 3 e 4 podem ser undefined).
+   * Quando ausentes, extractSeparadorData retorna data=null para esse evento —
+   * ele é capturado com confidence="LOW" em vez de ser descartado silenciosamente.
+   *
+   * Tradeoff: as três âncoras obrigatórias (PÁGINA DE SEPARAÇÃO + Evento N +
+   * Evento: TIPO_EM_CAPS) continuam presentes, mantendo o risco de falso positivo
+   * em documentos não-EPROC muito baixo.
    */
   SEPARADOR_COMPLETO: new RegExp(
     `P${A}GINA\\s+DE\\s+SEPARA${C}${A_NASAL}O` +
-    `[\\s\\S]{0,500}?(?:#\\s*)?Evento\\s+(\\d+)` +         // Grupo 1: número do evento (limite 500 chars)
-    `[\\s\\S]{0,300}?Evento:\\s*([A-Z][A-Z0-9_]*)` +       // Grupo 2: tipo (aceita números, ex: CITACAO1)
-    `[\\s\\S]{0,300}?Data:\\s*(\\d{1,2}\\/\\d{1,2}\\/\\d{4})` + // Grupo 3: data
-    `(?:\\s*(\\d{2}:\\d{2}(?::\\d{2})?))?` +               // Grupo 4: hora (opcional, aceita HH:MM ou HH:MM:SS)
-    `(?:[\\s\\S]{0,400}?Usu${A}rio:\\s*([^\\n]+))?`,       // Grupo 5: usuário (opcional)
+    `[\\s\\S]{0,500}?(?:#\\s*)?Evento\\s+(\\d+)` +                                    // Grupo 1: número do evento
+    `[\\s\\S]{0,300}?Evento:\\s*([A-Z][A-Z0-9_]*)` +                                  // Grupo 2: tipo
+    `(?:(?:(?!P${A}GINA)[\\s\\S]){0,300}?Data:\\s*(\\d{1,2}\\/\\d{1,2}\\/\\d{4})` +  // Grupo 3: data  (opcional, não cruza separador)
+    `(?:\\s*(\\d{2}:\\d{2}(?::\\d{2})?))?)?` +                                        // Grupo 4: hora  (opcional, dentro do bloco Data)
+    `(?:(?:(?!P${A}GINA)[\\s\\S]){0,400}?Usu${A}rio:\\s*([^\\n]+))?`,                 // Grupo 5: usuário (opcional, não cruza separador)
     "gi"
   ),
   

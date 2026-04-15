@@ -13,6 +13,7 @@ export interface PersonalData {
   cpf: string;
   rg: string;
   rg_emissor: string;
+  data_nascimento: string;
   nacionalidade: string;
   estado_civil: string;
   profissao: string;
@@ -40,6 +41,7 @@ export interface PJData {
   representante_cpf: string;
   representante_rg: string;
   representante_rg_emissor: string;
+  representante_data_nascimento: string;
   representante_nacionalidade: string;
   representante_estado_civil: string;
   representante_profissao: string;
@@ -85,6 +87,14 @@ function maskPhone(value: string): string {
     .slice(0, 11)
     .replace(/(\d{2})(\d)/, "($1) $2")
     .replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+}
+
+function maskDate(value: string): string {
+  return value
+    .replace(/\D/g, "")
+    .slice(0, 8)
+    .replace(/(\d{2})(\d)/, "$1/$2")
+    .replace(/(\d{2})(\d)/, "$1/$2");
 }
 
 export function CaptureDataStep({
@@ -162,6 +172,16 @@ export function CaptureDataStep({
         }
       }
 
+      if (field === "data_nascimento") {
+        if (!personalData.data_nascimento.trim()) {
+          newErrors.data_nascimento = "Data de nascimento é obrigatória";
+        } else if (personalData.data_nascimento.replace(/\D/g, "").length !== 8) {
+          newErrors.data_nascimento = "Data incompleta";
+        } else {
+          delete newErrors.data_nascimento;
+        }
+      }
+
       if (field === "rg") {
         if (!personalData.rg.trim()) {
           newErrors.rg = "RG é obrigatório";
@@ -171,11 +191,7 @@ export function CaptureDataStep({
       }
 
       if (field === "rg_emissor") {
-        if (!personalData.rg_emissor.trim()) {
-          newErrors.rg_emissor = "Órgão emissor é obrigatório";
-        } else {
-          delete newErrors.rg_emissor;
-        }
+        delete newErrors.rg_emissor;
       }
 
       if (field === "nacionalidade") {
@@ -276,6 +292,16 @@ export function CaptureDataStep({
         }
       }
 
+      if (field === "representante_data_nascimento") {
+        if (!pjData.representante_data_nascimento.trim()) {
+          newErrors.representante_data_nascimento = "Data de nascimento é obrigatória";
+        } else if (pjData.representante_data_nascimento.replace(/\D/g, "").length !== 8) {
+          newErrors.representante_data_nascimento = "Data incompleta";
+        } else {
+          delete newErrors.representante_data_nascimento;
+        }
+      }
+
       if (field === "representante_rg") {
         if (!pjData.representante_rg.trim()) {
           newErrors.representante_rg = "RG do representante é obrigatório";
@@ -285,11 +311,7 @@ export function CaptureDataStep({
       }
 
       if (field === "representante_rg_emissor") {
-        if (!pjData.representante_rg_emissor.trim()) {
-          newErrors.representante_rg_emissor = "Órgão emissor é obrigatório";
-        } else {
-          delete newErrors.representante_rg_emissor;
-        }
+        delete newErrors.representante_rg_emissor;
       }
 
       if (field === "representante_nacionalidade") {
@@ -324,6 +346,7 @@ export function CaptureDataStep({
     let maskedValue = value;
     if (field === "cpf") maskedValue = maskCPF(value);
     if (field === "telefone") maskedValue = maskPhone(value);
+    if (field === "data_nascimento") maskedValue = maskDate(value);
 
     onPersonalDataChange({ ...personalData, [field]: maskedValue });
   };
@@ -333,6 +356,7 @@ export function CaptureDataStep({
     if (field === "cnpj") maskedValue = maskCNPJ(value);
     if (field === "telefone") maskedValue = maskPhone(value);
     if (field === "representante_cpf") maskedValue = maskCPF(value);
+    if (field === "representante_data_nascimento") maskedValue = maskDate(value);
 
     onPJDataChange({ ...pjData, [field]: maskedValue });
   };
@@ -350,22 +374,24 @@ export function CaptureDataStep({
         newErrors.cpf = "CPF deve ter 11 dígitos";
       }
       
+      if (!personalData.data_nascimento.trim()) newErrors.data_nascimento = "Data de nascimento é obrigatória";
+      else if (personalData.data_nascimento.replace(/\D/g, "").length !== 8) newErrors.data_nascimento = "Data incompleta";
+
       if (!personalData.rg.trim()) newErrors.rg = "RG é obrigatório";
-      if (!personalData.rg_emissor.trim()) newErrors.rg_emissor = "Órgão emissor é obrigatório";
       if (!personalData.nacionalidade.trim()) newErrors.nacionalidade = "Nacionalidade é obrigatória";
       if (!personalData.estado_civil) newErrors.estado_civil = "Estado civil é obrigatório";
       if (!personalData.profissao.trim()) newErrors.profissao = "Profissão é obrigatória";
+      if (!personalData.estado_civil) newErrors.estado_civil = "Estado civil é obrigatório";
       
-      // Optional but validate format if filled
-      if (personalData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(personalData.email)) {
-        newErrors.email = "Email inválido";
-      }
       const phoneDigits = personalData.telefone.replace(/\D/g, "");
       if (phoneDigits.length > 0 && phoneDigits.length < 10) {
         newErrors.telefone = "Telefone inválido";
       }
+      
+      if (personalData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(personalData.email)) {
+        newErrors.email = "Email inválido";
+      }
     } else {
-      // PJ validation
       if (!pjData.razao_social.trim()) newErrors.razao_social = "Razão Social é obrigatória";
       
       const cnpjDigits = pjData.cnpj.replace(/\D/g, "");
@@ -375,7 +401,6 @@ export function CaptureDataStep({
         newErrors.cnpj = "CNPJ deve ter 14 dígitos";
       }
       
-      // Representative validation
       if (!pjData.representante_nome.trim()) newErrors.representante_nome = "Nome do representante é obrigatório";
       
       const repCpfDigits = pjData.representante_cpf.replace(/\D/g, "");
@@ -385,13 +410,14 @@ export function CaptureDataStep({
         newErrors.representante_cpf = "CPF deve ter 11 dígitos";
       }
       
+      if (!pjData.representante_data_nascimento.trim()) newErrors.representante_data_nascimento = "Data de nascimento é obrigatória";
+      else if (pjData.representante_data_nascimento.replace(/\D/g, "").length !== 8) newErrors.representante_data_nascimento = "Data incompleta";
+
       if (!pjData.representante_rg.trim()) newErrors.representante_rg = "RG do representante é obrigatório";
-      if (!pjData.representante_rg_emissor.trim()) newErrors.representante_rg_emissor = "Órgão emissor é obrigatório";
       if (!pjData.representante_nacionalidade.trim()) newErrors.representante_nacionalidade = "Nacionalidade é obrigatória";
       if (!pjData.representante_estado_civil) newErrors.representante_estado_civil = "Estado civil é obrigatório";
       if (!pjData.representante_profissao.trim()) newErrors.representante_profissao = "Profissão é obrigatória";
       
-      // Optional but validate format if filled
       if (pjData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pjData.email)) {
         newErrors.email_pj = "Email inválido";
       }
@@ -402,8 +428,6 @@ export function CaptureDataStep({
     }
 
     setErrors(newErrors);
-    
-    // Mark all fields as touched
     const allFields = Object.keys(newErrors);
     setTouched(allFields.reduce((acc, key) => ({ ...acc, [key]: true }), {}));
 
@@ -427,7 +451,6 @@ export function CaptureDataStep({
         </p>
       </div>
 
-      {/* Type toggle com animação */}
       <div className="flex rounded-xl bg-white/[0.04] p-1.5 mb-6 border border-white/5">
         <button
           type="button"
@@ -457,7 +480,6 @@ export function CaptureDataStep({
 
       {clientType === "PF" ? (
         <div className="space-y-4">
-          {/* Nome completo */}
           <PremiumField
             label="Nome Completo"
             name="nome"
@@ -470,7 +492,6 @@ export function CaptureDataStep({
             touched={touched.nome}
           />
 
-          {/* CPF + RG (mesma linha) */}
           <div className="grid grid-cols-2 gap-3">
             <PremiumField
               label="CPF"
@@ -484,6 +505,20 @@ export function CaptureDataStep({
               error={errors.cpf}
               touched={touched.cpf}
             />
+            <PremiumField
+              label="Data de Nascimento"
+              name="data_nascimento"
+              required
+              inputMode="numeric"
+              placeholder="DD/MM/AAAA"
+              value={personalData.data_nascimento}
+              onChange={(e) => handlePersonalChange("data_nascimento", e.target.value)}
+              onBlur={() => handleBlur("data_nascimento")}
+              error={errors.data_nascimento}
+              touched={touched.data_nascimento}
+            />
+          </div>
+
             <div className="flex gap-2">
               <PremiumField
                 label="RG"
@@ -497,22 +532,20 @@ export function CaptureDataStep({
                 touched={touched.rg}
                 className="flex-1"
               />
-              <PremiumField
-                label="Órgão"
-                name="rg_emissor"
-                required
-                placeholder="SSP"
-                value={personalData.rg_emissor}
-                onChange={(e) => handlePersonalChange("rg_emissor", e.target.value)}
-                onBlur={() => handleBlur("rg_emissor")}
-                error={errors.rg_emissor}
-                touched={touched.rg_emissor}
-                className="w-20"
-              />
             </div>
+            <PremiumField
+              label="Profissão"
+              name="profissao"
+              required
+              placeholder="Ex.: Empresário, etc."
+              value={personalData.profissao}
+              onChange={(e) => handlePersonalChange("profissao", e.target.value)}
+              onBlur={() => handleBlur("profissao")}
+              error={errors.profissao}
+              touched={touched.profissao}
+            />
           </div>
 
-          {/* Nacionalidade + Estado Civil */}
           <div className="grid grid-cols-2 gap-3">
             <PremiumField
               label="Nacionalidade"
@@ -553,20 +586,6 @@ export function CaptureDataStep({
             </div>
           </div>
 
-          {/* Profissão */}
-          <PremiumField
-            label="Profissão"
-            name="profissao"
-            required
-            placeholder="Ex.: Empresário, Aposentado, etc."
-            value={personalData.profissao}
-            onChange={(e) => handlePersonalChange("profissao", e.target.value)}
-            onBlur={() => handleBlur("profissao")}
-            error={errors.profissao}
-            touched={touched.profissao}
-          />
-
-          {/* Telefone + Email */}
           <div className="grid grid-cols-2 gap-3">
             <PremiumField
               label="Telefone"
@@ -597,7 +616,6 @@ export function CaptureDataStep({
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Company data section */}
           <div className="flex items-center gap-2 mb-2">
             <Building2 className="w-4 h-4 text-white/50" />
             <span className="text-sm text-white/70 font-medium">Dados da Empresa</span>
@@ -625,13 +643,6 @@ export function CaptureDataStep({
             onBlur={() => handleBlur("razao_social")}
             error={errors.razao_social}
             touched={touched.razao_social}
-          />
-
-          <PremiumField
-            label="Nome Fantasia"
-            name="nome_fantasia"
-            value={pjData.nome_fantasia}
-            onChange={(e) => handlePJChange("nome_fantasia", e.target.value)}
           />
 
           <div className="grid grid-cols-2 gap-3">
@@ -662,11 +673,9 @@ export function CaptureDataStep({
             />
           </div>
 
-          {/* Representative section */}
           <div className="border-t border-white/10 pt-4 mt-4">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-sm text-white/70 font-medium">Representante Legal</span>
-              <span className="text-xs text-white/40">(obrigatório)</span>
             </div>
 
             <div className="space-y-4">
@@ -694,32 +703,45 @@ export function CaptureDataStep({
                   error={errors.representante_cpf}
                   touched={touched.representante_cpf}
                 />
-                <div className="flex gap-2">
-                  <PremiumField
-                    label="RG"
-                    name="representante_rg"
-                    required
-                    placeholder="Número"
-                    value={pjData.representante_rg}
-                    onChange={(e) => handlePJChange("representante_rg", e.target.value)}
-                    onBlur={() => handleBlur("representante_rg")}
-                    error={errors.representante_rg}
-                    touched={touched.representante_rg}
-                    className="flex-1"
-                  />
-                  <PremiumField
-                    label="Órgão"
-                    name="representante_rg_emissor"
-                    required
-                    placeholder="SSP"
-                    value={pjData.representante_rg_emissor}
-                    onChange={(e) => handlePJChange("representante_rg_emissor", e.target.value)}
-                    onBlur={() => handleBlur("representante_rg_emissor")}
-                    error={errors.representante_rg_emissor}
-                    touched={touched.representante_rg_emissor}
-                    className="w-20"
-                  />
-                </div>
+                <PremiumField
+                  label="Data de Nascimento"
+                  name="representante_data_nascimento"
+                  required
+                  inputMode="numeric"
+                  placeholder="DD/MM/AAAA"
+                  value={pjData.representante_data_nascimento}
+                  onChange={(e) => handlePJChange("representante_data_nascimento", e.target.value)}
+                  onBlur={() => handleBlur("representante_data_nascimento")}
+                  error={errors.representante_data_nascimento}
+                  touched={touched.representante_data_nascimento}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <PremiumField
+                  label="RG"
+                  name="representante_rg"
+                  required
+                  placeholder="Número"
+                  value={pjData.representante_rg}
+                  onChange={(e) => handlePJChange("representante_rg", e.target.value)}
+                  onBlur={() => handleBlur("representante_rg")}
+                  error={errors.representante_rg}
+                  touched={touched.representante_rg}
+                  className="flex-1"
+                />
+              </div>
+                <PremiumField
+                  label="Profissão"
+                  name="representante_profissao"
+                  required
+                  placeholder="Ex.: Administrador, etc."
+                  value={pjData.representante_profissao}
+                  onChange={(e) => handlePJChange("representante_profissao", e.target.value)}
+                  onBlur={() => handleBlur("representante_profissao")}
+                  error={errors.representante_profissao}
+                  touched={touched.representante_profissao}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -761,24 +783,11 @@ export function CaptureDataStep({
                   )}
                 </div>
               </div>
-
-              <PremiumField
-                label="Profissão"
-                name="representante_profissao"
-                required
-                placeholder="Ex.: Empresário, Administrador, etc."
-                value={pjData.representante_profissao}
-                onChange={(e) => handlePJChange("representante_profissao", e.target.value)}
-                onBlur={() => handleBlur("representante_profissao")}
-                error={errors.representante_profissao}
-                touched={touched.representante_profissao}
-              />
             </div>
           </div>
         </div>
       )}
 
-      {/* Attachments section for manual mode */}
       {onFilesChange && (
         <Collapsible open={attachmentsOpen} onOpenChange={setAttachmentsOpen} className="mt-6">
           <CollapsibleTrigger className="flex items-center gap-2 text-sm text-white/60 hover:text-white transition-colors w-full justify-between py-2 px-3 rounded-lg bg-white/5 border border-white/10">
@@ -792,11 +801,6 @@ export function CaptureDataStep({
             <ChevronDown className={cn("w-4 h-4 transition-transform", attachmentsOpen && "rotate-180")} />
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-3 space-y-3">
-            <p className="text-xs text-white/50">
-              Adicione fotos de documentos como RG, CNH, comprovante de endereço ou outros.
-            </p>
-            
-            {/* Upload buttons - with correct kinds */}
             <div className="grid grid-cols-2 gap-2">
               <label className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-white/5 border border-dashed border-white/20 text-white/70 text-sm cursor-pointer hover:bg-white/10 hover:border-white/30 transition-colors">
                 <Image className="w-4 h-4" />
@@ -821,7 +825,6 @@ export function CaptureDataStep({
               </label>
             </div>
 
-            {/* File list */}
             {files.length > 0 && (
               <div className="space-y-2">
                 {files.map((file, index) => (
@@ -852,7 +855,6 @@ export function CaptureDataStep({
         </Collapsible>
       )}
 
-      {/* Footer */}
       <div className="flex gap-3 pt-4">
         <Button
           type="button"
@@ -865,11 +867,7 @@ export function CaptureDataStep({
         <Button
           type="button"
           onClick={handleContinue}
-          className="flex-1 hover:opacity-90 active:scale-[0.98] transition-all duration-200"
-          style={{
-            backgroundColor: "var(--brand-primary)",
-            color: "#000",
-          }}
+          className="flex-1 bg-white text-black hover:bg-white/90 active:scale-[0.98] transition-all duration-200 font-bold h-12 rounded-xl border-none shadow-xl"
         >
           Continuar
         </Button>

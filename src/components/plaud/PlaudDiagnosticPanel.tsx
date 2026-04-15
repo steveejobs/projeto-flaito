@@ -37,7 +37,8 @@ interface PlaudDiagnosticPanelProps {
   officeId: string;
 }
 
-const SUPABASE_PROJECT_ID = 'uxrakfbedmkiqhidruxx';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PROJECT_ID = SUPABASE_URL.split('//')[1].split('.')[0];
 
 export function PlaudDiagnosticPanel({ officeId }: PlaudDiagnosticPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,16 +51,16 @@ export function PlaudDiagnosticPanel({ officeId }: PlaudDiagnosticPanelProps) {
     assetCount: 0,
   });
 
-  const webhookUrl = `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/plaud-ingest?office_id=${officeId}`;
+  const webhookUrl = `${SUPABASE_URL}/functions/v1/plaud-ingest?office_id=${officeId}`;
 
   // Fetch last asset info
   const fetchLastAsset = async () => {
     try {
       const { data: assets, error } = await supabase
         .from('plaud_assets')
-        .select('created_at')
+        .select('received_at')
         .eq('office_id', officeId)
-        .order('created_at', { ascending: false })
+        .order('received_at', { ascending: false })
         .limit(1);
 
       if (error) throw error;
@@ -71,7 +72,7 @@ export function PlaudDiagnosticPanel({ officeId }: PlaudDiagnosticPanelProps) {
 
       setData(prev => ({
         ...prev,
-        lastAssetDate: assets?.[0]?.created_at || null,
+        lastAssetDate: (assets as any)?.[0]?.received_at || null,
         assetCount: count || 0,
       }));
     } catch (err) {
@@ -86,7 +87,7 @@ export function PlaudDiagnosticPanel({ officeId }: PlaudDiagnosticPanelProps) {
 
     try {
       const response = await fetch(
-        `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/plaud-ingest`,
+        `${SUPABASE_URL}/functions/v1/plaud-ingest`,
         { method: 'GET' }
       );
 

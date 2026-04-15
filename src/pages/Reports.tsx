@@ -33,32 +33,36 @@ export default function Reports() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const { data: memberData } = await supabase
-        .from('office_members')
+      const { data: memberData } = await (supabase
+        .from('office_members' as any) as any)
         .select('office_id')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .limit(1)
         .single();
 
-      if (!memberData) throw new Error('Usuário sem escritório ativo');
+      if (!memberData) {
+        if (import.meta.env.DEV) console.log('[Reports] No office member record yet. Hooks might still be provisioning.');
+        setLoading(false);
+        return;
+      }
 
       const officeId = memberData.office_id;
 
       // Fetch KPIs from views
       const [caseResult, deadlineResult, financeResult] = await Promise.all([
-        supabase
-          .from('v_case_kpis')
+        (supabase
+          .from('v_case_kpis' as any) as any)
           .select('*')
           .eq('office_id', officeId)
           .single(),
-        supabase
-          .from('v_deadline_kpis')
+        (supabase
+          .from('v_deadline_kpis' as any) as any)
           .select('*')
           .eq('office_id', officeId)
           .single(),
-        supabase
-          .from('v_finance_kpis')
+        (supabase
+          .from('v_finance_kpis' as any) as any)
           .select('*')
           .eq('office_id', officeId)
           .single(),

@@ -10,348 +10,621 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.4"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
-      agenda_items: {
+      agenda_medica: {
         Row: {
-          all_day: boolean
-          assigned_to: string | null
-          case_id: string | null
-          client_id: string | null
-          created_at: string
-          created_by: string | null
-          date: string
-          end_at: string | null
-          external_event_id: string | null
-          external_source: string | null
-          ics_uid: string | null
+          created_at: string | null
+          data_hora: string
+          duracao_minutos: number | null
+          google_event_id: string | null
           id: string
-          kind: string | null
-          location: string | null
-          meeting_provider: string | null
-          meeting_url: string | null
-          notes: string | null
+          observacoes: string | null
           office_id: string
-          priority: string
-          raw_payload: Json | null
-          source_id: string | null
-          source_table: string | null
-          start_at: string | null
+          paciente_id: string | null
           status: string | null
-          time: string | null
-          title: string
-          updated_at: string
-          visibility: string
+          sync_error: string | null
+          sync_last_at: string | null
+          sync_status: string | null
+          tipo_consulta: string | null
+          updated_at: string | null
         }
         Insert: {
-          all_day?: boolean
-          assigned_to?: string | null
-          case_id?: string | null
-          client_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          date: string
-          end_at?: string | null
-          external_event_id?: string | null
-          external_source?: string | null
-          ics_uid?: string | null
+          created_at?: string | null
+          data_hora: string
+          duracao_minutos?: number | null
+          google_event_id?: string | null
           id?: string
-          kind?: string | null
-          location?: string | null
-          meeting_provider?: string | null
-          meeting_url?: string | null
-          notes?: string | null
+          observacoes?: string | null
           office_id: string
-          priority?: string
-          raw_payload?: Json | null
-          source_id?: string | null
-          source_table?: string | null
-          start_at?: string | null
+          paciente_id?: string | null
           status?: string | null
-          time?: string | null
-          title: string
-          updated_at?: string
-          visibility?: string
+          sync_error?: string | null
+          sync_last_at?: string | null
+          sync_status?: string | null
+          tipo_consulta?: string | null
+          updated_at?: string | null
         }
         Update: {
-          all_day?: boolean
-          assigned_to?: string | null
-          case_id?: string | null
-          client_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          date?: string
-          end_at?: string | null
-          external_event_id?: string | null
-          external_source?: string | null
-          ics_uid?: string | null
+          created_at?: string | null
+          data_hora?: string
+          duracao_minutos?: number | null
+          google_event_id?: string | null
           id?: string
-          kind?: string | null
-          location?: string | null
-          meeting_provider?: string | null
-          meeting_url?: string | null
-          notes?: string | null
+          observacoes?: string | null
           office_id?: string
-          priority?: string
-          raw_payload?: Json | null
-          source_id?: string | null
-          source_table?: string | null
-          start_at?: string | null
+          paciente_id?: string | null
           status?: string | null
-          time?: string | null
-          title?: string
-          updated_at?: string
-          visibility?: string
+          sync_error?: string | null
+          sync_last_at?: string | null
+          sync_status?: string | null
+          tipo_consulta?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agenda_items_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_office_id_fkey"
+            foreignKeyName: "agenda_medica_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "agenda_items_office_id_fkey"
-            columns: ["office_id"]
+            foreignKeyName: "agenda_medica_paciente_id_fkey"
+            columns: ["paciente_id"]
             isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
+            referencedRelation: "pacientes"
             referencedColumns: ["id"]
           },
         ]
       }
-      analysis_subjects: {
+      agent_profiles: {
         Row: {
-          case_id: string | null
-          created_at: string
-          created_by: string | null
-          finished_at: string
+          allowed_actions_json: Json | null
+          allowed_knowledge_sources_json: Json | null
+          business_hours_json: Json | null
+          channel: string
+          created_at: string | null
+          default_flow_id: string | null
+          fallback_message: string | null
+          fallback_node_id: string | null
+          goal: string | null
+          handoff_policy: string | null
           id: string
+          is_active: boolean | null
+          name: string
           office_id: string
-          snapshot: Json | null
-          status: string
-          subject: string
-          subject_hash: string
+          role: string | null
+          rules_json: Json | null
+          system_prompt: string | null
+          tone: string | null
+          updated_at: string | null
         }
         Insert: {
-          case_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          finished_at?: string
+          allowed_actions_json?: Json | null
+          allowed_knowledge_sources_json?: Json | null
+          business_hours_json?: Json | null
+          channel?: string
+          created_at?: string | null
+          default_flow_id?: string | null
+          fallback_message?: string | null
+          fallback_node_id?: string | null
+          goal?: string | null
+          handoff_policy?: string | null
           id?: string
+          is_active?: boolean | null
+          name: string
           office_id: string
-          snapshot?: Json | null
-          status?: string
-          subject: string
-          subject_hash: string
+          role?: string | null
+          rules_json?: Json | null
+          system_prompt?: string | null
+          tone?: string | null
+          updated_at?: string | null
         }
         Update: {
-          case_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          finished_at?: string
+          allowed_actions_json?: Json | null
+          allowed_knowledge_sources_json?: Json | null
+          business_hours_json?: Json | null
+          channel?: string
+          created_at?: string | null
+          default_flow_id?: string | null
+          fallback_message?: string | null
+          fallback_node_id?: string | null
+          goal?: string | null
+          handoff_policy?: string | null
           id?: string
+          is_active?: boolean | null
+          name?: string
           office_id?: string
-          snapshot?: Json | null
-          status?: string
-          subject?: string
-          subject_hash?: string
+          role?: string | null
+          rules_json?: Json | null
+          system_prompt?: string | null
+          tone?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "analysis_subjects_office_id_fkey"
+            foreignKeyName: "agent_profiles_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_agent_configs: {
+        Row: {
+          context_type: string | null
+          created_at: string | null
+          description: string | null
+          extra_instructions: string | null
+          friendly_name: string
+          id: string
+          is_active: boolean | null
+          max_tokens: number | null
+          metadata: Json | null
+          mode: string | null
+          model: string
+          office_id: string | null
+          pipeline_stage: string | null
+          provider: string
+          slug: string
+          system_prompt: string
+          temperature: number | null
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          context_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          extra_instructions?: string | null
+          friendly_name: string
+          id?: string
+          is_active?: boolean | null
+          max_tokens?: number | null
+          metadata?: Json | null
+          mode?: string | null
+          model: string
+          office_id?: string | null
+          pipeline_stage?: string | null
+          provider?: string
+          slug: string
+          system_prompt: string
+          temperature?: number | null
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          context_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          extra_instructions?: string | null
+          friendly_name?: string
+          id?: string
+          is_active?: boolean | null
+          max_tokens?: number | null
+          metadata?: Json | null
+          mode?: string | null
+          model?: string
+          office_id?: string | null
+          pipeline_stage?: string | null
+          provider?: string
+          slug?: string
+          system_prompt?: string
+          temperature?: number | null
+          updated_at?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_agent_configs_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_config: {
+        Row: {
+          api_key: string | null
+          created_at: string | null
+          id: string
+          office_id: string
+          prompt_case_decoder: string | null
+          prompt_clinical_analysis: string | null
+          prompt_iridology: string | null
+          provider: string
+          updated_at: string | null
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string | null
+          id?: string
+          office_id: string
+          prompt_case_decoder?: string | null
+          prompt_clinical_analysis?: string | null
+          prompt_iridology?: string | null
+          provider?: string
+          updated_at?: string | null
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string | null
+          id?: string
+          office_id?: string
+          prompt_case_decoder?: string | null
+          prompt_clinical_analysis?: string | null
+          prompt_iridology?: string | null
+          provider?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_config_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: true
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_error_rules: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_from_validation_log_id: string | null
+          id: string
+          office_id: string | null
+          rule_description: string
+          rule_key: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_from_validation_log_id?: string | null
+          id?: string
+          office_id?: string | null
+          rule_description: string
+          rule_key: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_from_validation_log_id?: string | null
+          id?: string
+          office_id?: string | null
+          rule_description?: string
+          rule_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_error_rules_created_from_validation_log_id_fkey"
+            columns: ["created_from_validation_log_id"]
+            isOneToOne: false
+            referencedRelation: "ai_validation_logs"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "analysis_subjects_office_id_fkey"
+            foreignKeyName: "ai_error_rules_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_model_pricing: {
+        Row: {
+          created_at: string | null
+          id: string
+          input_1k_usd: number
+          is_active: boolean | null
+          model_name: string
+          output_1k_usd: number
+          provider: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          input_1k_usd: number
+          is_active?: boolean | null
+          model_name: string
+          output_1k_usd: number
+          provider: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          input_1k_usd?: number
+          is_active?: boolean | null
+          model_name?: string
+          output_1k_usd?: number
+          provider?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ai_usage_logs: {
+        Row: {
+          created_at: string | null
+          id: string
+          input_tokens: number | null
+          job_id: string | null
+          metadata: Json | null
+          model: string
+          office_id: string
+          output_tokens: number | null
+          pipeline_stage: string
+          session_id: string | null
+          total_cost_usd: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          input_tokens?: number | null
+          job_id?: string | null
+          metadata?: Json | null
+          model: string
+          office_id: string
+          output_tokens?: number | null
+          pipeline_stage: string
+          session_id?: string | null
+          total_cost_usd: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          input_tokens?: number | null
+          job_id?: string | null
+          metadata?: Json | null
+          model?: string
+          office_id?: string
+          output_tokens?: number | null
+          pipeline_stage?: string
+          session_id?: string | null
+          total_cost_usd?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_logs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "session_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_usage_logs_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "analysis_subjects_office_id_fkey"
+            foreignKeyName: "ai_usage_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_usage_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "vw_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_validation_logs: {
+        Row: {
+          created_at: string
+          draft_version: string
+          final_version: string | null
+          id: string
+          issues_detected: Json | null
+          office_id: string
+          piece_type: string
+          refinement_attempts: number | null
+          request_id: string | null
+          validation_passed: boolean
+          validation_scores: Json
+        }
+        Insert: {
+          created_at?: string
+          draft_version: string
+          final_version?: string | null
+          id?: string
+          issues_detected?: Json | null
+          office_id: string
+          piece_type: string
+          refinement_attempts?: number | null
+          request_id?: string | null
+          validation_passed?: boolean
+          validation_scores?: Json
+        }
+        Update: {
+          created_at?: string
+          draft_version?: string
+          final_version?: string | null
+          id?: string
+          issues_detected?: Json | null
+          office_id?: string
+          piece_type?: string
+          refinement_attempts?: number | null
+          request_id?: string | null
+          validation_passed?: boolean
+          validation_scores?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_validation_logs_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
+            referencedRelation: "offices"
             referencedColumns: ["id"]
           },
         ]
       }
       asaas_customers: {
         Row: {
-          asaas_customer_id: string | null
+          asaas_customer_id: string
           client_id: string | null
-          cpf_cnpj: string | null
-          created_at: string
-          created_by: string | null
-          email: string | null
+          created_at: string | null
           id: string
-          name: string | null
           office_id: string
-          phone: string | null
-          updated_at: string
-          updated_by: string | null
+          updated_at: string | null
         }
         Insert: {
-          asaas_customer_id?: string | null
+          asaas_customer_id: string
           client_id?: string | null
-          cpf_cnpj?: string | null
-          created_at?: string
-          created_by?: string | null
-          email?: string | null
+          created_at?: string | null
           id?: string
-          name?: string | null
           office_id: string
-          phone?: string | null
-          updated_at?: string
-          updated_by?: string | null
+          updated_at?: string | null
         }
         Update: {
-          asaas_customer_id?: string | null
+          asaas_customer_id?: string
           client_id?: string | null
-          cpf_cnpj?: string | null
-          created_at?: string
-          created_by?: string | null
-          email?: string | null
+          created_at?: string | null
           id?: string
-          name?: string | null
           office_id?: string
-          phone?: string | null
-          updated_at?: string
-          updated_by?: string | null
+          updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "asaas_customers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asaas_customers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_signatures"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "asaas_customers_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       asaas_payments: {
         Row: {
-          asaas_payment_id: string | null
-          billing_type: Database["public"]["Enums"]["asaas_billing_type"]
+          asaas_payment_id: string
+          billing_type: string
           boleto_url: string | null
           case_id: string | null
           client_id: string | null
-          created_at: string
-          created_by: string | null
+          created_at: string | null
           customer_local_id: string | null
           description: string | null
-          due_date: string | null
+          due_date: string
           id: string
           invoice_url: string | null
           office_id: string
-          paid_at: string | null
           pix_payload: string | null
           pix_qr_code_base64: string | null
-          status: Database["public"]["Enums"]["asaas_payment_status"]
-          updated_at: string
-          updated_by: string | null
+          status: string
+          updated_at: string | null
           value: number
         }
         Insert: {
-          asaas_payment_id?: string | null
-          billing_type?: Database["public"]["Enums"]["asaas_billing_type"]
+          asaas_payment_id: string
+          billing_type: string
           boleto_url?: string | null
           case_id?: string | null
           client_id?: string | null
-          created_at?: string
-          created_by?: string | null
+          created_at?: string | null
           customer_local_id?: string | null
           description?: string | null
-          due_date?: string | null
+          due_date: string
           id?: string
           invoice_url?: string | null
           office_id: string
-          paid_at?: string | null
           pix_payload?: string | null
           pix_qr_code_base64?: string | null
-          status?: Database["public"]["Enums"]["asaas_payment_status"]
-          updated_at?: string
-          updated_by?: string | null
+          status: string
+          updated_at?: string | null
           value: number
         }
         Update: {
-          asaas_payment_id?: string | null
-          billing_type?: Database["public"]["Enums"]["asaas_billing_type"]
+          asaas_payment_id?: string
+          billing_type?: string
           boleto_url?: string | null
           case_id?: string | null
           client_id?: string | null
-          created_at?: string
-          created_by?: string | null
+          created_at?: string | null
           customer_local_id?: string | null
           description?: string | null
-          due_date?: string | null
+          due_date?: string
           id?: string
           invoice_url?: string | null
           office_id?: string
-          paid_at?: string | null
           pix_payload?: string | null
           pix_qr_code_base64?: string | null
-          status?: Database["public"]["Enums"]["asaas_payment_status"]
-          updated_at?: string
-          updated_by?: string | null
+          status?: string
+          updated_at?: string | null
           value?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "asaas_payments_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asaas_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asaas_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_signatures"
+            referencedColumns: ["client_id"]
+          },
           {
             foreignKeyName: "asaas_payments_customer_local_id_fkey"
             columns: ["customer_local_id"]
@@ -359,98 +632,98 @@ export type Database = {
             referencedRelation: "asaas_customers"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      asaas_webhook_events: {
-        Row: {
-          asaas_event_id: string | null
-          asaas_payment_id: string | null
-          created_by: string | null
-          event_type: string
-          id: string
-          last_error: string | null
-          office_id: string | null
-          payload: Json
-          processed_at: string | null
-          received_at: string
-        }
-        Insert: {
-          asaas_event_id?: string | null
-          asaas_payment_id?: string | null
-          created_by?: string | null
-          event_type: string
-          id?: string
-          last_error?: string | null
-          office_id?: string | null
-          payload: Json
-          processed_at?: string | null
-          received_at?: string
-        }
-        Update: {
-          asaas_event_id?: string | null
-          asaas_payment_id?: string | null
-          created_by?: string | null
-          event_type?: string
-          id?: string
-          last_error?: string | null
-          office_id?: string | null
-          payload?: Json
-          processed_at?: string | null
-          received_at?: string
-        }
-        Relationships: []
-      }
-      assistant_memory: {
-        Row: {
-          id: string
-          key: string
-          office_id: string
-          updated_at: string
-          value: Json
-        }
-        Insert: {
-          id?: string
-          key: string
-          office_id: string
-          updated_at?: string
-          value?: Json
-        }
-        Update: {
-          id?: string
-          key?: string
-          office_id?: string
-          updated_at?: string
-          value?: Json
-        }
-        Relationships: [
           {
-            foreignKeyName: "assistant_memory_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "assistant_memory_office_id_fkey"
+            foreignKeyName: "asaas_payments_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "assistant_memory_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
         ]
+      }
+      assistant_memory: {
+        Row: {
+          id: string
+          key: string | null
+          office_id: string | null
+          updated_at: string | null
+          value: Json | null
+        }
+        Insert: {
+          id?: string
+          key?: string | null
+          office_id?: string | null
+          updated_at?: string | null
+          value?: Json | null
+        }
+        Update: {
+          id?: string
+          key?: string | null
+          office_id?: string | null
+          updated_at?: string | null
+          value?: Json | null
+        }
+        Relationships: []
+      }
+      assistant_suggestions: {
+        Row: {
+          action_payload: Json | null
+          action_type: string | null
+          category: string
+          created_at: string
+          description: string | null
+          entity_id: string | null
+          entity_type: string | null
+          expires_at: string
+          id: string
+          is_dismissed: boolean
+          is_executed: boolean
+          office_id: string
+          priority: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          action_payload?: Json | null
+          action_type?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          expires_at?: string
+          id?: string
+          is_dismissed?: boolean
+          is_executed?: boolean
+          office_id: string
+          priority?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          action_payload?: Json | null
+          action_type?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          expires_at?: string
+          id?: string
+          is_dismissed?: boolean
+          is_executed?: boolean
+          office_id?: string
+          priority?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       audit_events_legacy: {
         Row: {
-          action: string
-          created_at: string
-          entity: string
+          action: string | null
+          created_at: string | null
+          entity: string | null
           entity_id: string | null
           id: string
           metadata: Json | null
@@ -458,9 +731,9 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          action: string
-          created_at?: string
-          entity: string
+          action?: string | null
+          created_at?: string | null
+          entity?: string | null
           entity_id?: string | null
           id?: string
           metadata?: Json | null
@@ -468,1142 +741,634 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          action?: string
-          created_at?: string
-          entity?: string
+          action?: string | null
+          created_at?: string | null
+          entity?: string | null
           entity_id?: string | null
           id?: string
           metadata?: Json | null
           office_id?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "audit_events_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "audit_events_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_events_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       audit_log_legacy__table: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: number
           new_data: Json | null
           office_id: string | null
           old_data: Json | null
-          operation: string
+          operation: string | null
           row_pk: string | null
-          table_name: string
+          table_name: string | null
           user_id: string | null
         }
         Insert: {
-          created_at?: string
-          id?: number
+          created_at?: string | null
+          id?: never
           new_data?: Json | null
           office_id?: string | null
           old_data?: Json | null
-          operation: string
+          operation?: string | null
           row_pk?: string | null
-          table_name: string
+          table_name?: string | null
           user_id?: string | null
         }
         Update: {
-          created_at?: string
-          id?: number
+          created_at?: string | null
+          id?: never
           new_data?: Json | null
           office_id?: string | null
           old_data?: Json | null
-          operation?: string
+          operation?: string | null
           row_pk?: string | null
-          table_name?: string
+          table_name?: string | null
           user_id?: string | null
         }
         Relationships: []
       }
       audit_logs: {
         Row: {
-          action: string
-          actor_user_id: string
+          action: string | null
+          actor_user_id: string | null
           after_data: Json | null
           before_data: Json | null
-          created_at: string
-          details: Json
-          entity: string
+          created_at: string | null
+          delegated_by: string | null
+          details: Json | null
+          entity: string | null
           entity_id: string | null
+          execution_context: string | null
           id: string
-          metadata: Json
+          metadata: Json | null
+          model_version: string | null
           office_id: string | null
+          output_level:
+            | Database["public"]["Enums"]["output_validation_level"]
+            | null
+          reasoning_log: Json | null
           record_id: string | null
+          system_prompt_version: string | null
           table_name: string | null
+          trigger_source: string | null
         }
         Insert: {
-          action: string
-          actor_user_id: string
+          action?: string | null
+          actor_user_id?: string | null
           after_data?: Json | null
           before_data?: Json | null
-          created_at?: string
-          details?: Json
-          entity: string
+          created_at?: string | null
+          delegated_by?: string | null
+          details?: Json | null
+          entity?: string | null
           entity_id?: string | null
+          execution_context?: string | null
           id?: string
-          metadata?: Json
+          metadata?: Json | null
+          model_version?: string | null
           office_id?: string | null
+          output_level?:
+            | Database["public"]["Enums"]["output_validation_level"]
+            | null
+          reasoning_log?: Json | null
           record_id?: string | null
+          system_prompt_version?: string | null
           table_name?: string | null
+          trigger_source?: string | null
         }
         Update: {
-          action?: string
-          actor_user_id?: string
+          action?: string | null
+          actor_user_id?: string | null
           after_data?: Json | null
           before_data?: Json | null
-          created_at?: string
-          details?: Json
-          entity?: string
+          created_at?: string | null
+          delegated_by?: string | null
+          details?: Json | null
+          entity?: string | null
           entity_id?: string | null
+          execution_context?: string | null
           id?: string
-          metadata?: Json
+          metadata?: Json | null
+          model_version?: string | null
           office_id?: string | null
+          output_level?:
+            | Database["public"]["Enums"]["output_validation_level"]
+            | null
+          reasoning_log?: Json | null
           record_id?: string | null
+          system_prompt_version?: string | null
           table_name?: string | null
+          trigger_source?: string | null
+        }
+        Relationships: []
+      }
+      audit_snapshots: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          hash: string | null
+          id: string
+          meta: Json | null
+          office_id: string | null
+          report_md: string | null
+          risk: Json | null
+          source: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          hash?: string | null
+          id?: string
+          meta?: Json | null
+          office_id?: string | null
+          report_md?: string | null
+          risk?: Json | null
+          source?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          hash?: string | null
+          id?: string
+          meta?: Json | null
+          office_id?: string | null
+          report_md?: string | null
+          risk?: Json | null
+          source?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      automation_flow_edges: {
+        Row: {
+          condition_json: Json | null
+          created_at: string | null
+          flow_id: string
+          id: string
+          source_node_id: string
+          target_node_id: string
+        }
+        Insert: {
+          condition_json?: Json | null
+          created_at?: string | null
+          flow_id: string
+          id?: string
+          source_node_id: string
+          target_node_id: string
+        }
+        Update: {
+          condition_json?: Json | null
+          created_at?: string | null
+          flow_id?: string
+          id?: string
+          source_node_id?: string
+          target_node_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
+            foreignKeyName: "automation_flow_edges_flow_id_fkey"
+            columns: ["flow_id"]
             isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
+            referencedRelation: "automation_flows"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
+            foreignKeyName: "automation_flow_edges_source_node_id_fkey"
+            columns: ["source_node_id"]
             isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
+            referencedRelation: "automation_flow_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_flow_edges_target_node_id_fkey"
+            columns: ["target_node_id"]
+            isOneToOne: false
+            referencedRelation: "automation_flow_nodes"
             referencedColumns: ["id"]
           },
         ]
       }
-      audit_snapshots: {
+      automation_flow_nodes: {
         Row: {
-          created_at: string
-          created_by: string
-          hash: string | null
+          config_json: Json | null
+          created_at: string | null
+          flow_id: string
           id: string
-          meta: Json
-          office_id: string
-          report_md: string
-          risk: Json
-          source: string
-          status: string
+          label: string | null
+          node_type: string
+          position_x: number | null
+          position_y: number | null
         }
         Insert: {
-          created_at?: string
-          created_by: string
-          hash?: string | null
+          config_json?: Json | null
+          created_at?: string | null
+          flow_id: string
           id?: string
-          meta?: Json
-          office_id: string
-          report_md: string
-          risk?: Json
-          source?: string
-          status?: string
+          label?: string | null
+          node_type: string
+          position_x?: number | null
+          position_y?: number | null
         }
         Update: {
-          created_at?: string
-          created_by?: string
-          hash?: string | null
+          config_json?: Json | null
+          created_at?: string | null
+          flow_id?: string
           id?: string
-          meta?: Json
-          office_id?: string
-          report_md?: string
-          risk?: Json
-          source?: string
-          status?: string
+          label?: string | null
+          node_type?: string
+          position_x?: number | null
+          position_y?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "audit_snapshots_office_id_fkey"
-            columns: ["office_id"]
+            foreignKeyName: "automation_flow_nodes_flow_id_fkey"
+            columns: ["flow_id"]
             isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
+            referencedRelation: "automation_flows"
+            referencedColumns: ["id"]
           },
+        ]
+      }
+      automation_flows: {
+        Row: {
+          channel: string
+          created_at: string | null
+          entry_trigger: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          office_id: string
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          channel?: string
+          created_at?: string | null
+          entry_trigger?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          office_id: string
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string | null
+          entry_trigger?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          office_id?: string
+          updated_at?: string | null
+          version?: number | null
+        }
+        Relationships: [
           {
-            foreignKeyName: "audit_snapshots_office_id_fkey"
+            foreignKeyName: "automation_flows_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      billing_configs: {
+        Row: {
+          asaas_account_id: string | null
+          asaas_api_key_encrypted: string | null
+          asaas_webhook_secret: string | null
+          created_at: string
+          enabled: boolean
+          encryption_iv: string | null
+          environment: string
+          id: string
+          office_id: string
+          updated_at: string
+        }
+        Insert: {
+          asaas_account_id?: string | null
+          asaas_api_key_encrypted?: string | null
+          asaas_webhook_secret?: string | null
+          created_at?: string
+          enabled?: boolean
+          encryption_iv?: string | null
+          environment?: string
+          id?: string
+          office_id: string
+          updated_at?: string
+        }
+        Update: {
+          asaas_account_id?: string | null
+          asaas_api_key_encrypted?: string | null
+          asaas_webhook_secret?: string | null
+          created_at?: string
+          enabled?: boolean
+          encryption_iv?: string | null
+          environment?: string
+          id?: string
+          office_id?: string
+          updated_at?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: "audit_snapshots_office_id_fkey"
+            foreignKeyName: "billing_configs_office_id_fkey"
             columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
+            isOneToOne: true
+            referencedRelation: "offices"
             referencedColumns: ["id"]
           },
         ]
       }
       case_cnj_snapshots: {
         Row: {
-          case_id: string
-          cnj_digits: string
+          case_id: string | null
+          cnj_digits: string | null
           created_by: string | null
-          fetched_at: string
+          fetched_at: string | null
           id: string
-          provider: string
-          response: Json
+          provider: string | null
+          response: Json | null
           tribunal_alias: string | null
         }
         Insert: {
-          case_id: string
-          cnj_digits: string
+          case_id?: string | null
+          cnj_digits?: string | null
           created_by?: string | null
-          fetched_at?: string
+          fetched_at?: string | null
           id?: string
-          provider: string
-          response: Json
+          provider?: string | null
+          response?: Json | null
           tribunal_alias?: string | null
         }
         Update: {
-          case_id?: string
-          cnj_digits?: string
+          case_id?: string | null
+          cnj_digits?: string | null
           created_by?: string | null
-          fetched_at?: string
+          fetched_at?: string | null
           id?: string
-          provider?: string
-          response?: Json
+          provider?: string | null
+          response?: Json | null
           tribunal_alias?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "case_cnj_snapshots_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_cnj_snapshots_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_cnj_snapshots_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_cnj_snapshots_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_cnj_snapshots_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-        ]
+        Relationships: []
       }
       case_deadlines: {
         Row: {
           case_id: string | null
-          created_at: string
+          created_at: string | null
           created_by: string | null
-          days: number
+          days: number | null
+          description: string | null
           due_date: string | null
           id: string
-          kind: string
+          kind: string | null
           notes: string | null
           office_id: string | null
-          start_date: string
-          status: string
-          title: string
-          updated_at: string
+          priority: string | null
+          start_date: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
         }
         Insert: {
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
-          days: number
+          days?: number | null
+          description?: string | null
           due_date?: string | null
           id?: string
-          kind?: string
+          kind?: string | null
           notes?: string | null
           office_id?: string | null
-          start_date: string
-          status?: string
-          title: string
-          updated_at?: string
+          priority?: string | null
+          start_date?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
         }
         Update: {
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
-          days?: number
+          days?: number | null
+          description?: string | null
           due_date?: string | null
           id?: string
-          kind?: string
+          kind?: string | null
           notes?: string | null
           office_id?: string | null
-          start_date?: string
-          status?: string
-          title?: string
-          updated_at?: string
+          priority?: string | null
+          start_date?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "case_deadlines_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_deadlines_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_deadlines_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_deadlines_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_deadlines_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_deadlines_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "case_deadlines_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_deadlines_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       case_event_segments: {
         Row: {
-          case_id: string
-          confidence: string
-          created_at: string
-          document_nature: string
+          case_id: string | null
+          confidence: string | null
+          created_at: string | null
+          document_nature: string | null
           event_date: string | null
-          event_id: string
+          event_id: string | null
           excerpt: string | null
           id: string
-          label: string
-          office_id: string
-          raw_description: string
-          seq: number
+          label: string | null
+          office_id: string | null
+          raw_description: string | null
+          seq: number | null
           tjto_code: string | null
         }
         Insert: {
-          case_id: string
-          confidence?: string
-          created_at?: string
-          document_nature: string
+          case_id?: string | null
+          confidence?: string | null
+          created_at?: string | null
+          document_nature?: string | null
           event_date?: string | null
-          event_id: string
+          event_id?: string | null
           excerpt?: string | null
           id?: string
-          label: string
-          office_id: string
-          raw_description: string
-          seq: number
+          label?: string | null
+          office_id?: string | null
+          raw_description?: string | null
+          seq?: number | null
           tjto_code?: string | null
         }
         Update: {
-          case_id?: string
-          confidence?: string
-          created_at?: string
-          document_nature?: string
+          case_id?: string | null
+          confidence?: string | null
+          created_at?: string | null
+          document_nature?: string | null
           event_date?: string | null
-          event_id?: string
+          event_id?: string | null
           excerpt?: string | null
           id?: string
-          label?: string
-          office_id?: string
-          raw_description?: string
-          seq?: number
+          label?: string | null
+          office_id?: string | null
+          raw_description?: string | null
+          seq?: number | null
           tjto_code?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "case_event_segments_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_event_segments_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_event_segments_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_event_segments_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_event_segments_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_event_segments_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "case_events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_event_segments_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "case_event_segments_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_event_segments_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       case_events: {
         Row: {
-          case_id: string
-          created_at: string
+          case_id: string | null
+          created_at: string | null
           created_by: string | null
-          event_type: string
+          event_type: string | null
           id: string
-          payload: Json
+          payload: Json | null
           source: string | null
-          title: string
+          title: string | null
         }
         Insert: {
-          case_id: string
-          created_at?: string
+          case_id?: string | null
+          created_at?: string | null
           created_by?: string | null
-          event_type: string
+          event_type?: string | null
           id?: string
-          payload?: Json
+          payload?: Json | null
           source?: string | null
-          title: string
+          title?: string | null
         }
         Update: {
-          case_id?: string
-          created_at?: string
+          case_id?: string | null
+          created_at?: string | null
           created_by?: string | null
-          event_type?: string
+          event_type?: string | null
           id?: string
-          payload?: Json
+          payload?: Json | null
           source?: string | null
-          title?: string
+          title?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "case_events_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_events_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_events_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_events_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_events_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-        ]
+        Relationships: []
       }
       case_expenses: {
         Row: {
-          amount: number
+          amount: number | null
           case_id: string | null
-          created_at: string
+          created_at: string | null
           created_by: string | null
-          description: string
+          description: string | null
           id: string
-          kind: string
+          kind: string | null
           office_id: string | null
-          paid: boolean
+          paid: boolean | null
           paid_at: string | null
           receipt_url: string | null
         }
         Insert: {
-          amount?: number
+          amount?: number | null
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
-          description: string
+          description?: string | null
           id?: string
-          kind: string
+          kind?: string | null
           office_id?: string | null
-          paid?: boolean
+          paid?: boolean | null
           paid_at?: string | null
           receipt_url?: string | null
         }
         Update: {
-          amount?: number
+          amount?: number | null
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
-          description?: string
+          description?: string | null
           id?: string
-          kind?: string
+          kind?: string | null
           office_id?: string | null
-          paid?: boolean
+          paid?: boolean | null
           paid_at?: string | null
           receipt_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "case_expenses_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_expenses_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_expenses_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_expenses_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_expenses_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_expenses_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "case_expenses_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_expenses_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      case_knowledge_snapshots: {
-        Row: {
-          case_id: string | null
-          created_at: string
-          created_by: string | null
-          id: string
-          office_id: string
-          precedents: Json
-          settings: Json
-          subject: string
-          subject_hash: string
-          used_query: string
-          videos: Json
-        }
-        Insert: {
-          case_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          office_id: string
-          precedents?: Json
-          settings?: Json
-          subject: string
-          subject_hash: string
-          used_query: string
-          videos?: Json
-        }
-        Update: {
-          case_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          office_id?: string
-          precedents?: Json
-          settings?: Json
-          subject?: string
-          subject_hash?: string
-          used_query?: string
-          videos?: Json
         }
         Relationships: []
       }
       case_permissions: {
         Row: {
-          case_id: string
-          created_at: string
+          case_id: string | null
+          created_at: string | null
           id: string
-          role: string
-          user_id: string
+          role: string | null
+          user_id: string | null
         }
         Insert: {
-          case_id: string
-          created_at?: string
+          case_id?: string | null
+          created_at?: string | null
           id?: string
-          role: string
-          user_id: string
+          role?: string | null
+          user_id?: string | null
         }
         Update: {
-          case_id?: string
-          created_at?: string
+          case_id?: string | null
+          created_at?: string | null
           id?: string
-          role?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "case_permissions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_permissions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_permissions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_permissions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_permissions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-        ]
-      }
-      case_stage_logs: {
-        Row: {
-          case_id: string
-          changed_at: string
-          changed_by: string | null
-          id: number
-          new_stage: string
-          old_stage: string | null
-        }
-        Insert: {
-          case_id: string
-          changed_at?: string
-          changed_by?: string | null
-          id?: number
-          new_stage: string
-          old_stage?: string | null
-        }
-        Update: {
-          case_id?: string
-          changed_at?: string
-          changed_by?: string | null
-          id?: number
-          new_stage?: string
-          old_stage?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "case_stage_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_stage_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_stage_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_stage_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_stage_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-        ]
-      }
-      case_stage_rules: {
-        Row: {
-          from_stage: string
-          id: number
-          to_stage: string
-        }
-        Insert: {
-          from_stage: string
-          id?: number
-          to_stage: string
-        }
-        Update: {
-          from_stage?: string
-          id?: number
-          to_stage?: string
-        }
-        Relationships: []
-      }
-      case_status_logs: {
-        Row: {
-          case_id: string
-          changed_at: string | null
-          changed_by: string | null
-          id: string
-          new_status: string | null
-          old_status: string | null
-        }
-        Insert: {
-          case_id: string
-          changed_at?: string | null
-          changed_by?: string | null
-          id?: string
-          new_status?: string | null
-          old_status?: string | null
-        }
-        Update: {
-          case_id?: string
-          changed_at?: string | null
-          changed_by?: string | null
-          id?: string
-          new_status?: string | null
-          old_status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "case_status_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_status_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_status_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_status_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_status_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-        ]
-      }
-      case_status_rules: {
-        Row: {
-          from_status: string
-          to_status: string
-        }
-        Insert: {
-          from_status: string
-          to_status: string
-        }
-        Update: {
-          from_status?: string
-          to_status?: string
-        }
-        Relationships: []
-      }
-      case_status_transitions: {
-        Row: {
-          actor_user_id: string | null
-          case_id: string
-          created_at: string
-          from_status: string | null
-          id: string
-          metadata: Json
-          office_id: string
-          reason: string | null
-          to_status: string
-        }
-        Insert: {
-          actor_user_id?: string | null
-          case_id: string
-          created_at?: string
-          from_status?: string | null
-          id?: string
-          metadata?: Json
-          office_id: string
-          reason?: string | null
-          to_status: string
-        }
-        Update: {
-          actor_user_id?: string | null
-          case_id?: string
-          created_at?: string
-          from_status?: string | null
-          id?: string
-          metadata?: Json
-          office_id?: string
-          reason?: string | null
-          to_status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "case_status_transitions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      case_task_templates: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          is_active: boolean
-          is_required: boolean
-          sort_order: number
-          stage: string
-          title: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          is_required?: boolean
-          sort_order?: number
-          stage: string
-          title: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          is_required?: boolean
-          sort_order?: number
-          stage?: string
-          title?: string
+          role?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
       case_tasks: {
         Row: {
-          case_id: string
+          case_id: string | null
           completed_at: string | null
-          created_at: string
+          created_at: string | null
           description: string | null
           id: string
-          is_required: boolean
-          sort_order: number
-          stage: string
-          status: string
+          is_required: boolean | null
+          sort_order: number | null
+          stage: string | null
+          status: string | null
           template_id: string | null
-          title: string
+          title: string | null
         }
         Insert: {
-          case_id: string
+          case_id?: string | null
           completed_at?: string | null
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           id?: string
-          is_required?: boolean
-          sort_order?: number
-          stage: string
-          status?: string
+          is_required?: boolean | null
+          sort_order?: number | null
+          stage?: string | null
+          status?: string | null
           template_id?: string | null
-          title: string
+          title?: string | null
         }
         Update: {
-          case_id?: string
+          case_id?: string | null
           completed_at?: string | null
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           id?: string
-          is_required?: boolean
-          sort_order?: number
-          stage?: string
-          status?: string
+          is_required?: boolean | null
+          sort_order?: number | null
+          stage?: string | null
+          status?: string | null
           template_id?: string | null
-          title?: string
+          title?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "case_tasks_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_tasks_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_tasks_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_tasks_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_tasks_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_tasks_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "case_task_templates"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       cases: {
         Row: {
           area: string | null
-          client_id: string
+          client_id: string | null
           cnj_number: string | null
           cnj_validated_at: string | null
           comarca: string | null
           court_name: string | null
-          created_at: string
-          created_by: string
+          created_at: string | null
+          created_by: string | null
           deleted_at: string | null
           deleted_by: string | null
           deleted_reason: string | null
@@ -1616,28 +1381,28 @@ export type Database = {
           nija_full_last_run_at: string | null
           nija_phase: string | null
           oab_number: string | null
-          office_id: string
+          office_id: string | null
           opponent_doc: string | null
           opponent_name: string | null
-          side: Database["public"]["Enums"]["case_side"]
-          stage: string
+          side: Database["public"]["Enums"]["case_side"] | null
+          stage: string | null
           state_id: string | null
-          status: string
+          status: string | null
           subject_id: string | null
           subtype: string | null
           summary: string | null
-          title: string
-          updated_at: string
+          title: string | null
+          updated_at: string | null
         }
         Insert: {
           area?: string | null
-          client_id: string
+          client_id?: string | null
           cnj_number?: string | null
           cnj_validated_at?: string | null
           comarca?: string | null
           court_name?: string | null
-          created_at?: string
-          created_by: string
+          created_at?: string | null
+          created_by?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           deleted_reason?: string | null
@@ -1650,28 +1415,28 @@ export type Database = {
           nija_full_last_run_at?: string | null
           nija_phase?: string | null
           oab_number?: string | null
-          office_id: string
+          office_id?: string | null
           opponent_doc?: string | null
           opponent_name?: string | null
-          side: Database["public"]["Enums"]["case_side"]
-          stage?: string
+          side?: Database["public"]["Enums"]["case_side"] | null
+          stage?: string | null
           state_id?: string | null
-          status?: string
+          status?: string | null
           subject_id?: string | null
           subtype?: string | null
           summary?: string | null
-          title: string
-          updated_at?: string
+          title?: string | null
+          updated_at?: string | null
         }
         Update: {
           area?: string | null
-          client_id?: string
+          client_id?: string | null
           cnj_number?: string | null
           cnj_validated_at?: string | null
           comarca?: string | null
           court_name?: string | null
-          created_at?: string
-          created_by?: string
+          created_at?: string | null
+          created_by?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           deleted_reason?: string | null
@@ -1684,399 +1449,162 @@ export type Database = {
           nija_full_last_run_at?: string | null
           nija_phase?: string | null
           oab_number?: string | null
-          office_id?: string
+          office_id?: string | null
           opponent_doc?: string | null
           opponent_name?: string | null
-          side?: Database["public"]["Enums"]["case_side"]
-          stage?: string
+          side?: Database["public"]["Enums"]["case_side"] | null
+          stage?: string | null
           state_id?: string | null
-          status?: string
+          status?: string | null
           subject_id?: string | null
           subtype?: string | null
           summary?: string | null
-          title?: string
-          updated_at?: string
+          title?: string | null
+          updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "cases_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cases_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "cases_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "cases_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cases_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_cases_subject"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "legal_subjects"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       chat_ai_logs: {
         Row: {
           case_id: string | null
-          created_at: string
+          created_at: string | null
           id: string
-          message: string
+          message: string | null
           model: string | null
           office_id: string | null
-          response: string
+          response: string | null
           tokens: number | null
           user_id: string | null
         }
         Insert: {
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          message: string
+          message?: string | null
           model?: string | null
           office_id?: string | null
-          response: string
+          response?: string | null
           tokens?: number | null
           user_id?: string | null
         }
         Update: {
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          message?: string
+          message?: string | null
           model?: string | null
           office_id?: string | null
-          response?: string
+          response?: string | null
           tokens?: number | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "chat_ai_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_ai_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "chat_ai_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_ai_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "chat_ai_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "chat_ai_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "chat_ai_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_ai_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       chat_messages: {
         Row: {
-          content: string
-          created_at: string
+          content: string | null
+          created_at: string | null
           id: string
-          metadata: Json
-          role: string
-          thread_id: string
+          metadata: Json | null
+          role: string | null
+          thread_id: string | null
         }
         Insert: {
-          content: string
-          created_at?: string
+          content?: string | null
+          created_at?: string | null
           id?: string
-          metadata?: Json
-          role: string
-          thread_id: string
+          metadata?: Json | null
+          role?: string | null
+          thread_id?: string | null
         }
         Update: {
-          content?: string
-          created_at?: string
+          content?: string | null
+          created_at?: string | null
           id?: string
-          metadata?: Json
-          role?: string
-          thread_id?: string
+          metadata?: Json | null
+          role?: string | null
+          thread_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "chat_messages_thread_id_fkey"
-            columns: ["thread_id"]
-            isOneToOne: false
-            referencedRelation: "chat_threads"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       chat_threads: {
         Row: {
           case_id: string | null
           client_id: string | null
-          created_at: string
+          created_at: string | null
           id: string
-          office_id: string
+          office_id: string | null
           route: string | null
-          scope: string
+          scope: string | null
           title: string | null
-          updated_at: string
-          user_id: string
+          updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           case_id?: string | null
           client_id?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          office_id: string
+          office_id?: string | null
           route?: string | null
-          scope?: string
+          scope?: string | null
           title?: string | null
-          updated_at?: string
-          user_id: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           case_id?: string | null
           client_id?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          office_id?: string
+          office_id?: string | null
           route?: string | null
-          scope?: string
+          scope?: string | null
           title?: string | null
-          updated_at?: string
-          user_id?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "chat_threads_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_threads_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "chat_threads_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_threads_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "chat_threads_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "chat_threads_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_threads_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "chat_threads_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "chat_threads_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_threads_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       client_assigned_lawyers: {
         Row: {
-          client_id: string
+          client_id: string | null
           created_at: string | null
           id: string
           is_primary: boolean | null
-          member_id: string
-        }
-        Insert: {
-          client_id: string
-          created_at?: string | null
-          id?: string
-          is_primary?: boolean | null
-          member_id: string
-        }
-        Update: {
-          client_id?: string
-          created_at?: string | null
-          id?: string
-          is_primary?: boolean | null
-          member_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_assigned_lawyers_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_assigned_lawyers_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "client_assigned_lawyers_member_id_fkey"
-            columns: ["member_id"]
-            isOneToOne: false
-            referencedRelation: "office_members"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      client_contract_snapshots: {
-        Row: {
-          client_id: string | null
-          created_at: string
-          created_by: string | null
-          id: string
-          is_current: boolean
-          kind: string
-          office_id: string | null
-          template_key: string | null
-          variables: Json
+          member_id: string | null
         }
         Insert: {
           client_id?: string | null
-          created_at?: string
-          created_by?: string | null
+          created_at?: string | null
           id?: string
-          is_current?: boolean
-          kind: string
-          office_id?: string | null
-          template_key?: string | null
-          variables?: Json
+          is_primary?: boolean | null
+          member_id?: string | null
         }
         Update: {
           client_id?: string | null
-          created_at?: string
-          created_by?: string | null
+          created_at?: string | null
           id?: string
-          is_current?: boolean
-          kind?: string
-          office_id?: string | null
-          template_key?: string | null
-          variables?: Json
+          is_primary?: boolean | null
+          member_id?: string | null
         }
         Relationships: []
       }
       client_contract_terms: {
         Row: {
           chave_pix: string | null
-          client_id: string
+          client_id: string | null
           created_at: string | null
           created_by: string | null
           data_primeira_parcela: string | null
           datas_parcelas: Json | null
-          forma_pagamento: string
+          forma_pagamento: string | null
           id: string
-          metodo_pagamento: string
+          metodo_pagamento: string | null
           numero_parcelas: number | null
-          office_id: string
+          office_id: string | null
           percentual_honorarios: number | null
-          tipo_remuneracao: string
+          tipo_remuneracao: string | null
           updated_at: string | null
           valor_entrada: number | null
           valor_fixo_honorarios: number | null
@@ -2084,18 +1612,18 @@ export type Database = {
         }
         Insert: {
           chave_pix?: string | null
-          client_id: string
+          client_id?: string | null
           created_at?: string | null
           created_by?: string | null
           data_primeira_parcela?: string | null
           datas_parcelas?: Json | null
-          forma_pagamento?: string
+          forma_pagamento?: string | null
           id?: string
-          metodo_pagamento?: string
+          metodo_pagamento?: string | null
           numero_parcelas?: number | null
-          office_id: string
+          office_id?: string | null
           percentual_honorarios?: number | null
-          tipo_remuneracao?: string
+          tipo_remuneracao?: string | null
           updated_at?: string | null
           valor_entrada?: number | null
           valor_fixo_honorarios?: number | null
@@ -2103,546 +1631,24 @@ export type Database = {
         }
         Update: {
           chave_pix?: string | null
-          client_id?: string
+          client_id?: string | null
           created_at?: string | null
           created_by?: string | null
           data_primeira_parcela?: string | null
           datas_parcelas?: Json | null
-          forma_pagamento?: string
+          forma_pagamento?: string | null
           id?: string
-          metodo_pagamento?: string
+          metodo_pagamento?: string | null
           numero_parcelas?: number | null
-          office_id?: string
+          office_id?: string | null
           percentual_honorarios?: number | null
-          tipo_remuneracao?: string
+          tipo_remuneracao?: string | null
           updated_at?: string | null
           valor_entrada?: number | null
           valor_fixo_honorarios?: number | null
           valor_parcela?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "client_contract_terms_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_contract_terms_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "client_contract_terms_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "client_contract_terms_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_contract_terms_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      client_events: {
-        Row: {
-          changed_at: string
-          changed_by: string | null
-          changed_by_email: string | null
-          client_id: string
-          event_type: string
-          id: string
-          new_status: string | null
-          office_id: string
-          old_status: string | null
-          payload: Json
-        }
-        Insert: {
-          changed_at?: string
-          changed_by?: string | null
-          changed_by_email?: string | null
-          client_id: string
-          event_type: string
-          id?: string
-          new_status?: string | null
-          office_id: string
-          old_status?: string | null
-          payload?: Json
-        }
-        Update: {
-          changed_at?: string
-          changed_by?: string | null
-          changed_by_email?: string | null
-          client_id?: string
-          event_type?: string
-          id?: string
-          new_status?: string | null
-          office_id?: string
-          old_status?: string | null
-          payload?: Json
-        }
         Relationships: []
-      }
-      client_files: {
-        Row: {
-          case_id: string | null
-          client_id: string
-          description: string | null
-          file_name: string
-          file_size: number | null
-          id: string
-          kind: Database["public"]["Enums"]["client_file_kind"]
-          metadata: Json
-          mime_type: string | null
-          office_id: string
-          storage_bucket: string
-          storage_path: string
-          uploaded_at: string
-          uploaded_by: string | null
-        }
-        Insert: {
-          case_id?: string | null
-          client_id: string
-          description?: string | null
-          file_name: string
-          file_size?: number | null
-          id?: string
-          kind?: Database["public"]["Enums"]["client_file_kind"]
-          metadata?: Json
-          mime_type?: string | null
-          office_id: string
-          storage_bucket?: string
-          storage_path: string
-          uploaded_at?: string
-          uploaded_by?: string | null
-        }
-        Update: {
-          case_id?: string | null
-          client_id?: string
-          description?: string | null
-          file_name?: string
-          file_size?: number | null
-          id?: string
-          kind?: Database["public"]["Enums"]["client_file_kind"]
-          metadata?: Json
-          mime_type?: string | null
-          office_id?: string
-          storage_bucket?: string
-          storage_path?: string
-          uploaded_at?: string
-          uploaded_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_files_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "client_files_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "client_files_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      client_kit_items: {
-        Row: {
-          checked_at: string | null
-          checked_by: string | null
-          client_file_id: string | null
-          client_id: string
-          created_at: string
-          document_id: string | null
-          due_date: string | null
-          id: string
-          kit_category: string
-          kit_status: string
-          notes: string | null
-          office_id: string
-          updated_at: string
-        }
-        Insert: {
-          checked_at?: string | null
-          checked_by?: string | null
-          client_file_id?: string | null
-          client_id: string
-          created_at?: string
-          document_id?: string | null
-          due_date?: string | null
-          id?: string
-          kit_category: string
-          kit_status?: string
-          notes?: string | null
-          office_id: string
-          updated_at?: string
-        }
-        Update: {
-          checked_at?: string | null
-          checked_by?: string | null
-          client_file_id?: string | null
-          client_id?: string
-          created_at?: string
-          document_id?: string | null
-          due_date?: string | null
-          id?: string
-          kit_category?: string
-          kit_status?: string
-          notes?: string | null
-          office_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_kit_items_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "client_files"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_files"
-            referencedColumns: ["file_id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_kit_latest_files"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "vw_lexos_kit_files_audit"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "vw_lexos_kit_inconsistencies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "vw_lexos_kit_need_migration"
-            referencedColumns: ["html_file_id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "vw_lexos_kit_status_by_client"
-            referencedColumns: ["chosen_file_id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["document_id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_documents_inbox"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_items_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      client_kit_requirements: {
-        Row: {
-          checked_at: string | null
-          checked_by: string | null
-          client_file_id: string | null
-          client_id: string
-          created_at: string
-          document_id: string | null
-          due_date: string | null
-          id: string
-          notes: string | null
-          office_id: string
-          req_group: string
-          req_label: string
-          req_status: string
-          updated_at: string
-        }
-        Insert: {
-          checked_at?: string | null
-          checked_by?: string | null
-          client_file_id?: string | null
-          client_id: string
-          created_at?: string
-          document_id?: string | null
-          due_date?: string | null
-          id?: string
-          notes?: string | null
-          office_id: string
-          req_group: string
-          req_label: string
-          req_status?: string
-          updated_at?: string
-        }
-        Update: {
-          checked_at?: string | null
-          checked_by?: string | null
-          client_file_id?: string | null
-          client_id?: string
-          created_at?: string
-          document_id?: string | null
-          due_date?: string | null
-          id?: string
-          notes?: string | null
-          office_id?: string
-          req_group?: string
-          req_label?: string
-          req_status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_kit_requirements_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "client_files"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_files"
-            referencedColumns: ["file_id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_kit_latest_files"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "vw_lexos_kit_files_audit"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "vw_lexos_kit_inconsistencies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "vw_lexos_kit_need_migration"
-            referencedColumns: ["html_file_id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_client_file_id_fkey"
-            columns: ["client_file_id"]
-            isOneToOne: false
-            referencedRelation: "vw_lexos_kit_status_by_client"
-            referencedColumns: ["chosen_file_id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["document_id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_documents_inbox"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_kit_requirements_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       clients: {
         Row: {
@@ -2653,22 +1659,22 @@ export type Database = {
           city: string | null
           cnpj: string | null
           cpf: string | null
-          created_at: string
-          created_by: string
+          created_at: string | null
+          created_by: string | null
           deleted_at: string | null
           deleted_by: string | null
           deleted_reason: string | null
           display_id: string | null
           email: string | null
-          full_name: string
+          full_name: string | null
           id: string
-          lgpd_consent: boolean
+          lgpd_consent: boolean | null
           lgpd_consent_at: string | null
           marital_status: string | null
           nationality: string | null
           notes: string | null
-          office_id: string
-          person_type: Database["public"]["Enums"]["person_type"]
+          office_id: string | null
+          person_type: Database["public"]["Enums"]["person_type"] | null
           phone: string | null
           profession: string | null
           representative_cpf: string | null
@@ -2682,924 +1688,390 @@ export type Database = {
           rg_issuer: string | null
           source: string | null
           state: string | null
-          status: string
+          status: string | null
           trade_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address_line?: string | null
+          ai_extracted?: boolean | null
+          all_lawyers_assigned?: boolean | null
+          cep?: string | null
+          city?: string | null
+          cnpj?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_reason?: string | null
+          display_id?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          lgpd_consent?: boolean | null
+          lgpd_consent_at?: string | null
+          marital_status?: string | null
+          nationality?: string | null
+          notes?: string | null
+          office_id?: string | null
+          person_type?: Database["public"]["Enums"]["person_type"] | null
+          phone?: string | null
+          profession?: string | null
+          representative_cpf?: string | null
+          representative_marital_status?: string | null
+          representative_name?: string | null
+          representative_nationality?: string | null
+          representative_profession?: string | null
+          representative_rg?: string | null
+          representative_rg_issuer?: string | null
+          rg?: string | null
+          rg_issuer?: string | null
+          source?: string | null
+          state?: string | null
+          status?: string | null
+          trade_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address_line?: string | null
+          ai_extracted?: boolean | null
+          all_lawyers_assigned?: boolean | null
+          cep?: string | null
+          city?: string | null
+          cnpj?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_reason?: string | null
+          display_id?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          lgpd_consent?: boolean | null
+          lgpd_consent_at?: string | null
+          marital_status?: string | null
+          nationality?: string | null
+          notes?: string | null
+          office_id?: string | null
+          person_type?: Database["public"]["Enums"]["person_type"] | null
+          phone?: string | null
+          profession?: string | null
+          representative_cpf?: string | null
+          representative_marital_status?: string | null
+          representative_name?: string | null
+          representative_nationality?: string | null
+          representative_profession?: string | null
+          representative_rg?: string | null
+          representative_rg_issuer?: string | null
+          rg?: string | null
+          rg_issuer?: string | null
+          source?: string | null
+          state?: string | null
+          status?: string | null
+          trade_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      delegacias: {
+        Row: {
+          cidade: string
+          created_at: string
+          endereco: string | null
+          estado: string
+          id: string
+          nome: string
+          telefone: string | null
+          tipo: string
           updated_at: string
         }
         Insert: {
-          address_line?: string | null
-          ai_extracted?: boolean | null
-          all_lawyers_assigned?: boolean | null
-          cep?: string | null
-          city?: string | null
-          cnpj?: string | null
-          cpf?: string | null
+          cidade: string
           created_at?: string
-          created_by: string
-          deleted_at?: string | null
-          deleted_by?: string | null
-          deleted_reason?: string | null
-          display_id?: string | null
-          email?: string | null
-          full_name: string
+          endereco?: string | null
+          estado: string
           id?: string
-          lgpd_consent?: boolean
-          lgpd_consent_at?: string | null
-          marital_status?: string | null
-          nationality?: string | null
-          notes?: string | null
-          office_id: string
-          person_type: Database["public"]["Enums"]["person_type"]
-          phone?: string | null
-          profession?: string | null
-          representative_cpf?: string | null
-          representative_marital_status?: string | null
-          representative_name?: string | null
-          representative_nationality?: string | null
-          representative_profession?: string | null
-          representative_rg?: string | null
-          representative_rg_issuer?: string | null
-          rg?: string | null
-          rg_issuer?: string | null
-          source?: string | null
-          state?: string | null
-          status?: string
-          trade_name?: string | null
+          nome: string
+          telefone?: string | null
+          tipo?: string
           updated_at?: string
         }
         Update: {
-          address_line?: string | null
-          ai_extracted?: boolean | null
-          all_lawyers_assigned?: boolean | null
-          cep?: string | null
-          city?: string | null
-          cnpj?: string | null
-          cpf?: string | null
+          cidade?: string
           created_at?: string
-          created_by?: string
-          deleted_at?: string | null
-          deleted_by?: string | null
-          deleted_reason?: string | null
-          display_id?: string | null
-          email?: string | null
-          full_name?: string
+          endereco?: string | null
+          estado?: string
           id?: string
-          lgpd_consent?: boolean
-          lgpd_consent_at?: string | null
-          marital_status?: string | null
-          nationality?: string | null
-          notes?: string | null
-          office_id?: string
-          person_type?: Database["public"]["Enums"]["person_type"]
-          phone?: string | null
-          profession?: string | null
-          representative_cpf?: string | null
-          representative_marital_status?: string | null
-          representative_name?: string | null
-          representative_nationality?: string | null
-          representative_profession?: string | null
-          representative_rg?: string | null
-          representative_rg_issuer?: string | null
-          rg?: string | null
-          rg_issuer?: string | null
-          source?: string | null
-          state?: string | null
-          status?: string
-          trade_name?: string | null
+          nome?: string
+          telefone?: string | null
+          tipo?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "clients_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "clients_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "clients_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      document_access_logs: {
-        Row: {
-          action: string
-          created_at: string
-          document_id: string | null
-          id: string
-          metadata: Json
-          office_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          document_id?: string | null
-          id?: string
-          metadata?: Json
-          office_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          document_id?: string | null
-          id?: string
-          metadata?: Json
-          office_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "document_access_logs_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_access_logs_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_access_logs_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["document_id"]
-          },
-          {
-            foreignKeyName: "document_access_logs_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_documents_inbox"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_access_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "document_access_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_access_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       document_events: {
         Row: {
           actor_user_id: string | null
-          case_id: string
-          created_at: string
-          document_id: string
-          event_type: string
+          case_id: string | null
+          created_at: string | null
+          document_id: string | null
+          event_type: string | null
           id: string
           message: string | null
-          metadata: Json
-          office_id: string
+          metadata: Json | null
+          office_id: string | null
         }
         Insert: {
           actor_user_id?: string | null
-          case_id: string
-          created_at?: string
-          document_id: string
-          event_type: string
+          case_id?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          event_type?: string | null
           id?: string
           message?: string | null
-          metadata?: Json
-          office_id: string
+          metadata?: Json | null
+          office_id?: string | null
         }
         Update: {
           actor_user_id?: string | null
-          case_id?: string
-          created_at?: string
-          document_id?: string
-          event_type?: string
+          case_id?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          event_type?: string | null
           id?: string
           message?: string | null
-          metadata?: Json
-          office_id?: string
+          metadata?: Json | null
+          office_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "document_events_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_events_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "document_events_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_events_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "document_events_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "document_events_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_events_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_events_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["document_id"]
-          },
-          {
-            foreignKeyName: "document_events_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_documents_inbox"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_events_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "document_events_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_events_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       document_render_jobs: {
         Row: {
           case_id: string | null
-          created_at: string
+          created_at: string | null
           error: string | null
-          format: string
+          format: string | null
           generated_document_id: string | null
           id: string
           office_id: string | null
-          payload: Json
-          status: string
+          payload: Json | null
+          status: string | null
           storage_bucket: string | null
           storage_path: string | null
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           error?: string | null
-          format: string
+          format?: string | null
           generated_document_id?: string | null
           id?: string
           office_id?: string | null
-          payload?: Json
-          status?: string
+          payload?: Json | null
+          status?: string | null
           storage_bucket?: string | null
           storage_path?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           error?: string | null
-          format?: string
+          format?: string | null
           generated_document_id?: string | null
           id?: string
           office_id?: string | null
-          payload?: Json
-          status?: string
+          payload?: Json | null
+          status?: string | null
           storage_bucket?: string | null
           storage_path?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "document_render_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_render_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "document_render_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_render_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "document_render_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "document_render_jobs_generated_document_id_fkey"
-            columns: ["generated_document_id"]
-            isOneToOne: false
-            referencedRelation: "generated_docs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_render_jobs_generated_document_id_fkey"
-            columns: ["generated_document_id"]
-            isOneToOne: false
-            referencedRelation: "generated_documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_render_jobs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "document_render_jobs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_render_jobs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       document_sign_requests: {
         Row: {
-          created_at: string
+          created_at: string | null
           created_by: string | null
-          document_id: string
+          document_id: string | null
           id: string
-          office_id: string
+          office_id: string | null
           provider: string | null
-          provider_payload: Json
+          provider_payload: Json | null
           signed_file_path: string | null
-          status: string
-          updated_at: string
+          status: string | null
+          updated_at: string | null
           zapsign_doc_token: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
-          document_id: string
+          document_id?: string | null
           id?: string
-          office_id: string
+          office_id?: string | null
           provider?: string | null
-          provider_payload?: Json
+          provider_payload?: Json | null
           signed_file_path?: string | null
-          status?: string
-          updated_at?: string
+          status?: string | null
+          updated_at?: string | null
           zapsign_doc_token?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
-          document_id?: string
+          document_id?: string | null
           id?: string
-          office_id?: string
+          office_id?: string | null
           provider?: string | null
-          provider_payload?: Json
+          provider_payload?: Json | null
           signed_file_path?: string | null
-          status?: string
-          updated_at?: string
+          status?: string | null
+          updated_at?: string | null
           zapsign_doc_token?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "document_sign_requests_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_sign_requests_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_sign_requests_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["document_id"]
-          },
-          {
-            foreignKeyName: "document_sign_requests_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_documents_inbox"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_sign_requests_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "document_sign_requests_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_sign_requests_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      document_status_logs: {
-        Row: {
-          changed_at: string | null
-          changed_by: string | null
-          document_id: string | null
-          generated_doc_id: string | null
-          id: string
-          new_status: string | null
-          old_status: string | null
-        }
-        Insert: {
-          changed_at?: string | null
-          changed_by?: string | null
-          document_id?: string | null
-          generated_doc_id?: string | null
-          id?: string
-          new_status?: string | null
-          old_status?: string | null
-        }
-        Update: {
-          changed_at?: string | null
-          changed_by?: string | null
-          document_id?: string | null
-          generated_doc_id?: string | null
-          id?: string
-          new_status?: string | null
-          old_status?: string | null
-        }
         Relationships: []
-      }
-      document_status_rules: {
-        Row: {
-          from_status: string
-          to_status: string
-        }
-        Insert: {
-          from_status: string
-          to_status: string
-        }
-        Update: {
-          from_status?: string
-          to_status?: string
-        }
-        Relationships: []
-      }
-      document_template_tag_map: {
-        Row: {
-          tag_id: string
-          template_id: string
-        }
-        Insert: {
-          tag_id: string
-          template_id: string
-        }
-        Update: {
-          tag_id?: string
-          template_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "document_template_tag_map_tag_id_fkey"
-            columns: ["tag_id"]
-            isOneToOne: false
-            referencedRelation: "document_template_tags"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_template_tag_map_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "document_templates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_template_tag_map_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "vw_templates_catalog"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      document_template_tags: {
-        Row: {
-          id: string
-          name: string
-        }
-        Insert: {
-          id?: string
-          name: string
-        }
-        Update: {
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
-      document_template_versions: {
-        Row: {
-          content: string
-          created_at: string
-          created_by: string | null
-          id: string
-          template_id: string | null
-          version: number
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          template_id?: string | null
-          version: number
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          template_id?: string | null
-          version?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "document_template_versions_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "document_templates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_template_versions_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "vw_templates_catalog"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       document_templates: {
         Row: {
-          category: string
+          category: string | null
           code: string | null
-          content: string
-          created_at: string
+          content: string | null
+          created_at: string | null
           created_by: string | null
           id: string
-          is_active: boolean
-          is_default: boolean
-          name: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string | null
           office_id: string | null
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          category: string
+          category?: string | null
           code?: string | null
-          content: string
-          created_at?: string
+          content?: string | null
+          created_at?: string | null
           created_by?: string | null
           id?: string
-          is_active?: boolean
-          is_default?: boolean
-          name: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string | null
           office_id?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          category?: string
+          category?: string | null
           code?: string | null
-          content?: string
-          created_at?: string
+          content?: string | null
+          created_at?: string | null
           created_by?: string | null
           id?: string
-          is_active?: boolean
-          is_default?: boolean
-          name?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string | null
           office_id?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "document_templates_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "document_templates_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_templates_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       document_type_permissions: {
         Row: {
-          can_delete: boolean
-          can_download: boolean
-          can_upload: boolean
-          can_view: boolean
-          created_at: string
+          can_delete: boolean | null
+          can_download: boolean | null
+          can_upload: boolean | null
+          can_view: boolean | null
+          created_at: string | null
           id: string
-          office_id: string
-          role: string
-          type_id: string
+          office_id: string | null
+          role: string | null
+          type_id: string | null
         }
         Insert: {
-          can_delete?: boolean
-          can_download?: boolean
-          can_upload?: boolean
-          can_view?: boolean
-          created_at?: string
+          can_delete?: boolean | null
+          can_download?: boolean | null
+          can_upload?: boolean | null
+          can_view?: boolean | null
+          created_at?: string | null
           id?: string
-          office_id: string
-          role: string
-          type_id: string
+          office_id?: string | null
+          role?: string | null
+          type_id?: string | null
         }
         Update: {
-          can_delete?: boolean
-          can_download?: boolean
-          can_upload?: boolean
-          can_view?: boolean
-          created_at?: string
+          can_delete?: boolean | null
+          can_download?: boolean | null
+          can_upload?: boolean | null
+          can_view?: boolean | null
+          created_at?: string | null
           id?: string
-          office_id?: string
-          role?: string
-          type_id?: string
+          office_id?: string | null
+          role?: string | null
+          type_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "document_type_permissions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "document_type_permissions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_type_permissions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_type_permissions_type_id_fkey"
-            columns: ["type_id"]
-            isOneToOne: false
-            referencedRelation: "document_types"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       document_types: {
         Row: {
           code: string | null
-          created_at: string
+          created_at: string | null
           id: string
-          is_active: boolean
-          name: string
-          office_id: string
+          is_active: boolean | null
+          name: string | null
+          office_id: string | null
         }
         Insert: {
           code?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          is_active?: boolean
-          name: string
-          office_id: string
+          is_active?: boolean | null
+          name?: string | null
+          office_id?: string | null
         }
         Update: {
           code?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          is_active?: boolean
-          name?: string
-          office_id?: string
+          is_active?: boolean | null
+          name?: string | null
+          office_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "document_types_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "document_types_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_types_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       document_versions: {
         Row: {
-          action: string
-          created_at: string
+          action: string | null
+          created_at: string | null
           created_by: string | null
-          document_id: string
+          document_id: string | null
           id: string
-          office_id: string
-          snapshot: Json
-          version_no: number
+          office_id: string | null
+          snapshot: Json | null
+          version_no: number | null
         }
         Insert: {
-          action: string
-          created_at?: string
+          action?: string | null
+          created_at?: string | null
           created_by?: string | null
-          document_id: string
+          document_id?: string | null
           id?: string
-          office_id: string
-          snapshot: Json
-          version_no: number
+          office_id?: string | null
+          snapshot?: Json | null
+          version_no?: number | null
         }
         Update: {
-          action?: string
-          created_at?: string
+          action?: string | null
+          created_at?: string | null
           created_by?: string | null
-          document_id?: string
+          document_id?: string | null
           id?: string
-          office_id?: string
-          snapshot?: Json
-          version_no?: number
+          office_id?: string | null
+          snapshot?: Json | null
+          version_no?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "document_versions_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_versions_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_versions_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["document_id"]
-          },
-          {
-            foreignKeyName: "document_versions_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_documents_inbox"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_versions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "document_versions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_versions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       documents: {
         Row: {
@@ -3617,25 +2089,25 @@ export type Database = {
           extraction_report: Json | null
           extraction_updated_at: string | null
           file_size: number | null
-          filename: string
+          filename: string | null
           id: string
           is_image_pdf: boolean | null
-          is_locked: boolean
-          kind: Database["public"]["Enums"]["doc_kind"]
+          is_locked: boolean | null
+          kind: Database["public"]["Enums"]["doc_kind"] | null
           locked_at: string | null
           locked_by: string | null
-          metadata: Json
+          metadata: Json | null
           mime_type: string | null
-          office_id: string
+          office_id: string | null
           reading_status: string | null
           signed_at: string | null
           signed_by: string | null
           status: string | null
-          storage_bucket: string
-          storage_path: string
+          storage_bucket: string | null
+          storage_path: string | null
           type_id: string | null
-          uploaded_at: string
-          uploaded_by: string
+          uploaded_at: string | null
+          uploaded_by: string | null
         }
         Insert: {
           case_id?: string | null
@@ -3652,25 +2124,25 @@ export type Database = {
           extraction_report?: Json | null
           extraction_updated_at?: string | null
           file_size?: number | null
-          filename: string
+          filename?: string | null
           id?: string
           is_image_pdf?: boolean | null
-          is_locked?: boolean
-          kind: Database["public"]["Enums"]["doc_kind"]
+          is_locked?: boolean | null
+          kind?: Database["public"]["Enums"]["doc_kind"] | null
           locked_at?: string | null
           locked_by?: string | null
-          metadata?: Json
+          metadata?: Json | null
           mime_type?: string | null
-          office_id?: string
+          office_id?: string | null
           reading_status?: string | null
           signed_at?: string | null
           signed_by?: string | null
           status?: string | null
-          storage_bucket?: string
-          storage_path: string
+          storage_bucket?: string | null
+          storage_path?: string | null
           type_id?: string | null
-          uploaded_at?: string
-          uploaded_by: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
         }
         Update: {
           case_id?: string | null
@@ -3687,105 +2159,72 @@ export type Database = {
           extraction_report?: Json | null
           extraction_updated_at?: string | null
           file_size?: number | null
-          filename?: string
+          filename?: string | null
           id?: string
           is_image_pdf?: boolean | null
-          is_locked?: boolean
-          kind?: Database["public"]["Enums"]["doc_kind"]
+          is_locked?: boolean | null
+          kind?: Database["public"]["Enums"]["doc_kind"] | null
           locked_at?: string | null
           locked_by?: string | null
-          metadata?: Json
+          metadata?: Json | null
           mime_type?: string | null
-          office_id?: string
+          office_id?: string | null
           reading_status?: string | null
           signed_at?: string | null
           signed_by?: string | null
           status?: string | null
-          storage_bucket?: string
-          storage_path?: string
+          storage_bucket?: string | null
+          storage_path?: string | null
           type_id?: string | null
-          uploaded_at?: string
-          uploaded_by?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "documents_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "documents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "documents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_type_id_fkey"
-            columns: ["type_id"]
-            isOneToOne: false
-            referencedRelation: "document_types"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      dynamic_variables: {
+        Row: {
+          context_type: Database["public"]["Enums"]["variable_context"]
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_required: boolean | null
+          label: string
+          name: string
+          source_field: string | null
+          source_table: string | null
+          source_type: Database["public"]["Enums"]["variable_source"]
+          updated_at: string
+        }
+        Insert: {
+          context_type?: Database["public"]["Enums"]["variable_context"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          label: string
+          name: string
+          source_field?: string | null
+          source_table?: string | null
+          source_type?: Database["public"]["Enums"]["variable_source"]
+          updated_at?: string
+        }
+        Update: {
+          context_type?: Database["public"]["Enums"]["variable_context"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          label?: string
+          name?: string
+          source_field?: string | null
+          source_table?: string | null
+          source_type?: Database["public"]["Enums"]["variable_source"]
+          updated_at?: string
+        }
+        Relationships: []
       }
       e_signatures: {
         Row: {
@@ -3794,17 +2233,17 @@ export type Database = {
           generated_document_id: string | null
           id: string
           ip: string | null
-          metadata: Json
+          metadata: Json | null
           office_id: string | null
           signature_base64: string | null
           signature_status: string | null
           signed_at: string | null
-          signed_hash: string
+          signed_hash: string | null
           signer_doc: string | null
           signer_email: string | null
-          signer_name: string
+          signer_name: string | null
           signer_phone: string | null
-          signer_type: string
+          signer_type: string | null
           user_agent: string | null
           zapsign_doc_token: string | null
           zapsign_signer_token: string | null
@@ -3815,17 +2254,17 @@ export type Database = {
           generated_document_id?: string | null
           id?: string
           ip?: string | null
-          metadata?: Json
+          metadata?: Json | null
           office_id?: string | null
           signature_base64?: string | null
           signature_status?: string | null
           signed_at?: string | null
-          signed_hash: string
+          signed_hash?: string | null
           signer_doc?: string | null
           signer_email?: string | null
-          signer_name: string
+          signer_name?: string | null
           signer_phone?: string | null
-          signer_type: string
+          signer_type?: string | null
           user_agent?: string | null
           zapsign_doc_token?: string | null
           zapsign_signer_token?: string | null
@@ -3836,353 +2275,298 @@ export type Database = {
           generated_document_id?: string | null
           id?: string
           ip?: string | null
-          metadata?: Json
+          metadata?: Json | null
           office_id?: string | null
           signature_base64?: string | null
           signature_status?: string | null
           signed_at?: string | null
-          signed_hash?: string
+          signed_hash?: string | null
           signer_doc?: string | null
           signer_email?: string | null
-          signer_name?: string
+          signer_name?: string | null
           signer_phone?: string | null
-          signer_type?: string
+          signer_type?: string | null
           user_agent?: string | null
           zapsign_doc_token?: string | null
           zapsign_signer_token?: string | null
         }
+        Relationships: []
+      }
+      execution_audit_logs: {
+        Row: {
+          action: string | null
+          actor_id: string | null
+          created_at: string
+          error_detail: string | null
+          execution_context: string | null
+          function_name: string | null
+          id: string
+          metadata: Json | null
+          office_id: string | null
+          result: string | null
+          trace_id: string | null
+        }
+        Insert: {
+          action?: string | null
+          actor_id?: string | null
+          created_at?: string
+          error_detail?: string | null
+          execution_context?: string | null
+          function_name?: string | null
+          id?: string
+          metadata?: Json | null
+          office_id?: string | null
+          result?: string | null
+          trace_id?: string | null
+        }
+        Update: {
+          action?: string | null
+          actor_id?: string | null
+          created_at?: string
+          error_detail?: string | null
+          execution_context?: string | null
+          function_name?: string | null
+          id?: string
+          metadata?: Json | null
+          office_id?: string | null
+          result?: string | null
+          trace_id?: string | null
+        }
+        Relationships: []
+      }
+      execution_context_log: {
+        Row: {
+          action: string | null
+          actor_id: string | null
+          actor_role: string | null
+          created_at: string
+          delegated_by: string | null
+          execution_context: string
+          function_name: string
+          id: string
+          office_id: string | null
+          trace_id: string
+          trigger_source: string
+        }
+        Insert: {
+          action?: string | null
+          actor_id?: string | null
+          actor_role?: string | null
+          created_at?: string
+          delegated_by?: string | null
+          execution_context: string
+          function_name: string
+          id?: string
+          office_id?: string | null
+          trace_id: string
+          trigger_source: string
+        }
+        Update: {
+          action?: string | null
+          actor_id?: string | null
+          actor_role?: string | null
+          created_at?: string
+          delegated_by?: string | null
+          execution_context?: string
+          function_name?: string
+          id?: string
+          office_id?: string | null
+          trace_id?: string
+          trigger_source?: string
+        }
+        Relationships: []
+      }
+      flow_run_steps: {
+        Row: {
+          executed_at: string | null
+          id: string
+          input_data: Json | null
+          node_id: string
+          node_label: string | null
+          node_type: string | null
+          output_data: Json | null
+          run_id: string | null
+        }
+        Insert: {
+          executed_at?: string | null
+          id?: string
+          input_data?: Json | null
+          node_id: string
+          node_label?: string | null
+          node_type?: string | null
+          output_data?: Json | null
+          run_id?: string | null
+        }
+        Update: {
+          executed_at?: string | null
+          id?: string
+          input_data?: Json | null
+          node_id?: string
+          node_label?: string | null
+          node_type?: string | null
+          output_data?: Json | null
+          run_id?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "e_signatures_case_id_fkey"
-            columns: ["case_id"]
+            foreignKeyName: "flow_run_steps_run_id_fkey"
+            columns: ["run_id"]
             isOneToOne: false
-            referencedRelation: "cases"
+            referencedRelation: "flow_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_runs: {
+        Row: {
+          agent_id: string | null
+          channel: string | null
+          finished_at: string | null
+          id: string
+          metadata: Json | null
+          office_id: string | null
+          started_at: string | null
+          status: string | null
+          trigger_type: string | null
+          version_id: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          channel?: string | null
+          finished_at?: string | null
+          id?: string
+          metadata?: Json | null
+          office_id?: string | null
+          started_at?: string | null
+          status?: string | null
+          trigger_type?: string | null
+          version_id?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          channel?: string | null
+          finished_at?: string | null
+          id?: string
+          metadata?: Json | null
+          office_id?: string | null
+          started_at?: string | null
+          status?: string | null
+          trigger_type?: string | null
+          version_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_runs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "e_signatures_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "e_signatures_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "e_signatures_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "e_signatures_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "e_signatures_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "e_signatures_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "e_signatures_generated_document_id_fkey"
-            columns: ["generated_document_id"]
-            isOneToOne: false
-            referencedRelation: "generated_docs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "e_signatures_generated_document_id_fkey"
-            columns: ["generated_document_id"]
-            isOneToOne: false
-            referencedRelation: "generated_documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "e_signatures_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "e_signatures_office_id_fkey"
+            foreignKeyName: "flow_runs_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "e_signatures_office_id_fkey"
+            foreignKeyName: "flow_runs_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "flow_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_versions: {
+        Row: {
+          created_at: string | null
+          definition_json: Json
+          flow_id: string | null
+          id: string
+          office_id: string | null
+          status: string | null
+          updated_at: string | null
+          version_number: number
+        }
+        Insert: {
+          created_at?: string | null
+          definition_json: Json
+          flow_id?: string | null
+          id?: string
+          office_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          version_number: number
+        }
+        Update: {
+          created_at?: string | null
+          definition_json?: Json
+          flow_id?: string | null
+          id?: string
+          office_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_versions_flow_id_fkey"
+            columns: ["flow_id"]
+            isOneToOne: false
+            referencedRelation: "automation_flows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_versions_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
+            referencedRelation: "offices"
             referencedColumns: ["id"]
           },
         ]
       }
       frontend_audit_snapshots: {
         Row: {
-          created_at: string
-          created_by: string
+          created_at: string | null
+          created_by: string | null
           hash: string | null
           id: string
-          manifest: Json
-          menu: Json
-          office_id: string
-          routes: Json
-          workflows: Json
+          manifest: Json | null
+          menu: Json | null
+          office_id: string | null
+          routes: Json | null
+          workflows: Json | null
         }
         Insert: {
-          created_at?: string
-          created_by: string
+          created_at?: string | null
+          created_by?: string | null
           hash?: string | null
           id?: string
-          manifest?: Json
-          menu?: Json
-          office_id: string
-          routes?: Json
-          workflows?: Json
+          manifest?: Json | null
+          menu?: Json | null
+          office_id?: string | null
+          routes?: Json | null
+          workflows?: Json | null
         }
         Update: {
-          created_at?: string
-          created_by?: string
+          created_at?: string | null
+          created_by?: string | null
           hash?: string | null
           id?: string
-          manifest?: Json
-          menu?: Json
-          office_id?: string
-          routes?: Json
-          workflows?: Json
+          manifest?: Json | null
+          menu?: Json | null
+          office_id?: string | null
+          routes?: Json | null
+          workflows?: Json | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "frontend_audit_snapshots_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "frontend_audit_snapshots_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "frontend_audit_snapshots_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      generated_docs_legacy: {
+      generated_docs: {
         Row: {
           case_id: string | null
           client_id: string | null
-          content: string
-          created_at: string
-          created_by: string
-          deleted_at: string | null
-          deleted_by: string | null
-          deleted_reason: string | null
-          document_id: string | null
-          file_path: string | null
-          filename: string | null
-          id: string
-          kind: Database["public"]["Enums"]["doc_kind"]
-          metadata: Json
-          mime_type: string | null
-          office_id: string
-          source_template_id: string | null
-          status: string | null
-          title: string
-          version: number
-        }
-        Insert: {
-          case_id?: string | null
-          client_id?: string | null
-          content: string
-          created_at?: string
-          created_by: string
-          deleted_at?: string | null
-          deleted_by?: string | null
-          deleted_reason?: string | null
-          document_id?: string | null
-          file_path?: string | null
-          filename?: string | null
-          id?: string
-          kind: Database["public"]["Enums"]["doc_kind"]
-          metadata?: Json
-          mime_type?: string | null
-          office_id: string
-          source_template_id?: string | null
-          status?: string | null
-          title: string
-          version?: number
-        }
-        Update: {
-          case_id?: string | null
-          client_id?: string | null
-          content?: string
-          created_at?: string
-          created_by?: string
-          deleted_at?: string | null
-          deleted_by?: string | null
-          deleted_reason?: string | null
-          document_id?: string | null
-          file_path?: string | null
-          filename?: string | null
-          id?: string
-          kind?: Database["public"]["Enums"]["doc_kind"]
-          metadata?: Json
-          mime_type?: string | null
-          office_id?: string
-          source_template_id?: string | null
-          status?: string | null
-          title?: string
-          version?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "generated_docs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "generated_docs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "generated_docs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "generated_docs_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "generated_docs_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["document_id"]
-          },
-          {
-            foreignKeyName: "generated_docs_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_documents_inbox"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "generated_docs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_source_template_id_fkey"
-            columns: ["source_template_id"]
-            isOneToOne: false
-            referencedRelation: "document_templates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_source_template_id_fkey"
-            columns: ["source_template_id"]
-            isOneToOne: false
-            referencedRelation: "vw_templates_catalog"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      generated_documents: {
-        Row: {
-          case_id: string | null
-          client_id: string | null
-          created_at: string
+          created_at: string | null
           data_used: Json | null
           file_path: string | null
           generated_by: string | null
@@ -4195,7 +2579,7 @@ export type Database = {
         Insert: {
           case_id?: string | null
           client_id?: string | null
-          created_at?: string
+          created_at?: string | null
           data_used?: Json | null
           file_path?: string | null
           generated_by?: string | null
@@ -4208,7 +2592,7 @@ export type Database = {
         Update: {
           case_id?: string | null
           client_id?: string | null
-          created_at?: string
+          created_at?: string | null
           data_used?: Json | null
           file_path?: string | null
           generated_by?: string | null
@@ -4218,276 +2602,371 @@ export type Database = {
           source_template_id?: string | null
           template_id?: string | null
         }
+        Relationships: []
+      }
+      generated_docs_legacy: {
+        Row: {
+          case_id: string | null
+          client_id: string | null
+          content: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          deleted_reason: string | null
+          document_id: string | null
+          file_path: string | null
+          filename: string | null
+          id: string
+          kind: Database["public"]["Enums"]["doc_kind"] | null
+          metadata: Json | null
+          mime_type: string | null
+          office_id: string | null
+          source_template_id: string | null
+          status: string | null
+          title: string | null
+          version: number | null
+        }
+        Insert: {
+          case_id?: string | null
+          client_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_reason?: string | null
+          document_id?: string | null
+          file_path?: string | null
+          filename?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["doc_kind"] | null
+          metadata?: Json | null
+          mime_type?: string | null
+          office_id?: string | null
+          source_template_id?: string | null
+          status?: string | null
+          title?: string | null
+          version?: number | null
+        }
+        Update: {
+          case_id?: string | null
+          client_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_reason?: string | null
+          document_id?: string | null
+          file_path?: string | null
+          filename?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["doc_kind"] | null
+          metadata?: Json | null
+          mime_type?: string | null
+          office_id?: string | null
+          source_template_id?: string | null
+          status?: string | null
+          title?: string | null
+          version?: number | null
+        }
+        Relationships: []
+      }
+      generated_documents: {
+        Row: {
+          case_id: string | null
+          client_id: string | null
+          created_at: string | null
+          data_used: Json | null
+          file_path: string | null
+          generated_by: string | null
+          id: string
+          mime_type: string | null
+          office_id: string | null
+          source_template_id: string | null
+          template_id: string | null
+        }
+        Insert: {
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          data_used?: Json | null
+          file_path?: string | null
+          generated_by?: string | null
+          id?: string
+          mime_type?: string | null
+          office_id?: string | null
+          source_template_id?: string | null
+          template_id?: string | null
+        }
+        Update: {
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          data_used?: Json | null
+          file_path?: string | null
+          generated_by?: string | null
+          id?: string
+          mime_type?: string | null
+          office_id?: string | null
+          source_template_id?: string | null
+          template_id?: string | null
+        }
+        Relationships: []
+      }
+      governance_reports: {
+        Row: {
+          block_conclusion: Json
+          block_correlation: Json
+          block_findings: Json
+          block_identification: Json
+          block_limitations: Json
+          block_material: Json
+          block_method: Json
+          case_id: string | null
+          created_at: string | null
+          id: string
+          is_signed: boolean | null
+          metadata: Json | null
+          office_id: string | null
+          output_level: Database["public"]["Enums"]["output_validation_level"]
+          patient_id: string | null
+          report_type: string
+          signed_at: string | null
+          signed_by: string | null
+        }
+        Insert: {
+          block_conclusion: Json
+          block_correlation: Json
+          block_findings: Json
+          block_identification: Json
+          block_limitations: Json
+          block_material: Json
+          block_method: Json
+          case_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_signed?: boolean | null
+          metadata?: Json | null
+          office_id?: string | null
+          output_level: Database["public"]["Enums"]["output_validation_level"]
+          patient_id?: string | null
+          report_type: string
+          signed_at?: string | null
+          signed_by?: string | null
+        }
+        Update: {
+          block_conclusion?: Json
+          block_correlation?: Json
+          block_findings?: Json
+          block_identification?: Json
+          block_limitations?: Json
+          block_material?: Json
+          block_method?: Json
+          case_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_signed?: boolean | null
+          metadata?: Json | null
+          office_id?: string | null
+          output_level?: Database["public"]["Enums"]["output_validation_level"]
+          patient_id?: string | null
+          report_type?: string
+          signed_at?: string | null
+          signed_by?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "generated_documents_case_id_fkey"
+            foreignKeyName: "governance_reports_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "cases"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "generated_documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "generated_documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "generated_documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "generated_documents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "generated_documents_office_id_fkey"
+            foreignKeyName: "governance_reports_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "generated_documents_office_id_fkey"
-            columns: ["office_id"]
+            foreignKeyName: "governance_reports_patient_id_fkey"
+            columns: ["patient_id"]
             isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_documents_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "document_templates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_documents_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "vw_templates_catalog"
+            referencedRelation: "pacientes"
             referencedColumns: ["id"]
           },
         ]
       }
-      google_calendar_connections: {
+      housekeeping_runs: {
         Row: {
-          access_token: string | null
-          calendar_id: string
-          created_at: string
+          deleted_counts: Json
+          dry_run: boolean
+          duration_ms: number | null
+          errors: Json
           id: string
-          office_id: string | null
-          refresh_token: string | null
-          scopes: string[]
-          token_expires_at: string | null
-          updated_at: string
-          user_id: string
+          ran_at: string
+          triggered_by: string
         }
         Insert: {
-          access_token?: string | null
-          calendar_id?: string
-          created_at?: string
+          deleted_counts?: Json
+          dry_run?: boolean
+          duration_ms?: number | null
+          errors?: Json
           id?: string
-          office_id?: string | null
-          refresh_token?: string | null
-          scopes?: string[]
-          token_expires_at?: string | null
-          updated_at?: string
-          user_id: string
+          ran_at?: string
+          triggered_by?: string
         }
         Update: {
-          access_token?: string | null
-          calendar_id?: string
-          created_at?: string
+          deleted_counts?: Json
+          dry_run?: boolean
+          duration_ms?: number | null
+          errors?: Json
           id?: string
-          office_id?: string | null
-          refresh_token?: string | null
-          scopes?: string[]
-          token_expires_at?: string | null
-          updated_at?: string
-          user_id?: string
+          ran_at?: string
+          triggered_by?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "google_calendar_connections_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "google_calendar_connections_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "google_calendar_connections_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      in_app_notifications: {
-        Row: {
-          body: string | null
-          created_at: string
-          dedupe_key: string
-          href: string | null
-          id: string
-          kind: string
-          office_id: string
-          read_at: string | null
-          severity: string
-          source_id: string | null
-          source_table: string | null
-          title: string
-          user_id: string
-        }
-        Insert: {
-          body?: string | null
-          created_at?: string
-          dedupe_key: string
-          href?: string | null
-          id?: string
-          kind?: string
-          office_id: string
-          read_at?: string | null
-          severity?: string
-          source_id?: string | null
-          source_table?: string | null
-          title: string
-          user_id: string
-        }
-        Update: {
-          body?: string | null
-          created_at?: string
-          dedupe_key?: string
-          href?: string | null
-          id?: string
-          kind?: string
-          office_id?: string
-          read_at?: string | null
-          severity?: string
-          source_id?: string | null
-          source_table?: string | null
-          title?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "in_app_notifications_office_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "in_app_notifications_office_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "in_app_notifications_office_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       integration_jobs: {
         Row: {
-          created_at: string
+          created_at: string | null
           error: string | null
           id: string
-          kind: string
+          kind: string | null
           office_id: string | null
-          payload: Json
-          provider: string
+          payload: Json | null
+          provider: string | null
           result: Json | null
-          status: string
-          updated_at: string
+          status: string | null
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           error?: string | null
           id?: string
-          kind: string
+          kind?: string | null
           office_id?: string | null
-          payload?: Json
-          provider: string
+          payload?: Json | null
+          provider?: string | null
           result?: Json | null
-          status?: string
-          updated_at?: string
+          status?: string | null
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           error?: string | null
           id?: string
-          kind?: string
+          kind?: string | null
           office_id?: string | null
-          payload?: Json
-          provider?: string
+          payload?: Json | null
+          provider?: string | null
           result?: Json | null
-          status?: string
-          updated_at?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      iris_analyses: {
+        Row: {
+          ai_response: Json | null
+          analysis_type: string | null
+          anamnesis_questions: Json | null
+          clinical_data: string | null
+          clinical_data_structured: Json | null
+          created_at: string | null
+          created_by: string | null
+          critical_alerts: Json | null
+          findings: Json | null
+          id: string
+          left_image_id: string | null
+          office_id: string
+          patient_id: string
+          right_image_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_response?: Json | null
+          analysis_type?: string | null
+          anamnesis_questions?: Json | null
+          clinical_data?: string | null
+          clinical_data_structured?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          critical_alerts?: Json | null
+          findings?: Json | null
+          id?: string
+          left_image_id?: string | null
+          office_id: string
+          patient_id: string
+          right_image_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_response?: Json | null
+          analysis_type?: string | null
+          anamnesis_questions?: Json | null
+          clinical_data?: string | null
+          clinical_data_structured?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          critical_alerts?: Json | null
+          findings?: Json | null
+          id?: string
+          left_image_id?: string | null
+          office_id?: string
+          patient_id?: string
+          right_image_id?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "integration_jobs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "integration_jobs_office_id_fkey"
+            foreignKeyName: "iris_analyses_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "integration_jobs_office_id_fkey"
-            columns: ["office_id"]
+            foreignKeyName: "iris_analyses_patient_id_fkey"
+            columns: ["patient_id"]
             isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
+            referencedRelation: "pacientes"
             referencedColumns: ["id"]
           },
         ]
       }
+      job_failure_classifications: {
+        Row: {
+          description: string | null
+          error_pattern: string
+          failure_class: string
+          is_retryable: boolean
+        }
+        Insert: {
+          description?: string | null
+          error_pattern: string
+          failure_class: string
+          is_retryable: boolean
+        }
+        Update: {
+          description?: string | null
+          error_pattern?: string
+          failure_class?: string
+          is_retryable?: boolean
+        }
+        Relationships: []
+      }
       kit_generation_jobs: {
         Row: {
-          attempts: number
+          attempts: number | null
           client_id: string | null
-          created_at: string
+          created_at: string | null
           created_by: string | null
           error_code: string | null
           error_message: string | null
@@ -4496,16 +2975,16 @@ export type Database = {
           locked_at: string | null
           locked_by: string | null
           office_id: string | null
-          requested_codes: string[]
-          requested_codes_key: string
-          status: string
+          requested_codes: string | null
+          requested_codes_key: string | null
+          status: string | null
           step: string | null
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          attempts?: number
+          attempts?: number | null
           client_id?: string | null
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           error_code?: string | null
           error_message?: string | null
@@ -4514,16 +2993,16 @@ export type Database = {
           locked_at?: string | null
           locked_by?: string | null
           office_id?: string | null
-          requested_codes: string[]
-          requested_codes_key?: string
-          status?: string
+          requested_codes?: string | null
+          requested_codes_key?: string | null
+          status?: string | null
           step?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          attempts?: number
+          attempts?: number | null
           client_id?: string | null
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           error_code?: string | null
           error_message?: string | null
@@ -4532,305 +3011,199 @@ export type Database = {
           locked_at?: string | null
           locked_by?: string | null
           office_id?: string | null
-          requested_codes?: string[]
-          requested_codes_key?: string
-          status?: string
+          requested_codes?: string | null
+          requested_codes_key?: string | null
+          status?: string | null
           step?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
-      knowledge_cache: {
+      legal_documents: {
         Row: {
-          cached_at: string
+          area: string | null
           case_id: string | null
-          created_at: string
-          created_by: string | null
-          expires_at: string
-          id: string
-          office_id: string
-          payload: Json
-          subject: string
-          subject_hash: string
-          updated_at: string
-          used_query: string | null
-        }
-        Insert: {
-          cached_at?: string
-          case_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          expires_at: string
-          id?: string
-          office_id: string
-          payload?: Json
-          subject: string
-          subject_hash: string
-          updated_at?: string
-          used_query?: string | null
-        }
-        Update: {
-          cached_at?: string
-          case_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          expires_at?: string
-          id?: string
-          office_id?: string
-          payload?: Json
-          subject?: string
-          subject_hash?: string
-          updated_at?: string
-          used_query?: string | null
-        }
-        Relationships: []
-      }
-      knowledge_run_logs: {
-        Row: {
-          case_id: string | null
-          created_at: string
-          created_by: string | null
-          id: string
-          office_id: string
-          precedents_count: number
-          run_source: string
-          settings: Json
-          snapshot_ref: string | null
-          subject: string
-          subject_hash: string
-          used_query: string
-          videos_count: number
-        }
-        Insert: {
-          case_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          office_id: string
-          precedents_count?: number
-          run_source: string
-          settings?: Json
-          snapshot_ref?: string | null
-          subject: string
-          subject_hash: string
-          used_query: string
-          videos_count?: number
-        }
-        Update: {
-          case_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          office_id?: string
-          precedents_count?: number
-          run_source?: string
-          settings?: Json
-          snapshot_ref?: string | null
-          subject?: string
-          subject_hash?: string
-          used_query?: string
-          videos_count?: number
-        }
-        Relationships: []
-      }
-      knowledge_usage_stats: {
-        Row: {
-          case_id: string | null
-          case_uses: number
-          created_at: string
-          id: string
-          kind: string
-          last_used_at: string | null
-          office_id: string
-          ref_id: string
-          subject_hash: string
-          total_uses: number
-        }
-        Insert: {
-          case_id?: string | null
-          case_uses?: number
-          created_at?: string
-          id?: string
-          kind: string
-          last_used_at?: string | null
-          office_id: string
-          ref_id: string
-          subject_hash: string
-          total_uses?: number
-        }
-        Update: {
-          case_id?: string | null
-          case_uses?: number
-          created_at?: string
-          id?: string
-          kind?: string
-          last_used_at?: string | null
-          office_id?: string
-          ref_id?: string
-          subject_hash?: string
-          total_uses?: number
-        }
-        Relationships: []
-      }
-      legal_branches: {
-        Row: {
-          created_at: string
-          id: string
-          is_active: boolean
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name?: string
-        }
-        Relationships: []
-      }
-      legal_holidays: {
-        Row: {
-          day: string
-          description: string | null
+          client_id: string | null
+          config_fallback_used: boolean | null
+          config_resolver_id: string | null
+          config_resolver_source: string | null
+          config_resolver_version: number | null
+          content: string
+          created_at: string | null
+          embedding: string | null
           id: string
           office_id: string | null
+          parent_id: string | null
+          tags: string[] | null
+          title: string
+          type: string | null
+          updated_at: string | null
+          version: number | null
         }
         Insert: {
-          day: string
-          description?: string | null
+          area?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          config_fallback_used?: boolean | null
+          config_resolver_id?: string | null
+          config_resolver_source?: string | null
+          config_resolver_version?: number | null
+          content: string
+          created_at?: string | null
+          embedding?: string | null
           id?: string
           office_id?: string | null
+          parent_id?: string | null
+          tags?: string[] | null
+          title: string
+          type?: string | null
+          updated_at?: string | null
+          version?: number | null
         }
         Update: {
-          day?: string
-          description?: string | null
+          area?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          config_fallback_used?: boolean | null
+          config_resolver_id?: string | null
+          config_resolver_source?: string | null
+          config_resolver_version?: number | null
+          content?: string
+          created_at?: string | null
+          embedding?: string | null
           id?: string
           office_id?: string | null
+          parent_id?: string | null
+          tags?: string[] | null
+          title?: string
+          type?: string | null
+          updated_at?: string | null
+          version?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "legal_holidays_office_id_fkey"
-            columns: ["office_id"]
+            foreignKeyName: "legal_documents_case_id_fkey"
+            columns: ["case_id"]
             isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "legal_holidays_office_id_fkey"
+            foreignKeyName: "legal_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legal_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_signatures"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "legal_documents_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "legal_holidays_office_id_fkey"
-            columns: ["office_id"]
+            foreignKeyName: "legal_documents_parent_id_fkey"
+            columns: ["parent_id"]
             isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
+            referencedRelation: "legal_documents"
             referencedColumns: ["id"]
           },
         ]
       }
       legal_precedent_jobs: {
         Row: {
-          created_at: string
+          created_at: string | null
           finished_at: string | null
           id: string
-          job_type: string
+          job_type: string | null
           last_error: string | null
-          payload: Json
+          payload: Json | null
           source_id: string | null
           started_at: string | null
-          status: string
+          status: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           finished_at?: string | null
           id?: string
-          job_type?: string
+          job_type?: string | null
           last_error?: string | null
-          payload?: Json
+          payload?: Json | null
           source_id?: string | null
           started_at?: string | null
-          status?: string
+          status?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           finished_at?: string | null
           id?: string
-          job_type?: string
+          job_type?: string | null
           last_error?: string | null
-          payload?: Json
+          payload?: Json | null
           source_id?: string | null
           started_at?: string | null
-          status?: string
+          status?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "legal_precedent_jobs_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "legal_precedent_sources"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "legal_precedent_jobs_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "vw_precedent_source_health"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       legal_precedent_sources: {
         Row: {
-          check_interval_hours: number
-          court: string
-          created_at: string
-          enabled: boolean
+          check_interval_hours: number | null
+          court: string | null
+          created_at: string | null
+          enabled: boolean | null
           id: string
-          kind: Database["public"]["Enums"]["precedent_kind"]
+          kind: Database["public"]["Enums"]["precedent_kind"] | null
           last_check_error: string | null
           last_check_http_status: number | null
           last_checked_at: string | null
           last_run_at: string | null
-          source_kind: Database["public"]["Enums"]["precedent_source_kind"]
-          source_url: string
+          source_kind:
+            | Database["public"]["Enums"]["precedent_source_kind"]
+            | null
+          source_url: string | null
           updated_at: string | null
         }
         Insert: {
-          check_interval_hours?: number
-          court: string
-          created_at?: string
-          enabled?: boolean
+          check_interval_hours?: number | null
+          court?: string | null
+          created_at?: string | null
+          enabled?: boolean | null
           id?: string
-          kind: Database["public"]["Enums"]["precedent_kind"]
+          kind?: Database["public"]["Enums"]["precedent_kind"] | null
           last_check_error?: string | null
           last_check_http_status?: number | null
           last_checked_at?: string | null
           last_run_at?: string | null
-          source_kind?: Database["public"]["Enums"]["precedent_source_kind"]
-          source_url: string
+          source_kind?:
+            | Database["public"]["Enums"]["precedent_source_kind"]
+            | null
+          source_url?: string | null
           updated_at?: string | null
         }
         Update: {
-          check_interval_hours?: number
-          court?: string
-          created_at?: string
-          enabled?: boolean
+          check_interval_hours?: number | null
+          court?: string | null
+          created_at?: string | null
+          enabled?: boolean | null
           id?: string
-          kind?: Database["public"]["Enums"]["precedent_kind"]
+          kind?: Database["public"]["Enums"]["precedent_kind"] | null
           last_check_error?: string | null
           last_check_http_status?: number | null
           last_checked_at?: string | null
           last_run_at?: string | null
-          source_kind?: Database["public"]["Enums"]["precedent_source_kind"]
-          source_url?: string
+          source_kind?:
+            | Database["public"]["Enums"]["precedent_source_kind"]
+            | null
+          source_url?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -4839,7 +3212,7 @@ export type Database = {
         Row: {
           case_id: string | null
           court: string | null
-          created_at: string
+          created_at: string | null
           id: string
           kind: Database["public"]["Enums"]["precedent_kind"] | null
           number: string | null
@@ -4854,7 +3227,7 @@ export type Database = {
         Insert: {
           case_id?: string | null
           court?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["precedent_kind"] | null
           number?: string | null
@@ -4869,7 +3242,7 @@ export type Database = {
         Update: {
           case_id?: string | null
           court?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["precedent_kind"] | null
           number?: string | null
@@ -4885,388 +3258,254 @@ export type Database = {
       }
       legal_precedent_versions: {
         Row: {
-          captured_at: string
+          captured_at: string | null
           checksum_text: string | null
           id: string
-          precedent_id: string
+          precedent_id: string | null
           source_url: string | null
           status: Database["public"]["Enums"]["precedent_status"] | null
           text_snapshot: string | null
         }
         Insert: {
-          captured_at?: string
+          captured_at?: string | null
           checksum_text?: string | null
           id?: string
-          precedent_id: string
+          precedent_id?: string | null
           source_url?: string | null
           status?: Database["public"]["Enums"]["precedent_status"] | null
           text_snapshot?: string | null
         }
         Update: {
-          captured_at?: string
+          captured_at?: string | null
           checksum_text?: string | null
           id?: string
-          precedent_id?: string
+          precedent_id?: string | null
           source_url?: string | null
           status?: Database["public"]["Enums"]["precedent_status"] | null
           text_snapshot?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "legal_precedent_versions_precedent_id_fkey"
-            columns: ["precedent_id"]
-            isOneToOne: false
-            referencedRelation: "legal_precedents"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       legal_precedents: {
         Row: {
           area: string | null
-          ativo: boolean
+          ativo: boolean | null
           court: string | null
-          created_at: string
+          created_at: string | null
           created_by: string | null
-          ementa: string
+          ementa: string | null
           id: string
-          importance: number
+          importance: number | null
           is_binding: boolean | null
-          is_curated: boolean
+          is_curated: boolean | null
           kind: string | null
           link: string | null
           link_oficial: string | null
           numero: string | null
-          office_id: string
+          office_id: string | null
           official_text: string | null
-          palavras_chave: string[]
+          palavras_chave: string | null
           ref_code: string | null
-          search_tsv: unknown
+          search_tsv: string | null
           source: string | null
           status: string | null
           summary: string | null
-          tags: string[] | null
+          tags: string | null
           thesis: string | null
-          tipo: string
+          tipo: string | null
           title: string | null
           titulo: string | null
-          tribunal: string
-          updated_at: string
+          tribunal: string | null
+          updated_at: string | null
         }
         Insert: {
           area?: string | null
-          ativo?: boolean
+          ativo?: boolean | null
           court?: string | null
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
-          ementa: string
+          ementa?: string | null
           id?: string
-          importance?: number
+          importance?: number | null
           is_binding?: boolean | null
-          is_curated?: boolean
+          is_curated?: boolean | null
           kind?: string | null
           link?: string | null
           link_oficial?: string | null
           numero?: string | null
-          office_id: string
+          office_id?: string | null
           official_text?: string | null
-          palavras_chave?: string[]
+          palavras_chave?: string | null
           ref_code?: string | null
-          search_tsv?: unknown
+          search_tsv?: string | null
           source?: string | null
           status?: string | null
           summary?: string | null
-          tags?: string[] | null
+          tags?: string | null
           thesis?: string | null
-          tipo: string
+          tipo?: string | null
           title?: string | null
           titulo?: string | null
-          tribunal: string
-          updated_at?: string
+          tribunal?: string | null
+          updated_at?: string | null
         }
         Update: {
           area?: string | null
-          ativo?: boolean
+          ativo?: boolean | null
           court?: string | null
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
-          ementa?: string
+          ementa?: string | null
           id?: string
-          importance?: number
+          importance?: number | null
           is_binding?: boolean | null
-          is_curated?: boolean
+          is_curated?: boolean | null
           kind?: string | null
           link?: string | null
           link_oficial?: string | null
           numero?: string | null
-          office_id?: string
+          office_id?: string | null
           official_text?: string | null
-          palavras_chave?: string[]
+          palavras_chave?: string | null
           ref_code?: string | null
-          search_tsv?: unknown
+          search_tsv?: string | null
           source?: string | null
           status?: string | null
           summary?: string | null
-          tags?: string[] | null
+          tags?: string | null
           thesis?: string | null
-          tipo?: string
+          tipo?: string | null
           title?: string | null
           titulo?: string | null
-          tribunal?: string
-          updated_at?: string
+          tribunal?: string | null
+          updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "legal_precedents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "legal_precedents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "legal_precedents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      legal_subjects: {
+      legal_session_outputs: {
         Row: {
-          branch_id: string
-          created_at: string
+          citations_json: Json | null
+          context_hash: string | null
+          context_version: number | null
+          context_version_id: string | null
+          contradictions_json: Json | null
+          created_at: string | null
+          document_supported_facts_json: Json | null
+          document_type: string | null
+          dossier_snapshot: Json | null
+          draft_document: string | null
+          evidence_gaps_json: Json | null
+          generation_timestamp: string | null
           id: string
-          is_active: boolean
-          name: string
+          model_used: string | null
+          oral_claims_json: Json | null
+          output_hash: string | null
+          parent_output_id: string | null
+          reprocess_reason: string | null
+          reprocessed_at: string | null
+          reprocessed_by: string | null
+          session_id: string
+          snapshot_id: string | null
+          status: string | null
+          summary: string | null
+          transcription_id: string | null
         }
         Insert: {
-          branch_id: string
-          created_at?: string
+          citations_json?: Json | null
+          context_hash?: string | null
+          context_version?: number | null
+          context_version_id?: string | null
+          contradictions_json?: Json | null
+          created_at?: string | null
+          document_supported_facts_json?: Json | null
+          document_type?: string | null
+          dossier_snapshot?: Json | null
+          draft_document?: string | null
+          evidence_gaps_json?: Json | null
+          generation_timestamp?: string | null
           id?: string
-          is_active?: boolean
-          name: string
+          model_used?: string | null
+          oral_claims_json?: Json | null
+          output_hash?: string | null
+          parent_output_id?: string | null
+          reprocess_reason?: string | null
+          reprocessed_at?: string | null
+          reprocessed_by?: string | null
+          session_id: string
+          snapshot_id?: string | null
+          status?: string | null
+          summary?: string | null
+          transcription_id?: string | null
         }
         Update: {
-          branch_id?: string
-          created_at?: string
+          citations_json?: Json | null
+          context_hash?: string | null
+          context_version?: number | null
+          context_version_id?: string | null
+          contradictions_json?: Json | null
+          created_at?: string | null
+          document_supported_facts_json?: Json | null
+          document_type?: string | null
+          dossier_snapshot?: Json | null
+          draft_document?: string | null
+          evidence_gaps_json?: Json | null
+          generation_timestamp?: string | null
           id?: string
-          is_active?: boolean
-          name?: string
+          model_used?: string | null
+          oral_claims_json?: Json | null
+          output_hash?: string | null
+          parent_output_id?: string | null
+          reprocess_reason?: string | null
+          reprocessed_at?: string | null
+          reprocessed_by?: string | null
+          session_id?: string
+          snapshot_id?: string | null
+          status?: string | null
+          summary?: string | null
+          transcription_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "legal_subjects_branch_id_fkey"
-            columns: ["branch_id"]
+            foreignKeyName: "legal_session_outputs_context_version_id_fkey"
+            columns: ["context_version_id"]
             isOneToOne: false
-            referencedRelation: "legal_branches"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      legal_templates: {
-        Row: {
-          branch_id: string | null
-          content: string
-          created_at: string
-          id: string
-          is_active: boolean
-          subject_id: string | null
-          title: string
-          version: number
-        }
-        Insert: {
-          branch_id?: string | null
-          content: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          subject_id?: string | null
-          title: string
-          version?: number
-        }
-        Update: {
-          branch_id?: string | null
-          content?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          subject_id?: string | null
-          title?: string
-          version?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "legal_templates_branch_id_fkey"
-            columns: ["branch_id"]
-            isOneToOne: false
-            referencedRelation: "legal_branches"
+            referencedRelation: "session_context_versions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "legal_templates_subject_id_fkey"
-            columns: ["subject_id"]
+            foreignKeyName: "legal_session_outputs_parent_output_id_fkey"
+            columns: ["parent_output_id"]
             isOneToOne: false
-            referencedRelation: "legal_subjects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      legal_videos: {
-        Row: {
-          area: string | null
-          ativo: boolean
-          created_at: string
-          created_by: string | null
-          duracao_seconds: number | null
-          id: string
-          importance: number
-          is_curated: boolean
-          office_id: string | null
-          search_tsv: unknown
-          tags: string[]
-          tipo: string
-          titulo: string
-          updated_at: string
-          url: string
-        }
-        Insert: {
-          area?: string | null
-          ativo?: boolean
-          created_at?: string
-          created_by?: string | null
-          duracao_seconds?: number | null
-          id?: string
-          importance?: number
-          is_curated?: boolean
-          office_id?: string | null
-          search_tsv?: unknown
-          tags?: string[]
-          tipo: string
-          titulo: string
-          updated_at?: string
-          url: string
-        }
-        Update: {
-          area?: string | null
-          ativo?: boolean
-          created_at?: string
-          created_by?: string | null
-          duracao_seconds?: number | null
-          id?: string
-          importance?: number
-          is_curated?: boolean
-          office_id?: string | null
-          search_tsv?: unknown
-          tags?: string[]
-          tipo?: string
-          titulo?: string
-          updated_at?: string
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "legal_videos_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "legal_videos_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
+            referencedRelation: "legal_session_outputs"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "legal_videos_office_id_fkey"
-            columns: ["office_id"]
+            foreignKeyName: "legal_session_outputs_session_id_fkey"
+            columns: ["session_id"]
             isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lexos_case_deadlines: {
-        Row: {
-          case_id: string
-          created_at: string
-          created_by: string
-          due_at: string
-          id: string
-          office_id: string
-          priority: string
-          status: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          case_id: string
-          created_at?: string
-          created_by: string
-          due_at: string
-          id?: string
-          office_id: string
-          priority?: string
-          status?: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          case_id?: string
-          created_at?: string
-          created_by?: string
-          due_at?: string
-          id?: string
-          office_id?: string
-          priority?: string
-          status?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lexos_case_deadlines_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
+            referencedRelation: "sessions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "lexos_case_deadlines_case_id_fkey"
-            columns: ["case_id"]
+            foreignKeyName: "legal_session_outputs_session_id_fkey"
+            columns: ["session_id"]
             isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "lexos_case_deadlines_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
+            referencedRelation: "vw_meetings"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "lexos_case_deadlines_case_id_fkey"
-            columns: ["case_id"]
+            foreignKeyName: "legal_session_outputs_snapshot_id_fkey"
+            columns: ["snapshot_id"]
             isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
+            referencedRelation: "session_processing_snapshots"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "lexos_case_deadlines_case_id_fkey"
-            columns: ["case_id"]
+            foreignKeyName: "legal_session_outputs_transcription_id_fkey"
+            columns: ["transcription_id"]
             isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
+            referencedRelation: "session_transcriptions"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -5276,9 +3515,9 @@ export type Database = {
           case_id: string
           created_at: string
           created_by: string | null
-          history_id: string
           id: string
           is_read: boolean
+          office_id: string
           title: string
         }
         Insert: {
@@ -5286,9 +3525,9 @@ export type Database = {
           case_id: string
           created_at?: string
           created_by?: string | null
-          history_id: string
           id?: string
           is_read?: boolean
+          office_id: string
           title: string
         }
         Update: {
@@ -5296,9 +3535,9 @@ export type Database = {
           case_id?: string
           created_at?: string
           created_by?: string | null
-          history_id?: string
           id?: string
           is_read?: boolean
+          office_id?: string
           title?: string
         }
         Relationships: [
@@ -5310,46 +3549,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "lexos_case_notifications_case_id_fkey"
-            columns: ["case_id"]
+            foreignKeyName: "lexos_case_notifications_office_id_fkey"
+            columns: ["office_id"]
             isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "lexos_case_notifications_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
+            referencedRelation: "offices"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lexos_case_notifications_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "lexos_case_notifications_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "lexos_case_notifications_history_id_fkey"
-            columns: ["history_id"]
-            isOneToOne: false
-            referencedRelation: "lexos_case_state_history"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lexos_case_notifications_history_id_fkey"
-            columns: ["history_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_state_timeline"
-            referencedColumns: ["history_id"]
           },
         ]
       }
@@ -5357,7 +3561,7 @@ export type Database = {
         Row: {
           case_id: string
           changed_at: string
-          changed_by: string
+          changed_by: string | null
           from_state_id: string | null
           id: string
           note: string | null
@@ -5367,7 +3571,7 @@ export type Database = {
         Insert: {
           case_id: string
           changed_at?: string
-          changed_by: string
+          changed_by?: string | null
           from_state_id?: string | null
           id?: string
           note?: string | null
@@ -5377,7 +3581,7 @@ export type Database = {
         Update: {
           case_id?: string
           changed_at?: string
-          changed_by?: string
+          changed_by?: string | null
           from_state_id?: string | null
           id?: string
           note?: string | null
@@ -5393,34 +3597,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "lexos_case_state_history_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "lexos_case_state_history_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lexos_case_state_history_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "lexos_case_state_history_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
             foreignKeyName: "lexos_case_state_history_from_state_id_fkey"
             columns: ["from_state_id"]
             isOneToOne: false
@@ -5428,46 +3604,14 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "lexos_case_state_history_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "lexos_case_state_history_to_state_id_fkey"
-            columns: ["to_state_id"]
-            isOneToOne: false
-            referencedRelation: "lexos_case_states"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lexos_case_state_transitions: {
-        Row: {
-          created_at: string
-          from_state_id: string
-          id: string
-          is_active: boolean
-          to_state_id: string
-        }
-        Insert: {
-          created_at?: string
-          from_state_id: string
-          id?: string
-          is_active?: boolean
-          to_state_id: string
-        }
-        Update: {
-          created_at?: string
-          from_state_id?: string
-          id?: string
-          is_active?: boolean
-          to_state_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lexos_case_state_transitions_from_state_id_fkey"
-            columns: ["from_state_id"]
-            isOneToOne: false
-            referencedRelation: "lexos_case_states"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lexos_case_state_transitions_to_state_id_fkey"
             columns: ["to_state_id"]
             isOneToOne: false
             referencedRelation: "lexos_case_states"
@@ -5484,6 +3628,7 @@ export type Database = {
           is_terminal: boolean
           name: string
           sort_order: number
+          updated_at: string
         }
         Insert: {
           code: string
@@ -5493,6 +3638,7 @@ export type Database = {
           is_terminal?: boolean
           name: string
           sort_order?: number
+          updated_at?: string
         }
         Update: {
           code?: string
@@ -5502,423 +3648,495 @@ export type Database = {
           is_terminal?: boolean
           name?: string
           sort_order?: number
-        }
-        Relationships: []
-      }
-      lexos_cron_control: {
-        Row: {
-          enabled: boolean
-          key: string
-          updated_at: string
-        }
-        Insert: {
-          enabled?: boolean
-          key: string
-          updated_at?: string
-        }
-        Update: {
-          enabled?: boolean
-          key?: string
           updated_at?: string
         }
         Relationships: []
       }
-      lexos_deadline_alert_logs: {
+      medical_governance_alerts: {
         Row: {
-          alert_id: string
-          changed_at: string
-          changed_by: string | null
+          created_at: string | null
           id: string
-          new_status: string | null
-          office_id: string
-          old_status: string | null
-        }
-        Insert: {
-          alert_id: string
-          changed_at?: string
-          changed_by?: string | null
-          id?: string
-          new_status?: string | null
-          office_id: string
-          old_status?: string | null
-        }
-        Update: {
-          alert_id?: string
-          changed_at?: string
-          changed_by?: string | null
-          id?: string
-          new_status?: string | null
-          office_id?: string
-          old_status?: string | null
-        }
-        Relationships: []
-      }
-      lexos_deadline_alerts: {
-        Row: {
-          channel: string
-          created_at: string
-          deadline_id: string
-          id: string
-          notify_at: string
-          office_id: string
-          status: string
-        }
-        Insert: {
-          channel?: string
-          created_at?: string
-          deadline_id: string
-          id?: string
-          notify_at: string
-          office_id: string
-          status?: string
-        }
-        Update: {
-          channel?: string
-          created_at?: string
-          deadline_id?: string
-          id?: string
-          notify_at?: string
-          office_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lexos_deadline_alerts_deadline_id_fkey"
-            columns: ["deadline_id"]
-            isOneToOne: false
-            referencedRelation: "lexos_case_deadlines"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lexos_deadline_alerts_sla_notified: {
-        Row: {
-          alert_id: string
-          last_notified_at: string
-          office_id: string
-        }
-        Insert: {
-          alert_id: string
-          last_notified_at?: string
-          office_id: string
-        }
-        Update: {
-          alert_id?: string
-          last_notified_at?: string
-          office_id?: string
-        }
-        Relationships: []
-      }
-      lexos_healthcheck_runs: {
-        Row: {
-          id: string
+          incident_id: string | null
+          is_read: boolean | null
+          message: string
           office_id: string | null
-          ran_at: string
-          ran_by: string | null
-          results: Json
+          severity: Database["public"]["Enums"]["governance_severity"]
+          user_id: string | null
         }
         Insert: {
+          created_at?: string | null
           id?: string
+          incident_id?: string | null
+          is_read?: boolean | null
+          message: string
           office_id?: string | null
-          ran_at?: string
-          ran_by?: string | null
-          results: Json
+          severity: Database["public"]["Enums"]["governance_severity"]
+          user_id?: string | null
         }
         Update: {
+          created_at?: string | null
           id?: string
+          incident_id?: string | null
+          is_read?: boolean | null
+          message?: string
           office_id?: string | null
-          ran_at?: string
-          ran_by?: string | null
-          results?: Json
+          severity?: Database["public"]["Enums"]["governance_severity"]
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "lexos_healthcheck_runs_office_id_fkey"
-            columns: ["office_id"]
+            foreignKeyName: "medical_governance_alerts_incident_id_fkey"
+            columns: ["incident_id"]
             isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
+            referencedRelation: "medical_governance_incidents"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "lexos_healthcheck_runs_office_id_fkey"
+            foreignKeyName: "medical_governance_alerts_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "lexos_healthcheck_runs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
         ]
       }
-      lexos_knowledge: {
+      medical_governance_incidents: {
         Row: {
-          active: boolean
-          content: string
-          created_at: string
-          created_by: string
+          auto_action_details: Json | null
+          created_at: string | null
+          description: string | null
+          evidence: Json | null
+          first_seen_at: string | null
           id: string
-          office_id: string
-          tags: string[]
+          incident_category: Database["public"]["Enums"]["governance_incident_category"]
+          integrity_hash: string | null
+          last_seen_at: string | null
+          occurrence_count: number | null
+          office_id: string | null
+          output_level:
+            | Database["public"]["Enums"]["output_validation_level"]
+            | null
+          policy_version_id: string | null
+          severity: Database["public"]["Enums"]["governance_severity"]
+          status: string | null
           title: string
-          updated_at: string
+          user_id: string | null
         }
         Insert: {
-          active?: boolean
-          content: string
-          created_at?: string
-          created_by: string
+          auto_action_details?: Json | null
+          created_at?: string | null
+          description?: string | null
+          evidence?: Json | null
+          first_seen_at?: string | null
           id?: string
-          office_id: string
-          tags?: string[]
+          incident_category: Database["public"]["Enums"]["governance_incident_category"]
+          integrity_hash?: string | null
+          last_seen_at?: string | null
+          occurrence_count?: number | null
+          office_id?: string | null
+          output_level?:
+            | Database["public"]["Enums"]["output_validation_level"]
+            | null
+          policy_version_id?: string | null
+          severity: Database["public"]["Enums"]["governance_severity"]
+          status?: string | null
           title: string
-          updated_at?: string
+          user_id?: string | null
         }
         Update: {
-          active?: boolean
-          content?: string
-          created_at?: string
-          created_by?: string
+          auto_action_details?: Json | null
+          created_at?: string | null
+          description?: string | null
+          evidence?: Json | null
+          first_seen_at?: string | null
           id?: string
-          office_id?: string
-          tags?: string[]
+          incident_category?: Database["public"]["Enums"]["governance_incident_category"]
+          integrity_hash?: string | null
+          last_seen_at?: string | null
+          occurrence_count?: number | null
+          office_id?: string | null
+          output_level?:
+            | Database["public"]["Enums"]["output_validation_level"]
+            | null
+          policy_version_id?: string | null
+          severity?: Database["public"]["Enums"]["governance_severity"]
+          status?: string | null
           title?: string
-          updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "lexos_knowledge_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "lexos_knowledge_office_id_fkey"
+            foreignKeyName: "medical_governance_incidents_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "lexos_knowledge_office_id_fkey"
-            columns: ["office_id"]
+            foreignKeyName: "medical_governance_incidents_policy_version_id_fkey"
+            columns: ["policy_version_id"]
             isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
+            referencedRelation: "medical_policy_versions"
             referencedColumns: ["id"]
           },
         ]
       }
-      lexos_schema_audit_findings: {
+      medical_policy_versions: {
         Row: {
-          category: string
-          created_at: string
-          details: Json
-          id: number
-          object_name: string
-          object_type: string
-          related_object: string | null
-          risk: string
-          schema_name: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          policy_definition: Json
+          version_tag: string
         }
         Insert: {
-          category: string
-          created_at?: string
-          details?: Json
-          id?: number
-          object_name: string
-          object_type: string
-          related_object?: string | null
-          risk?: string
-          schema_name: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          policy_definition: Json
+          version_tag: string
         }
         Update: {
-          category?: string
-          created_at?: string
-          details?: Json
-          id?: number
-          object_name?: string
-          object_type?: string
-          related_object?: string | null
-          risk?: string
-          schema_name?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          policy_definition?: Json
+          version_tag?: string
         }
         Relationships: []
       }
-      lexos_security_baseline: {
+      medical_review_logs: {
         Row: {
-          baseline_hash: string
-          created_at: string
-          id: number
-          notes: string | null
-          total_definer: number
-          total_functions: number
-          total_high: number
-          total_low: number
-          total_medium: number
+          action_performed: string
+          completed_at: string | null
+          content_hash_at_review: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          output_id: string
+          review_duration_seconds: number | null
+          reviewer_id: string
+          reviewer_notes: string | null
+          session_id: string
+          snapshot_id: string | null
+          started_at: string
         }
         Insert: {
-          baseline_hash: string
-          created_at?: string
-          id?: number
-          notes?: string | null
-          total_definer: number
-          total_functions: number
-          total_high: number
-          total_low: number
-          total_medium: number
+          action_performed: string
+          completed_at?: string | null
+          content_hash_at_review: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          output_id: string
+          review_duration_seconds?: number | null
+          reviewer_id: string
+          reviewer_notes?: string | null
+          session_id: string
+          snapshot_id?: string | null
+          started_at?: string
         }
         Update: {
-          baseline_hash?: string
-          created_at?: string
-          id?: number
-          notes?: string | null
-          total_definer?: number
-          total_functions?: number
-          total_high?: number
-          total_low?: number
-          total_medium?: number
+          action_performed?: string
+          completed_at?: string | null
+          content_hash_at_review?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          output_id?: string
+          review_duration_seconds?: number | null
+          reviewer_id?: string
+          reviewer_notes?: string | null
+          session_id?: string
+          snapshot_id?: string | null
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_review_logs_output_id_fkey"
+            columns: ["output_id"]
+            isOneToOne: false
+            referencedRelation: "medical_session_outputs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_review_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_review_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "vw_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_review_logs_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "session_processing_snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_risk_states: {
+        Row: {
+          applied_at: string | null
+          applied_by: string | null
+          applied_reason: string | null
+          cooldown_until: string | null
+          expires_at: string | null
+          id: string
+          lifted_at: string | null
+          risk_level: string | null
+          risk_score: number | null
+          scope_id: string
+          scope_type: string
+          temporary_restrictions: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_by?: string | null
+          applied_reason?: string | null
+          cooldown_until?: string | null
+          expires_at?: string | null
+          id?: string
+          lifted_at?: string | null
+          risk_level?: string | null
+          risk_score?: number | null
+          scope_id: string
+          scope_type: string
+          temporary_restrictions?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          applied_at?: string | null
+          applied_by?: string | null
+          applied_reason?: string | null
+          cooldown_until?: string | null
+          expires_at?: string | null
+          id?: string
+          lifted_at?: string | null
+          risk_level?: string | null
+          risk_score?: number | null
+          scope_id?: string
+          scope_type?: string
+          temporary_restrictions?: Json | null
+          updated_at?: string | null
         }
         Relationships: []
       }
-      lexos_security_definer_audit: {
+      medical_session_outputs: {
         Row: {
-          args: string
-          created_at: string
-          function_name: string
-          grantees: string | null
-          has_grant_to_anon: boolean
-          has_grant_to_authenticated: boolean
-          has_search_path_secure: boolean
-          has_set_search_path: boolean
-          id: number
-          leakproof: boolean
-          owner_name: string | null
-          risk_level: string
-          risk_reasons: string
-          schema_name: string
-          security_definer: boolean
-          volatile: string
+          certification_hash: string | null
+          certified_at: string | null
+          certified_by: string | null
+          clinical_findings_json: Json | null
+          clinical_snapshot: Json | null
+          content_hash: string | null
+          context_hash: string | null
+          context_version: number | null
+          context_version_id: string | null
+          created_at: string | null
+          generation_timestamp: string | null
+          id: string
+          is_finalized: boolean | null
+          is_superseded: boolean
+          language_safety_version: string | null
+          missing_data_json: Json | null
+          model_used: string | null
+          output_hash: string | null
+          parent_output_id: string | null
+          pre_diagnosis: string | null
+          pre_laud_draft: string | null
+          pre_report_draft: string | null
+          professional_tag_snapshot: string | null
+          reprocess_reason: string | null
+          reprocessed_at: string | null
+          reprocessed_by: string | null
+          review_duration_seconds: number | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          session_id: string
+          snapshot_id: string | null
+          status: Database["public"]["Enums"]["medical_output_status"]
+          structured_summary: string | null
+          superseded_at: string | null
+          superseded_reason: string | null
+          transcription_id: string | null
+          version_number: number | null
         }
         Insert: {
-          args: string
-          created_at?: string
-          function_name: string
-          grantees?: string | null
-          has_grant_to_anon: boolean
-          has_grant_to_authenticated: boolean
-          has_search_path_secure: boolean
-          has_set_search_path: boolean
-          id?: number
-          leakproof: boolean
-          owner_name?: string | null
-          risk_level: string
-          risk_reasons: string
-          schema_name: string
-          security_definer: boolean
-          volatile: string
+          certification_hash?: string | null
+          certified_at?: string | null
+          certified_by?: string | null
+          clinical_findings_json?: Json | null
+          clinical_snapshot?: Json | null
+          content_hash?: string | null
+          context_hash?: string | null
+          context_version?: number | null
+          context_version_id?: string | null
+          created_at?: string | null
+          generation_timestamp?: string | null
+          id?: string
+          is_finalized?: boolean | null
+          is_superseded?: boolean
+          language_safety_version?: string | null
+          missing_data_json?: Json | null
+          model_used?: string | null
+          output_hash?: string | null
+          parent_output_id?: string | null
+          pre_diagnosis?: string | null
+          pre_laud_draft?: string | null
+          pre_report_draft?: string | null
+          professional_tag_snapshot?: string | null
+          reprocess_reason?: string | null
+          reprocessed_at?: string | null
+          reprocessed_by?: string | null
+          review_duration_seconds?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_id: string
+          snapshot_id?: string | null
+          status?: Database["public"]["Enums"]["medical_output_status"]
+          structured_summary?: string | null
+          superseded_at?: string | null
+          superseded_reason?: string | null
+          transcription_id?: string | null
+          version_number?: number | null
         }
         Update: {
-          args?: string
-          created_at?: string
-          function_name?: string
-          grantees?: string | null
-          has_grant_to_anon?: boolean
-          has_grant_to_authenticated?: boolean
-          has_search_path_secure?: boolean
-          has_set_search_path?: boolean
-          id?: number
-          leakproof?: boolean
-          owner_name?: string | null
-          risk_level?: string
-          risk_reasons?: string
-          schema_name?: string
-          security_definer?: boolean
-          volatile?: string
+          certification_hash?: string | null
+          certified_at?: string | null
+          certified_by?: string | null
+          clinical_findings_json?: Json | null
+          clinical_snapshot?: Json | null
+          content_hash?: string | null
+          context_hash?: string | null
+          context_version?: number | null
+          context_version_id?: string | null
+          created_at?: string | null
+          generation_timestamp?: string | null
+          id?: string
+          is_finalized?: boolean | null
+          is_superseded?: boolean
+          language_safety_version?: string | null
+          missing_data_json?: Json | null
+          model_used?: string | null
+          output_hash?: string | null
+          parent_output_id?: string | null
+          pre_diagnosis?: string | null
+          pre_laud_draft?: string | null
+          pre_report_draft?: string | null
+          professional_tag_snapshot?: string | null
+          reprocess_reason?: string | null
+          reprocessed_at?: string | null
+          reprocessed_by?: string | null
+          review_duration_seconds?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_id?: string
+          snapshot_id?: string | null
+          status?: Database["public"]["Enums"]["medical_output_status"]
+          structured_summary?: string | null
+          superseded_at?: string | null
+          superseded_reason?: string | null
+          transcription_id?: string | null
+          version_number?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "medical_session_outputs_context_version_id_fkey"
+            columns: ["context_version_id"]
+            isOneToOne: false
+            referencedRelation: "session_context_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_session_outputs_parent_output_id_fkey"
+            columns: ["parent_output_id"]
+            isOneToOne: false
+            referencedRelation: "medical_session_outputs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_session_outputs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_session_outputs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "vw_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_session_outputs_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "session_processing_snapshots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_session_outputs_transcription_id_fkey"
+            columns: ["transcription_id"]
+            isOneToOne: false
+            referencedRelation: "session_transcriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nija_case_analysis: {
         Row: {
-          analysis: Json
+          analysis: Json | null
           analysis_key: string | null
           case_id: string | null
           created_at: string | null
-          documents_hash: string
+          documents_hash: string | null
           id: string
           session_id: string | null
         }
         Insert: {
-          analysis: Json
+          analysis?: Json | null
           analysis_key?: string | null
           case_id?: string | null
           created_at?: string | null
-          documents_hash: string
+          documents_hash?: string | null
           id?: string
           session_id?: string | null
         }
         Update: {
-          analysis?: Json
+          analysis?: Json | null
           analysis_key?: string | null
           case_id?: string | null
           created_at?: string | null
-          documents_hash?: string
+          documents_hash?: string | null
           id?: string
           session_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "nija_case_analysis_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_case_analysis_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_case_analysis_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_case_analysis_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_case_analysis_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-        ]
+        Relationships: []
       }
       nija_eproc_event_dictionary: {
         Row: {
           auto_link_to_previous: boolean | null
           category: string | null
-          code: string
+          code: string | null
           created_at: string | null
           generates_deadline: boolean | null
           id: string
           interrupts_prescription: boolean | null
           is_active: boolean | null
-          label: string
+          label: string | null
           meaning: string | null
           nature: string | null
           priority_score: number | null
@@ -5928,13 +4146,13 @@ export type Database = {
         Insert: {
           auto_link_to_previous?: boolean | null
           category?: string | null
-          code: string
+          code?: string | null
           created_at?: string | null
           generates_deadline?: boolean | null
           id?: string
           interrupts_prescription?: boolean | null
           is_active?: boolean | null
-          label: string
+          label?: string | null
           meaning?: string | null
           nature?: string | null
           priority_score?: number | null
@@ -5944,13 +4162,13 @@ export type Database = {
         Update: {
           auto_link_to_previous?: boolean | null
           category?: string | null
-          code?: string
+          code?: string | null
           created_at?: string | null
           generates_deadline?: boolean | null
           id?: string
           interrupts_prescription?: boolean | null
           is_active?: boolean | null
-          label?: string
+          label?: string | null
           meaning?: string | null
           nature?: string | null
           priority_score?: number | null
@@ -5962,300 +4180,304 @@ export type Database = {
       nija_extractions: {
         Row: {
           case_id: string | null
-          created_at: string
+          created_at: string | null
           created_by: string | null
           document_id: string | null
           documents_hash: string | null
-          extraction_hash: string
-          extractor_version: string
+          extraction_hash: string | null
+          extractor_version: string | null
           id: string
-          office_id: string
-          result_json: Json
+          integrity_hash: string | null
+          legal_basis: string | null
+          office_id: string | null
+          origin_metadata: Json | null
+          result_json: Json | null
           session_id: string | null
-          system: string
-          updated_at: string
+          system: string | null
+          updated_at: string | null
         }
         Insert: {
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           document_id?: string | null
           documents_hash?: string | null
-          extraction_hash: string
-          extractor_version?: string
+          extraction_hash?: string | null
+          extractor_version?: string | null
           id?: string
-          office_id: string
-          result_json?: Json
+          integrity_hash?: string | null
+          legal_basis?: string | null
+          office_id?: string | null
+          origin_metadata?: Json | null
+          result_json?: Json | null
           session_id?: string | null
-          system: string
-          updated_at?: string
+          system?: string | null
+          updated_at?: string | null
         }
         Update: {
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           document_id?: string | null
           documents_hash?: string | null
-          extraction_hash?: string
-          extractor_version?: string
+          extraction_hash?: string | null
+          extractor_version?: string | null
           id?: string
-          office_id?: string
-          result_json?: Json
+          integrity_hash?: string | null
+          legal_basis?: string | null
+          office_id?: string | null
+          origin_metadata?: Json | null
+          result_json?: Json | null
           session_id?: string | null
-          system?: string
-          updated_at?: string
+          system?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
       nija_generated_pieces: {
         Row: {
-          case_id: string
+          case_id: string | null
           created_at: string | null
-          documents_hash: string
+          documents_hash: string | null
           id: string
-          piece: Json
-          piece_type: string
+          piece: Json | null
+          piece_type: string | null
         }
         Insert: {
-          case_id: string
+          case_id?: string | null
           created_at?: string | null
-          documents_hash: string
+          documents_hash?: string | null
           id?: string
-          piece: Json
-          piece_type: string
+          piece?: Json | null
+          piece_type?: string | null
         }
         Update: {
-          case_id?: string
+          case_id?: string | null
           created_at?: string | null
-          documents_hash?: string
+          documents_hash?: string | null
           id?: string
-          piece?: Json
-          piece_type?: string
+          piece?: Json | null
+          piece_type?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "nija_generated_pieces_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_generated_pieces_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_generated_pieces_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_generated_pieces_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_generated_pieces_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-        ]
+        Relationships: []
       }
       nija_logs: {
         Row: {
-          action: string
+          action: string | null
           case_id: string | null
-          created_at: string
+          created_at: string | null
           duration_ms: number | null
           error: Json | null
           id: string
-          level: string
+          level: string | null
           office_id: string | null
           payload: Json | null
           result: Json | null
           session_id: string | null
-          source: string
+          source: string | null
           user_id: string | null
         }
         Insert: {
-          action: string
+          action?: string | null
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           duration_ms?: number | null
           error?: Json | null
           id?: string
-          level: string
+          level?: string | null
           office_id?: string | null
           payload?: Json | null
           result?: Json | null
           session_id?: string | null
-          source: string
+          source?: string | null
           user_id?: string | null
         }
         Update: {
-          action?: string
+          action?: string | null
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           duration_ms?: number | null
           error?: Json | null
           id?: string
-          level?: string
+          level?: string | null
           office_id?: string | null
           payload?: Json | null
           result?: Json | null
           session_id?: string | null
-          source?: string
+          source?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      nija_loose_docs: {
+        Row: {
+          created_at: string | null
+          extracted_text: string | null
+          file_size: number | null
+          filename: string | null
+          id: string
+          mime_type: string | null
+          session_id: string | null
+          storage_bucket: string | null
+          storage_path: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          extracted_text?: string | null
+          file_size?: number | null
+          filename?: string | null
+          id?: string
+          mime_type?: string | null
+          session_id?: string | null
+          storage_bucket?: string | null
+          storage_path?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          extracted_text?: string | null
+          file_size?: number | null
+          filename?: string | null
+          id?: string
+          mime_type?: string | null
+          session_id?: string | null
+          storage_bucket?: string | null
+          storage_path?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      nija_pipeline_runs: {
+        Row: {
+          case_id: string
+          config_fallback_used: boolean | null
+          config_resolver_id: string | null
+          config_resolver_source: string | null
+          config_resolver_version: number | null
+          current_stage: string | null
+          dossier_id: string | null
+          final_piece_id: string | null
+          finished_at: string | null
+          id: string
+          initial_piece_id: string | null
+          judge_simulation_id: string | null
+          logs: string[] | null
+          metadata: Json | null
+          office_id: string
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          case_id: string
+          config_fallback_used?: boolean | null
+          config_resolver_id?: string | null
+          config_resolver_source?: string | null
+          config_resolver_version?: number | null
+          current_stage?: string | null
+          dossier_id?: string | null
+          final_piece_id?: string | null
+          finished_at?: string | null
+          id?: string
+          initial_piece_id?: string | null
+          judge_simulation_id?: string | null
+          logs?: string[] | null
+          metadata?: Json | null
+          office_id: string
+          started_at?: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string
+          config_fallback_used?: boolean | null
+          config_resolver_id?: string | null
+          config_resolver_source?: string | null
+          config_resolver_version?: number | null
+          current_stage?: string | null
+          dossier_id?: string | null
+          final_piece_id?: string | null
+          finished_at?: string | null
+          id?: string
+          initial_piece_id?: string | null
+          judge_simulation_id?: string | null
+          logs?: string[] | null
+          metadata?: Json | null
+          office_id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "nija_logs_case_id_fkey"
+            foreignKeyName: "nija_pipeline_runs_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "cases"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "nija_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "nija_logs_office_id_fkey"
+            foreignKeyName: "nija_pipeline_runs_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
             referencedColumns: ["id"]
           },
         ]
       }
-      nija_loose_docs: {
+      nija_reviews: {
         Row: {
+          config_fallback_used: boolean | null
+          config_resolver_id: string | null
+          config_resolver_source: string | null
+          config_resolver_version: number | null
           created_at: string
-          extracted_text: string | null
-          file_size: number | null
-          filename: string
+          critical_risks: Json | null
+          document_id: string
           id: string
-          mime_type: string | null
-          session_id: string
-          storage_bucket: string
-          storage_path: string
-          uploaded_by: string | null
+          office_id: string
+          quality_score: number | null
+          report_json: Json | null
+          structured_findings: Json | null
+          suggestions: Json | null
         }
         Insert: {
+          config_fallback_used?: boolean | null
+          config_resolver_id?: string | null
+          config_resolver_source?: string | null
+          config_resolver_version?: number | null
           created_at?: string
-          extracted_text?: string | null
-          file_size?: number | null
-          filename: string
+          critical_risks?: Json | null
+          document_id: string
           id?: string
-          mime_type?: string | null
-          session_id: string
-          storage_bucket?: string
-          storage_path: string
-          uploaded_by?: string | null
+          office_id: string
+          quality_score?: number | null
+          report_json?: Json | null
+          structured_findings?: Json | null
+          suggestions?: Json | null
         }
         Update: {
+          config_fallback_used?: boolean | null
+          config_resolver_id?: string | null
+          config_resolver_source?: string | null
+          config_resolver_version?: number | null
           created_at?: string
-          extracted_text?: string | null
-          file_size?: number | null
-          filename?: string
+          critical_risks?: Json | null
+          document_id?: string
           id?: string
-          mime_type?: string | null
-          session_id?: string
-          storage_bucket?: string
-          storage_path?: string
-          uploaded_by?: string | null
-        }
-        Relationships: []
-      }
-      nija_quota_alerts: {
-        Row: {
-          alert_type: string
-          created_at: string
-          id: string
-          month: string
-          office_id: string
-        }
-        Insert: {
-          alert_type: string
-          created_at?: string
-          id?: string
-          month: string
-          office_id: string
-        }
-        Update: {
-          alert_type?: string
-          created_at?: string
-          id?: string
-          month?: string
           office_id?: string
+          quality_score?: number | null
+          report_json?: Json | null
+          structured_findings?: Json | null
+          suggestions?: Json | null
         }
         Relationships: [
           {
-            foreignKeyName: "nija_quota_alerts_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "nija_quota_alerts_office_id_fkey"
+            foreignKeyName: "nija_reviews_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_quota_alerts_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
             referencedColumns: ["id"]
           },
         ]
@@ -6264,23 +4486,23 @@ export type Database = {
         Row: {
           acting_side: string | null
           analysis_result: Json | null
-          attachments: Json
+          attachments: Json | null
           case_id: string | null
           client_name: string | null
           cnj_number: string | null
-          created_at: string
-          created_by: string
+          created_at: string | null
+          created_by: string | null
           document_ids: Json | null
           document_names: Json | null
           documents_hash: string | null
           extraction_result: Json | null
           id: string
           input_summary: string | null
-          mode: string
-          office_id: string
+          mode: string | null
+          office_id: string | null
           opponent_name: string | null
-          output_alerts: Json
-          output_checklist: Json
+          output_alerts: Json | null
+          output_checklist: Json | null
           output_draft: string | null
           status: string | null
           updated_at: string | null
@@ -6288,23 +4510,23 @@ export type Database = {
         Insert: {
           acting_side?: string | null
           analysis_result?: Json | null
-          attachments?: Json
+          attachments?: Json | null
           case_id?: string | null
           client_name?: string | null
           cnj_number?: string | null
-          created_at?: string
-          created_by: string
+          created_at?: string | null
+          created_by?: string | null
           document_ids?: Json | null
           document_names?: Json | null
           documents_hash?: string | null
           extraction_result?: Json | null
           id?: string
           input_summary?: string | null
-          mode?: string
-          office_id: string
+          mode?: string | null
+          office_id?: string | null
           opponent_name?: string | null
-          output_alerts?: Json
-          output_checklist?: Json
+          output_alerts?: Json | null
+          output_checklist?: Json | null
           output_draft?: string | null
           status?: string | null
           updated_at?: string | null
@@ -6312,389 +4534,256 @@ export type Database = {
         Update: {
           acting_side?: string | null
           analysis_result?: Json | null
-          attachments?: Json
+          attachments?: Json | null
           case_id?: string | null
           client_name?: string | null
           cnj_number?: string | null
-          created_at?: string
-          created_by?: string
+          created_at?: string | null
+          created_by?: string | null
           document_ids?: Json | null
           document_names?: Json | null
           documents_hash?: string | null
           extraction_result?: Json | null
           id?: string
           input_summary?: string | null
-          mode?: string
-          office_id?: string
+          mode?: string | null
+          office_id?: string | null
           opponent_name?: string | null
-          output_alerts?: Json
-          output_checklist?: Json
+          output_alerts?: Json | null
+          output_checklist?: Json | null
           output_draft?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      nija_tjto_document_dictionary: {
+        Row: {
+          active: boolean | null
+          category: string | null
+          code: string | null
+          created_at: string | null
+          id: string
+          label: string | null
+          legal_desc: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          category?: string | null
+          code?: string | null
+          created_at?: string | null
+          id?: string
+          label?: string | null
+          legal_desc?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          category?: string | null
+          code?: string | null
+          created_at?: string | null
+          id?: string
+          label?: string | null
+          legal_desc?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      nija_usage: {
+        Row: {
+          case_id: string | null
+          created_at: string | null
+          executed_by: string | null
+          id: string
+          module: string | null
+          office_id: string | null
+        }
+        Insert: {
+          case_id?: string | null
+          created_at?: string | null
+          executed_by?: string | null
+          id?: string
+          module?: string | null
+          office_id?: string | null
+        }
+        Update: {
+          case_id?: string | null
+          created_at?: string | null
+          executed_by?: string | null
+          id?: string
+          module?: string | null
+          office_id?: string | null
+        }
+        Relationships: []
+      }
+      office_ai_budgets: {
+        Row: {
+          anomaly_threshold_multiplier: number | null
+          created_at: string
+          daily_hard_cap: number
+          daily_token_cap: number
+          last_reset_date: string
+          last_reset_month: string
+          monthly_cap: number
+          office_id: string
+          override_by: string | null
+          override_expires_at: string | null
+          override_reason: string | null
+          tokens_used_month: number
+          tokens_used_today: number
+          updated_at: string
+          warn_threshold_pct: number
+          weekly_token_cap: number | null
+          weekly_tokens_used: number | null
+        }
+        Insert: {
+          anomaly_threshold_multiplier?: number | null
+          created_at?: string
+          daily_hard_cap?: number
+          daily_token_cap?: number
+          last_reset_date?: string
+          last_reset_month?: string
+          monthly_cap?: number
+          office_id: string
+          override_by?: string | null
+          override_expires_at?: string | null
+          override_reason?: string | null
+          tokens_used_month?: number
+          tokens_used_today?: number
+          updated_at?: string
+          warn_threshold_pct?: number
+          weekly_token_cap?: number | null
+          weekly_tokens_used?: number | null
+        }
+        Update: {
+          anomaly_threshold_multiplier?: number | null
+          created_at?: string
+          daily_hard_cap?: number
+          daily_token_cap?: number
+          last_reset_date?: string
+          last_reset_month?: string
+          monthly_cap?: number
+          office_id?: string
+          override_by?: string | null
+          override_expires_at?: string | null
+          override_reason?: string | null
+          tokens_used_month?: number
+          tokens_used_today?: number
+          updated_at?: string
+          warn_threshold_pct?: number
+          weekly_token_cap?: number | null
+          weekly_tokens_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "office_ai_budgets_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: true
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      office_ai_policies: {
+        Row: {
+          block_unreviewed_output: boolean
+          created_at: string
+          forensic_mode_enabled: boolean
+          id: string
+          low_temperature_mode: boolean
+          max_refinement_attempts: number
+          multi_stage_generation_enabled: boolean
+          office_id: string
+          strict_grammar_check: boolean
+          updated_at: string
+        }
+        Insert: {
+          block_unreviewed_output?: boolean
+          created_at?: string
+          forensic_mode_enabled?: boolean
+          id?: string
+          low_temperature_mode?: boolean
+          max_refinement_attempts?: number
+          multi_stage_generation_enabled?: boolean
+          office_id: string
+          strict_grammar_check?: boolean
+          updated_at?: string
+        }
+        Update: {
+          block_unreviewed_output?: boolean
+          created_at?: string
+          forensic_mode_enabled?: boolean
+          id?: string
+          low_temperature_mode?: boolean
+          max_refinement_attempts?: number
+          multi_stage_generation_enabled?: boolean
+          office_id?: string
+          strict_grammar_check?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "office_ai_policies_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: true
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      office_integrations: {
+        Row: {
+          access_token: string | null
+          calendar_id: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          last_error: string | null
+          office_id: string
+          provider: string
+          provider_account_email: string | null
+          refresh_token: string
+          scopes: Json | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          calendar_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          last_error?: string | null
+          office_id: string
+          provider: string
+          provider_account_email?: string | null
+          refresh_token: string
+          scopes?: Json | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          calendar_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          last_error?: string | null
+          office_id?: string
+          provider?: string
+          provider_account_email?: string | null
+          refresh_token?: string
+          scopes?: Json | null
           status?: string | null
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "nija_sessions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_sessions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_sessions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_sessions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_sessions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_sessions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "nija_sessions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_sessions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      nija_tjto_document_dictionary: {
-        Row: {
-          active: boolean
-          category: string
-          code: string
-          created_at: string
-          id: string
-          label: string
-          legal_desc: string
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          category: string
-          code: string
-          created_at?: string
-          id?: string
-          label: string
-          legal_desc: string
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          category?: string
-          code?: string
-          created_at?: string
-          id?: string
-          label?: string
-          legal_desc?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      nija_tjto_unknown_codes: {
-        Row: {
-          action_taken: string | null
-          case_id: string | null
-          code: string
-          created_at: string | null
-          id: string
-          office_id: string | null
-          raw_text: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          source_document: string | null
-        }
-        Insert: {
-          action_taken?: string | null
-          case_id?: string | null
-          code: string
-          created_at?: string | null
-          id?: string
-          office_id?: string | null
-          raw_text?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          source_document?: string | null
-        }
-        Update: {
-          action_taken?: string | null
-          case_id?: string | null
-          code?: string
-          created_at?: string | null
-          id?: string
-          office_id?: string | null
-          raw_text?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          source_document?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "nija_tjto_unknown_codes_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_tjto_unknown_codes_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_tjto_unknown_codes_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_tjto_unknown_codes_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_tjto_unknown_codes_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_tjto_unknown_codes_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "nija_tjto_unknown_codes_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_tjto_unknown_codes_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      nija_usage: {
-        Row: {
-          case_id: string | null
-          created_at: string
-          executed_by: string | null
-          id: string
-          module: string
-          office_id: string
-        }
-        Insert: {
-          case_id?: string | null
-          created_at?: string
-          executed_by?: string | null
-          id?: string
-          module: string
-          office_id: string
-        }
-        Update: {
-          case_id?: string | null
-          created_at?: string
-          executed_by?: string | null
-          id?: string
-          module?: string
-          office_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "nija_usage_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_usage_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_usage_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_usage_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_usage_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "nija_usage_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "nija_usage_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_usage_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      notifications: {
-        Row: {
-          body: string
-          created_at: string
-          id: string
-          is_read: boolean
-          kind: string
-          metadata: Json
-          office_id: string
-          read_at: string | null
-          title: string
-          user_id: string
-        }
-        Insert: {
-          body: string
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          kind: string
-          metadata?: Json
-          office_id: string
-          read_at?: string | null
-          title: string
-          user_id: string
-        }
-        Update: {
-          body?: string
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          kind?: string
-          metadata?: Json
-          office_id?: string
-          read_at?: string | null
-          title?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      office_integrations: {
-        Row: {
-          config: Json | null
-          created_at: string | null
-          created_by: string | null
-          id: string
-          integration_key: string
-          is_active: boolean | null
-          office_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          config?: Json | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          integration_key: string
-          is_active?: boolean | null
-          office_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          config?: Json | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          integration_key?: string
-          is_active?: boolean | null
-          office_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "office_integrations_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
             foreignKeyName: "office_integrations_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "office_integrations_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
             referencedColumns: ["id"]
           },
         ]
@@ -6703,65 +4792,43 @@ export type Database = {
         Row: {
           accepted_at: string | null
           accepted_by: string | null
-          created_at: string
+          created_at: string | null
           email: string | null
-          expires_at: string
+          expires_at: string | null
           id: string
-          invited_by: string
-          office_id: string
+          invited_by: string | null
+          office_id: string | null
           phone: string | null
-          role: string
-          token: string
+          role: string | null
+          token: string | null
         }
         Insert: {
           accepted_at?: string | null
           accepted_by?: string | null
-          created_at?: string
+          created_at?: string | null
           email?: string | null
-          expires_at?: string
+          expires_at?: string | null
           id?: string
-          invited_by: string
-          office_id: string
+          invited_by?: string | null
+          office_id?: string | null
           phone?: string | null
-          role?: string
-          token?: string
+          role?: string | null
+          token?: string | null
         }
         Update: {
           accepted_at?: string | null
           accepted_by?: string | null
-          created_at?: string
+          created_at?: string | null
           email?: string | null
-          expires_at?: string
+          expires_at?: string | null
           id?: string
-          invited_by?: string
-          office_id?: string
+          invited_by?: string | null
+          office_id?: string | null
           phone?: string | null
-          role?: string
-          token?: string
+          role?: string | null
+          token?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "office_invites_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "office_invites_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "office_invites_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       office_members: {
         Row: {
@@ -6772,22 +4839,22 @@ export type Database = {
           address_zip_code: string | null
           avatar_url: string | null
           cpf: string | null
-          created_at: string
+          created_at: string | null
           email: string | null
           full_name: string | null
           id: string
-          is_active: boolean
+          is_active: boolean | null
           marital_status: string | null
           nationality: string | null
           oab_number: string | null
           oab_uf: string | null
-          office_id: string
+          office_id: string | null
           phone: string | null
           profession: string | null
           rg: string | null
           rg_issuer: string | null
-          role: string
-          user_id: string
+          role: string | null
+          user_id: string | null
         }
         Insert: {
           address_city?: string | null
@@ -6797,22 +4864,22 @@ export type Database = {
           address_zip_code?: string | null
           avatar_url?: string | null
           cpf?: string | null
-          created_at?: string
+          created_at?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
-          is_active?: boolean
+          is_active?: boolean | null
           marital_status?: string | null
           nationality?: string | null
           oab_number?: string | null
           oab_uf?: string | null
-          office_id: string
+          office_id?: string | null
           phone?: string | null
           profession?: string | null
           rg?: string | null
           rg_issuer?: string | null
-          role?: string
-          user_id: string
+          role?: string | null
+          user_id?: string | null
         }
         Update: {
           address_city?: string | null
@@ -6822,288 +4889,175 @@ export type Database = {
           address_zip_code?: string | null
           avatar_url?: string | null
           cpf?: string | null
-          created_at?: string
+          created_at?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
-          is_active?: boolean
+          is_active?: boolean | null
           marital_status?: string | null
           nationality?: string | null
           oab_number?: string | null
           oab_uf?: string | null
-          office_id?: string
+          office_id?: string | null
           phone?: string | null
           profession?: string | null
           rg?: string | null
           rg_issuer?: string | null
-          role?: string
-          user_id?: string
+          role?: string | null
+          user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "office_members_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "office_members_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "office_members_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       office_onboarding_steps: {
         Row: {
           completed: boolean | null
-          completed_at: string | null
+          created_at: string | null
           id: string
-          office_id: string | null
+          office_id: string
           step_key: string
+          updated_at: string | null
         }
         Insert: {
           completed?: boolean | null
-          completed_at?: string | null
+          created_at?: string | null
           id?: string
-          office_id?: string | null
+          office_id: string
           step_key: string
+          updated_at?: string | null
         }
         Update: {
           completed?: boolean | null
-          completed_at?: string | null
+          created_at?: string | null
           id?: string
-          office_id?: string | null
-          step_key?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "office_onboarding_steps_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "office_onboarding_steps_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "office_onboarding_steps_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      office_plans: {
-        Row: {
-          code: string
-          created_at: string
-          is_active: boolean
-          name: string
-          nija_monthly_limit: number
-        }
-        Insert: {
-          code: string
-          created_at?: string
-          is_active?: boolean
-          name: string
-          nija_monthly_limit: number
-        }
-        Update: {
-          code?: string
-          created_at?: string
-          is_active?: boolean
-          name?: string
-          nija_monthly_limit?: number
-        }
-        Relationships: []
-      }
-      office_quotas: {
-        Row: {
-          ai_requests_limit: number
-          ai_requests_used: number
-          docs_gen_limit: number
-          docs_gen_used: number
-          office_id: string
-          storage_mb_limit: number
-          storage_mb_used: number
-          updated_at: string
-        }
-        Insert: {
-          ai_requests_limit?: number
-          ai_requests_used?: number
-          docs_gen_limit?: number
-          docs_gen_used?: number
-          office_id: string
-          storage_mb_limit?: number
-          storage_mb_used?: number
-          updated_at?: string
-        }
-        Update: {
-          ai_requests_limit?: number
-          ai_requests_used?: number
-          docs_gen_limit?: number
-          docs_gen_used?: number
           office_id?: string
-          storage_mb_limit?: number
-          storage_mb_used?: number
-          updated_at?: string
+          step_key?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "office_quotas_office_id_fkey"
+            foreignKeyName: "office_onboarding_steps_office_id_fkey"
             columns: ["office_id"]
-            isOneToOne: true
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "office_quotas_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "office_quotas_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: true
-            referencedRelation: "vw_office_institutional_data"
             referencedColumns: ["id"]
           },
         ]
       }
       office_settings: {
         Row: {
-          created_at: string
-          knowledge_cache_ttl_minutes: number
-          nija_soft_limit_pct: number
-          office_id: string
-          plan_code: string
-          precedents_limit: number
-          prefer_curated: boolean
-          updated_at: string
-          videos_limit: number
+          created_at: string | null
+          knowledge_cache_ttl_minutes: number | null
+          nija_soft_limit_pct: number | null
+          office_id: string | null
+          plan_code: string | null
+          precedents_limit: number | null
+          prefer_curated: boolean | null
+          updated_at: string | null
+          videos_limit: number | null
         }
         Insert: {
-          created_at?: string
-          knowledge_cache_ttl_minutes?: number
-          nija_soft_limit_pct?: number
-          office_id: string
-          plan_code: string
-          precedents_limit?: number
-          prefer_curated?: boolean
-          updated_at?: string
-          videos_limit?: number
+          created_at?: string | null
+          knowledge_cache_ttl_minutes?: number | null
+          nija_soft_limit_pct?: number | null
+          office_id?: string | null
+          plan_code?: string | null
+          precedents_limit?: number | null
+          prefer_curated?: boolean | null
+          updated_at?: string | null
+          videos_limit?: number | null
         }
         Update: {
-          created_at?: string
-          knowledge_cache_ttl_minutes?: number
-          nija_soft_limit_pct?: number
-          office_id?: string
-          plan_code?: string
-          precedents_limit?: number
-          prefer_curated?: boolean
-          updated_at?: string
-          videos_limit?: number
+          created_at?: string | null
+          knowledge_cache_ttl_minutes?: number | null
+          nija_soft_limit_pct?: number | null
+          office_id?: string | null
+          plan_code?: string | null
+          precedents_limit?: number | null
+          prefer_curated?: boolean | null
+          updated_at?: string | null
+          videos_limit?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "office_settings_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: true
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "office_settings_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: true
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "office_settings_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: true
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "office_settings_plan_code_fkey"
-            columns: ["plan_code"]
-            isOneToOne: false
-            referencedRelation: "office_plans"
-            referencedColumns: ["code"]
-          },
-        ]
+        Relationships: []
       }
       office_ui_settings: {
         Row: {
-          accent: string
-          office_id: string
-          sidebar_logo_scale: number
-          ui_density: string
-          ui_font: string
-          ui_scale: number
-          updated_at: string
+          accent: string | null
+          office_id: string | null
+          sidebar_logo_scale: number | null
+          ui_density: string | null
+          ui_font: string | null
+          ui_scale: number | null
+          updated_at: string | null
           updated_by: string | null
         }
         Insert: {
-          accent?: string
-          office_id: string
-          sidebar_logo_scale?: number
-          ui_density?: string
-          ui_font?: string
-          ui_scale?: number
-          updated_at?: string
+          accent?: string | null
+          office_id?: string | null
+          sidebar_logo_scale?: number | null
+          ui_density?: string | null
+          ui_font?: string | null
+          ui_scale?: number | null
+          updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
-          accent?: string
-          office_id?: string
-          sidebar_logo_scale?: number
-          ui_density?: string
-          ui_font?: string
-          ui_scale?: number
-          updated_at?: string
+          accent?: string | null
+          office_id?: string | null
+          sidebar_logo_scale?: number | null
+          ui_density?: string | null
+          ui_font?: string | null
+          ui_scale?: number | null
+          updated_at?: string | null
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      office_units: {
+        Row: {
+          address_line: string | null
+          city: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          office_id: string
+          state: string | null
+          unit_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address_line?: string | null
+          city?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          office_id: string
+          state?: string | null
+          unit_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address_line?: string | null
+          city?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          office_id?: string
+          state?: string | null
+          unit_type?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "office_ui_settings_office_id_fkey"
+            foreignKeyName: "office_units_office_id_fkey"
             columns: ["office_id"]
-            isOneToOne: true
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "office_ui_settings_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "office_ui_settings_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: true
-            referencedRelation: "vw_office_institutional_data"
             referencedColumns: ["id"]
           },
         ]
@@ -7116,22 +5070,25 @@ export type Database = {
           address_state: string | null
           address_street: string | null
           address_zip_code: string | null
+          branding: Json | null
           city: string | null
           cnpj: string | null
           contact_email: string | null
           contact_phone: string | null
-          created_at: string
-          created_by: string
+          created_at: string | null
+          created_by: string | null
           header_block: string | null
           id: string
           instagram_handle: string | null
+          institutional_notes: string | null
+          legal_name: string | null
           logo_storage_bucket: string | null
           logo_storage_path: string | null
           metadata: Json | null
-          name: string
-          nija_limit_monthly: number
-          nija_runs_monthly: number
-          nija_runs_reset_at: string
+          name: string | null
+          nija_limit_monthly: number | null
+          nija_runs_monthly: number | null
+          nija_runs_reset_at: string | null
           oab_number: string | null
           oab_sociedade: string | null
           oab_uf: string | null
@@ -7155,22 +5112,25 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zip_code?: string | null
+          branding?: Json | null
           city?: string | null
           cnpj?: string | null
           contact_email?: string | null
           contact_phone?: string | null
-          created_at?: string
-          created_by: string
+          created_at?: string | null
+          created_by?: string | null
           header_block?: string | null
           id?: string
           instagram_handle?: string | null
+          institutional_notes?: string | null
+          legal_name?: string | null
           logo_storage_bucket?: string | null
           logo_storage_path?: string | null
           metadata?: Json | null
-          name: string
-          nija_limit_monthly?: number
-          nija_runs_monthly?: number
-          nija_runs_reset_at?: string
+          name?: string | null
+          nija_limit_monthly?: number | null
+          nija_runs_monthly?: number | null
+          nija_runs_reset_at?: string | null
           oab_number?: string | null
           oab_sociedade?: string | null
           oab_uf?: string | null
@@ -7194,22 +5154,25 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zip_code?: string | null
+          branding?: Json | null
           city?: string | null
           cnpj?: string | null
           contact_email?: string | null
           contact_phone?: string | null
-          created_at?: string
-          created_by?: string
+          created_at?: string | null
+          created_by?: string | null
           header_block?: string | null
           id?: string
           instagram_handle?: string | null
+          institutional_notes?: string | null
+          legal_name?: string | null
           logo_storage_bucket?: string | null
           logo_storage_path?: string | null
           metadata?: Json | null
-          name?: string
-          nija_limit_monthly?: number
-          nija_runs_monthly?: number
-          nija_runs_reset_at?: string
+          name?: string | null
+          nija_limit_monthly?: number | null
+          nija_runs_monthly?: number | null
+          nija_runs_reset_at?: string | null
           oab_number?: string | null
           oab_sociedade?: string | null
           oab_uf?: string | null
@@ -7228,53 +5191,189 @@ export type Database = {
         }
         Relationships: []
       }
-      omni_trace_events: {
+      operator_action_log: {
         Row: {
-          asset_id: string | null
-          case_id: string | null
+          action_type: string
           created_at: string
-          created_by: string
-          decision: string
+          error_detail: string | null
+          execution_result: string
           id: string
-          input_hash: string | null
-          metadata: Json
-          office_id: string
-          rationale: Json
-          source: string
-          summary: string | null
-          title: string | null
+          idempotency_key: string | null
+          justification: string | null
+          office_id: string | null
+          operator_id: string
+          operator_role: string
+          rejection_reason: string | null
+          target_resource_id: string | null
+          target_resource_type: string | null
+          trace_id: string | null
         }
         Insert: {
-          asset_id?: string | null
-          case_id?: string | null
+          action_type: string
           created_at?: string
-          created_by?: string
-          decision: string
+          error_detail?: string | null
+          execution_result: string
           id?: string
-          input_hash?: string | null
-          metadata?: Json
-          office_id: string
-          rationale?: Json
-          source?: string
-          summary?: string | null
-          title?: string | null
+          idempotency_key?: string | null
+          justification?: string | null
+          office_id?: string | null
+          operator_id: string
+          operator_role: string
+          rejection_reason?: string | null
+          target_resource_id?: string | null
+          target_resource_type?: string | null
+          trace_id?: string | null
         }
         Update: {
-          asset_id?: string | null
-          case_id?: string | null
+          action_type?: string
           created_at?: string
-          created_by?: string
-          decision?: string
+          error_detail?: string | null
+          execution_result?: string
           id?: string
-          input_hash?: string | null
-          metadata?: Json
-          office_id?: string
-          rationale?: Json
-          source?: string
-          summary?: string | null
-          title?: string | null
+          idempotency_key?: string | null
+          justification?: string | null
+          office_id?: string | null
+          operator_id?: string
+          operator_role?: string
+          rejection_reason?: string | null
+          target_resource_id?: string | null
+          target_resource_type?: string | null
+          trace_id?: string | null
         }
         Relationships: []
+      }
+      pacientes: {
+        Row: {
+          ai_extracted: boolean | null
+          client_id: string | null
+          cnpj: string | null
+          cpf: string | null
+          created_at: string | null
+          created_by: string | null
+          data_nascimento: string | null
+          email: string | null
+          endereco: string | null
+          id: string
+          lgpd_consent: boolean | null
+          lgpd_consent_at: string | null
+          marital_status: string | null
+          metadata: Json | null
+          nationality: string | null
+          nome: string
+          office_id: string
+          person_type: string | null
+          profession: string | null
+          representative_cpf: string | null
+          representative_marital_status: string | null
+          representative_name: string | null
+          representative_nationality: string | null
+          representative_profession: string | null
+          representative_rg: string | null
+          representative_rg_issuer: string | null
+          rg: string | null
+          rg_issuer: string | null
+          sexo: string | null
+          source: string | null
+          status: string | null
+          telefone: string | null
+          trade_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_extracted?: boolean | null
+          client_id?: string | null
+          cnpj?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          data_nascimento?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          lgpd_consent?: boolean | null
+          lgpd_consent_at?: string | null
+          marital_status?: string | null
+          metadata?: Json | null
+          nationality?: string | null
+          nome: string
+          office_id: string
+          person_type?: string | null
+          profession?: string | null
+          representative_cpf?: string | null
+          representative_marital_status?: string | null
+          representative_name?: string | null
+          representative_nationality?: string | null
+          representative_profession?: string | null
+          representative_rg?: string | null
+          representative_rg_issuer?: string | null
+          rg?: string | null
+          rg_issuer?: string | null
+          sexo?: string | null
+          source?: string | null
+          status?: string | null
+          telefone?: string | null
+          trade_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_extracted?: boolean | null
+          client_id?: string | null
+          cnpj?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          data_nascimento?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          lgpd_consent?: boolean | null
+          lgpd_consent_at?: string | null
+          marital_status?: string | null
+          metadata?: Json | null
+          nationality?: string | null
+          nome?: string
+          office_id?: string
+          person_type?: string | null
+          profession?: string | null
+          representative_cpf?: string | null
+          representative_marital_status?: string | null
+          representative_name?: string | null
+          representative_nationality?: string | null
+          representative_profession?: string | null
+          representative_rg?: string | null
+          representative_rg_issuer?: string | null
+          rg?: string | null
+          rg_issuer?: string | null
+          sexo?: string | null
+          source?: string | null
+          status?: string | null
+          telefone?: string | null
+          trade_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pacientes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pacientes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_signatures"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "pacientes_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       plaud_analysis_jobs: {
         Row: {
@@ -7283,8 +5382,8 @@ export type Database = {
           error: string | null
           finished_at: string | null
           id: string
-          office_id: string
-          plaud_asset_id: string
+          office_id: string | null
+          plaud_asset_id: string | null
           started_at: string | null
           status: string | null
         }
@@ -7294,8 +5393,8 @@ export type Database = {
           error?: string | null
           finished_at?: string | null
           id?: string
-          office_id: string
-          plaud_asset_id: string
+          office_id?: string | null
+          plaud_asset_id?: string | null
           started_at?: string | null
           status?: string | null
         }
@@ -7305,353 +5404,501 @@ export type Database = {
           error?: string | null
           finished_at?: string | null
           id?: string
-          office_id?: string
-          plaud_asset_id?: string
+          office_id?: string | null
+          plaud_asset_id?: string | null
           started_at?: string | null
           status?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "plaud_analysis_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "plaud_analysis_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "plaud_analysis_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "plaud_analysis_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "plaud_analysis_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "plaud_analysis_jobs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "plaud_analysis_jobs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "plaud_analysis_jobs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "plaud_analysis_jobs_plaud_asset_id_fkey"
-            columns: ["plaud_asset_id"]
-            isOneToOne: true
-            referencedRelation: "plaud_assets"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       plaud_asset_analysis: {
         Row: {
-          analysis: Json
+          analysis: Json | null
           created_at: string | null
           id: string
           model_used: string | null
-          plaud_asset_id: string
+          plaud_asset_id: string | null
           tokens_used: number | null
         }
         Insert: {
-          analysis?: Json
+          analysis?: Json | null
           created_at?: string | null
           id?: string
           model_used?: string | null
-          plaud_asset_id: string
+          plaud_asset_id?: string | null
           tokens_used?: number | null
         }
         Update: {
-          analysis?: Json
+          analysis?: Json | null
           created_at?: string | null
           id?: string
           model_used?: string | null
-          plaud_asset_id?: string
+          plaud_asset_id?: string | null
           tokens_used?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "plaud_asset_analysis_plaud_asset_id_fkey"
-            columns: ["plaud_asset_id"]
-            isOneToOne: true
-            referencedRelation: "plaud_assets"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       plaud_assets: {
         Row: {
           assigned_to: string | null
           audio_url: string | null
           case_id: string | null
-          created_at: string
+          created_at: string | null
           created_at_source: string | null
           created_by: string | null
           duration: number | null
-          external_id: string
+          external_id: string | null
           id: string
-          is_office_visible: boolean
+          is_office_visible: boolean | null
           language: string | null
           linked_at: string | null
           linked_by: string | null
           occurred_at: string | null
-          office_id: string
-          raw: Json
+          office_id: string | null
+          raw: Json | null
           received_at: string | null
-          source: string
+          source: string | null
           summary: string | null
           title: string | null
           transcript: string | null
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           assigned_to?: string | null
           audio_url?: string | null
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           created_at_source?: string | null
           created_by?: string | null
           duration?: number | null
-          external_id: string
+          external_id?: string | null
           id?: string
-          is_office_visible?: boolean
+          is_office_visible?: boolean | null
           language?: string | null
           linked_at?: string | null
           linked_by?: string | null
           occurred_at?: string | null
-          office_id: string
-          raw?: Json
+          office_id?: string | null
+          raw?: Json | null
           received_at?: string | null
-          source?: string
+          source?: string | null
           summary?: string | null
           title?: string | null
           transcript?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           assigned_to?: string | null
           audio_url?: string | null
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           created_at_source?: string | null
           created_by?: string | null
           duration?: number | null
-          external_id?: string
+          external_id?: string | null
           id?: string
-          is_office_visible?: boolean
+          is_office_visible?: boolean | null
           language?: string | null
           linked_at?: string | null
           linked_by?: string | null
           occurred_at?: string | null
-          office_id?: string
-          raw?: Json
+          office_id?: string | null
+          raw?: Json | null
           received_at?: string | null
-          source?: string
+          source?: string | null
           summary?: string | null
           title?: string | null
           transcript?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
       plaud_senior_analysis: {
         Row: {
           case_id: string | null
-          checklist: Json
+          checklist: Json | null
           consequencia_juridica: string | null
           created_at: string | null
-          decisao_estrategica: string
+          decisao_estrategica: string | null
           fase_processual: string | null
           fato_central: string | null
           fundamento_legal: string | null
           id: string
           justificativa_silencio: string | null
           model_version: string | null
-          office_id: string
+          office_id: string | null
           peca_sugerida: string | null
-          plaud_asset_id: string
+          plaud_asset_id: string | null
           risco_preclusao: string | null
-          status_juridico: string
+          status_juridico: string | null
           tipo_ato: string | null
           tokens_used: number | null
           updated_at: string | null
         }
         Insert: {
           case_id?: string | null
-          checklist?: Json
+          checklist?: Json | null
           consequencia_juridica?: string | null
           created_at?: string | null
-          decisao_estrategica: string
+          decisao_estrategica?: string | null
           fase_processual?: string | null
           fato_central?: string | null
           fundamento_legal?: string | null
           id?: string
           justificativa_silencio?: string | null
           model_version?: string | null
-          office_id: string
+          office_id?: string | null
           peca_sugerida?: string | null
-          plaud_asset_id: string
+          plaud_asset_id?: string | null
           risco_preclusao?: string | null
-          status_juridico?: string
+          status_juridico?: string | null
           tipo_ato?: string | null
           tokens_used?: number | null
           updated_at?: string | null
         }
         Update: {
           case_id?: string | null
-          checklist?: Json
+          checklist?: Json | null
           consequencia_juridica?: string | null
           created_at?: string | null
-          decisao_estrategica?: string
+          decisao_estrategica?: string | null
           fase_processual?: string | null
           fato_central?: string | null
           fundamento_legal?: string | null
           id?: string
           justificativa_silencio?: string | null
           model_version?: string | null
-          office_id?: string
+          office_id?: string | null
           peca_sugerida?: string | null
-          plaud_asset_id?: string
+          plaud_asset_id?: string | null
           risco_preclusao?: string | null
-          status_juridico?: string
+          status_juridico?: string | null
           tipo_ato?: string | null
           tokens_used?: number | null
           updated_at?: string | null
         }
+        Relationships: []
+      }
+      process_dossiers: {
+        Row: {
+          case_id: string | null
+          config_fallback_used: boolean | null
+          config_resolver_id: string | null
+          config_resolver_source: string | null
+          config_resolver_version: number | null
+          created_at: string | null
+          documentos_utilizados: string[] | null
+          drafting_readiness_status: string | null
+          estrategias: Json | null
+          evidence_inventory: string | null
+          fase_processual: string | null
+          fato_prova_map: Json | null
+          full_analysis: Json
+          grau_risco: string | null
+          id: string
+          lacunas_detectadas: Json | null
+          office_id: string | null
+          pedidos_estruturados: Json | null
+          polo: string | null
+          provas: Json | null
+          ramo: string | null
+          resumo_tatico: Json | null
+          sugestao_peca: Json | null
+          timeline_factual: Json | null
+          timeline_processual: Json | null
+          updated_at: string | null
+          version: number
+          vicios: Json | null
+        }
+        Insert: {
+          case_id?: string | null
+          config_fallback_used?: boolean | null
+          config_resolver_id?: string | null
+          config_resolver_source?: string | null
+          config_resolver_version?: number | null
+          created_at?: string | null
+          documentos_utilizados?: string[] | null
+          drafting_readiness_status?: string | null
+          estrategias?: Json | null
+          evidence_inventory?: string | null
+          fase_processual?: string | null
+          fato_prova_map?: Json | null
+          full_analysis?: Json
+          grau_risco?: string | null
+          id?: string
+          lacunas_detectadas?: Json | null
+          office_id?: string | null
+          pedidos_estruturados?: Json | null
+          polo?: string | null
+          provas?: Json | null
+          ramo?: string | null
+          resumo_tatico?: Json | null
+          sugestao_peca?: Json | null
+          timeline_factual?: Json | null
+          timeline_processual?: Json | null
+          updated_at?: string | null
+          version?: number
+          vicios?: Json | null
+        }
+        Update: {
+          case_id?: string | null
+          config_fallback_used?: boolean | null
+          config_resolver_id?: string | null
+          config_resolver_source?: string | null
+          config_resolver_version?: number | null
+          created_at?: string | null
+          documentos_utilizados?: string[] | null
+          drafting_readiness_status?: string | null
+          estrategias?: Json | null
+          evidence_inventory?: string | null
+          fase_processual?: string | null
+          fato_prova_map?: Json | null
+          full_analysis?: Json
+          grau_risco?: string | null
+          id?: string
+          lacunas_detectadas?: Json | null
+          office_id?: string | null
+          pedidos_estruturados?: Json | null
+          polo?: string | null
+          provas?: Json | null
+          ramo?: string | null
+          resumo_tatico?: Json | null
+          sugestao_peca?: Json | null
+          timeline_factual?: Json | null
+          timeline_processual?: Json | null
+          updated_at?: string | null
+          version?: number
+          vicios?: Json | null
+        }
         Relationships: [
           {
-            foreignKeyName: "plaud_senior_analysis_case_id_fkey"
+            foreignKeyName: "process_dossiers_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "cases"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "plaud_senior_analysis_case_id_fkey"
-            columns: ["case_id"]
+            foreignKeyName: "process_dossiers_config_resolver_id_fkey"
+            columns: ["config_resolver_id"]
             isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "plaud_senior_analysis_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
+            referencedRelation: "ai_agent_configs"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "plaud_senior_analysis_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "plaud_senior_analysis_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "plaud_senior_analysis_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "plaud_senior_analysis_office_id_fkey"
+            foreignKeyName: "process_dossiers_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      production_readiness_checks: {
+        Row: {
+          category: string
+          check_name: string
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          is_blocking: boolean
+          threshold: number | null
+          threshold_unit: string | null
+        }
+        Insert: {
+          category: string
+          check_name: string
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean
+          is_blocking?: boolean
+          threshold?: number | null
+          threshold_unit?: string | null
+        }
+        Update: {
+          category?: string
+          check_name?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          is_blocking?: boolean
+          threshold?: number | null
+          threshold_unit?: string | null
+        }
+        Relationships: []
+      }
+      production_readiness_runs: {
+        Row: {
+          all_results: Json
+          blocking_failures: Json
+          check_count: number
+          failed_count: number
+          id: string
+          overall_passing: boolean
+          ran_at: string
+          triggered_by: string
+          warning_failures: Json
+        }
+        Insert: {
+          all_results?: Json
+          blocking_failures?: Json
+          check_count?: number
+          failed_count?: number
+          id?: string
+          overall_passing: boolean
+          ran_at?: string
+          triggered_by?: string
+          warning_failures?: Json
+        }
+        Update: {
+          all_results?: Json
+          blocking_failures?: Json
+          check_count?: number
+          failed_count?: number
+          id?: string
+          overall_passing?: boolean
+          ran_at?: string
+          triggered_by?: string
+          warning_failures?: Json
+        }
+        Relationships: []
+      }
+      profile_professional_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          ident_number: string | null
+          ident_type: string | null
+          ident_uf: string | null
+          legal_specific: Json | null
+          medical_specific: Json | null
+          office_id: string
+          professional_name: string | null
+          signatures: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ident_number?: string | null
+          ident_type?: string | null
+          ident_uf?: string | null
+          legal_specific?: Json | null
+          medical_specific?: Json | null
+          office_id: string
+          professional_name?: string | null
+          signatures?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ident_number?: string | null
+          ident_type?: string | null
+          ident_uf?: string | null
+          legal_specific?: Json | null
+          medical_specific?: Json | null
+          office_id?: string
+          professional_name?: string | null
+          signatures?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: "plaud_senior_analysis_office_id_fkey"
+            foreignKeyName: "profile_professional_settings_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "plaud_senior_analysis_plaud_asset_id_fkey"
-            columns: ["plaud_asset_id"]
-            isOneToOne: true
-            referencedRelation: "plaud_assets"
+            referencedRelation: "offices"
             referencedColumns: ["id"]
           },
         ]
       }
-      plaud_webhook_events: {
+      protocolos_terapeuticos: {
         Row: {
-          error: string | null
-          event_id: string
-          event_type: string
+          ativo: boolean | null
+          categoria: string | null
+          condicao: string
+          conteudo: Json | null
+          created_at: string | null
+          descricao: string | null
           id: string
-          office_id: string | null
-          payload: Json
-          processed_at: string | null
-          provider: string
-          received_at: string
-          status: string
+          nivel_evidencia: string | null
+          office_id: string
+          titulo: string
+          updated_at: string | null
         }
         Insert: {
-          error?: string | null
-          event_id: string
-          event_type: string
+          ativo?: boolean | null
+          categoria?: string | null
+          condicao: string
+          conteudo?: Json | null
+          created_at?: string | null
+          descricao?: string | null
           id?: string
-          office_id?: string | null
-          payload: Json
-          processed_at?: string | null
-          provider?: string
-          received_at?: string
-          status?: string
+          nivel_evidencia?: string | null
+          office_id: string
+          titulo: string
+          updated_at?: string | null
         }
         Update: {
-          error?: string | null
-          event_id?: string
-          event_type?: string
+          ativo?: boolean | null
+          categoria?: string | null
+          condicao?: string
+          conteudo?: Json | null
+          created_at?: string | null
+          descricao?: string | null
           id?: string
-          office_id?: string | null
-          payload?: Json
-          processed_at?: string | null
-          provider?: string
-          received_at?: string
-          status?: string
+          nivel_evidencia?: string | null
+          office_id?: string
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protocolos_terapeuticos_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rate_limit_buckets: {
+        Row: {
+          action: string
+          blocked_at: string | null
+          count: number
+          created_at: string
+          id: string
+          scope_id: string
+          scope_type: string
+          window_start: string
+        }
+        Insert: {
+          action: string
+          blocked_at?: string | null
+          count?: number
+          created_at?: string
+          id?: string
+          scope_id: string
+          scope_type: string
+          window_start?: string
+        }
+        Update: {
+          action?: string
+          blocked_at?: string | null
+          count?: number
+          created_at?: string
+          id?: string
+          scope_id?: string
+          scope_type?: string
+          window_start?: string
         }
         Relationships: []
       }
@@ -7659,682 +5906,1177 @@ export type Database = {
         Row: {
           audit_snapshot_id: string | null
           completed_at: string | null
-          created_at: string
-          created_by: string
+          created_at: string | null
+          created_by: string | null
           error_message: string | null
           frontend_snapshot_id: string | null
           functions_sql: string | null
           id: string
-          mode: string
-          office_id: string
+          mode: string | null
+          office_id: string | null
           rebuild_plan_md: string | null
           rls_sql: string | null
           schema_sql: string | null
-          status: string
+          status: string | null
         }
         Insert: {
           audit_snapshot_id?: string | null
           completed_at?: string | null
-          created_at?: string
-          created_by: string
+          created_at?: string | null
+          created_by?: string | null
           error_message?: string | null
           frontend_snapshot_id?: string | null
           functions_sql?: string | null
           id?: string
-          mode?: string
-          office_id: string
+          mode?: string | null
+          office_id?: string | null
           rebuild_plan_md?: string | null
           rls_sql?: string | null
           schema_sql?: string | null
-          status?: string
+          status?: string | null
         }
         Update: {
           audit_snapshot_id?: string | null
           completed_at?: string | null
-          created_at?: string
-          created_by?: string
+          created_at?: string | null
+          created_by?: string | null
           error_message?: string | null
           frontend_snapshot_id?: string | null
           functions_sql?: string | null
           id?: string
-          mode?: string
-          office_id?: string
+          mode?: string | null
+          office_id?: string | null
           rebuild_plan_md?: string | null
           rls_sql?: string | null
           schema_sql?: string | null
-          status?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
+      receitas_dietas: {
+        Row: {
+          created_at: string | null
+          descricao: string | null
+          id: string
+          itens: Json | null
+          office_id: string
+          orientacoes: string | null
+          patient_id: string
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          itens?: Json | null
+          office_id: string
+          orientacoes?: string | null
+          patient_id: string
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          itens?: Json | null
+          office_id?: string
+          orientacoes?: string | null
+          patient_id?: string
+          titulo?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "rebuild_jobs_audit_snapshot_id_fkey"
-            columns: ["audit_snapshot_id"]
-            isOneToOne: false
-            referencedRelation: "audit_snapshots"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rebuild_jobs_frontend_snapshot_id_fkey"
-            columns: ["frontend_snapshot_id"]
-            isOneToOne: false
-            referencedRelation: "frontend_audit_snapshots"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rebuild_jobs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "rebuild_jobs_office_id_fkey"
+            foreignKeyName: "receitas_dietas_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "rebuild_jobs_office_id_fkey"
-            columns: ["office_id"]
+            foreignKeyName: "receitas_dietas_patient_id_fkey"
+            columns: ["patient_id"]
             isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
+            referencedRelation: "pacientes"
             referencedColumns: ["id"]
           },
         ]
       }
-      security_checklist: {
+      saas_quotas: {
         Row: {
-          key: string
-          notes: string | null
-          status: string
-          title: string
+          billing_cycle_end: string
+          billing_cycle_start: string
+          created_at: string
+          forensic_reviews_count: number | null
+          id: string
+          legal_pieces_limit: number
+          legal_pieces_used: number
+          medical_analysis_limit: number
+          medical_analysis_used: number
+          office_id: string
+          refinement_cycles_count: number | null
           updated_at: string
         }
         Insert: {
-          key: string
-          notes?: string | null
-          status?: string
-          title: string
+          billing_cycle_end?: string
+          billing_cycle_start?: string
+          created_at?: string
+          forensic_reviews_count?: number | null
+          id?: string
+          legal_pieces_limit?: number
+          legal_pieces_used?: number
+          medical_analysis_limit?: number
+          medical_analysis_used?: number
+          office_id: string
+          refinement_cycles_count?: number | null
           updated_at?: string
         }
         Update: {
-          key?: string
-          notes?: string | null
-          status?: string
-          title?: string
+          billing_cycle_end?: string
+          billing_cycle_start?: string
+          created_at?: string
+          forensic_reviews_count?: number | null
+          id?: string
+          legal_pieces_limit?: number
+          legal_pieces_used?: number
+          medical_analysis_limit?: number
+          medical_analysis_used?: number
+          office_id?: string
+          refinement_cycles_count?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "saas_quotas_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: true
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      security_events: {
+      session_audit_logs: {
         Row: {
-          created_at: string
-          description: string | null
-          details: Json
-          event_type: string
-          id: number
-          office_id: string | null
-          source: string
-          user_id: string | null
+          action: string
+          created_at: string | null
+          execution_context: string | null
+          id: string
+          metadata: Json | null
+          new_value: Json | null
+          office_id: string
+          old_value: Json | null
+          performed_by: string | null
+          resource_id: string
+          resource_type: string
+          session_id: string | null
+          trigger_source: string | null
         }
         Insert: {
-          created_at?: string
-          description?: string | null
-          details?: Json
-          event_type: string
-          id?: number
-          office_id?: string | null
-          source: string
-          user_id?: string | null
+          action: string
+          created_at?: string | null
+          execution_context?: string | null
+          id?: string
+          metadata?: Json | null
+          new_value?: Json | null
+          office_id: string
+          old_value?: Json | null
+          performed_by?: string | null
+          resource_id: string
+          resource_type: string
+          session_id?: string | null
+          trigger_source?: string | null
         }
         Update: {
-          created_at?: string
-          description?: string | null
-          details?: Json
-          event_type?: string
-          id?: number
-          office_id?: string | null
-          source?: string
-          user_id?: string | null
+          action?: string
+          created_at?: string | null
+          execution_context?: string | null
+          id?: string
+          metadata?: Json | null
+          new_value?: Json | null
+          office_id?: string
+          old_value?: Json | null
+          performed_by?: string | null
+          resource_id?: string
+          resource_type?: string
+          session_id?: string | null
+          trigger_source?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "session_audit_logs_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_audit_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_audit_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "vw_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      security_findings: {
+      session_context_sources: {
         Row: {
-          created_at: string
-          id: number
-          kind: string
-          note: string
-          object_name: string
-          severity: string
+          content_snapshot: string | null
+          context_version: number
+          id: string
+          included_at: string | null
+          included_by: string | null
+          relevance_score: number | null
+          session_id: string
+          source_hash: string | null
+          source_id: string | null
+          source_type: Database["public"]["Enums"]["context_source_type"]
         }
         Insert: {
-          created_at?: string
-          id?: number
-          kind: string
-          note: string
-          object_name: string
-          severity: string
+          content_snapshot?: string | null
+          context_version?: number
+          id?: string
+          included_at?: string | null
+          included_by?: string | null
+          relevance_score?: number | null
+          session_id: string
+          source_hash?: string | null
+          source_id?: string | null
+          source_type: Database["public"]["Enums"]["context_source_type"]
         }
         Update: {
+          content_snapshot?: string | null
+          context_version?: number
+          id?: string
+          included_at?: string | null
+          included_by?: string | null
+          relevance_score?: number | null
+          session_id?: string
+          source_hash?: string | null
+          source_id?: string | null
+          source_type?: Database["public"]["Enums"]["context_source_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_context_sources_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_context_sources_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "vw_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_context_versions: {
+        Row: {
+          context_hash: string
+          context_snapshot: Json
+          created_at: string | null
+          id: string
+          session_id: string
+          version_number: number
+        }
+        Insert: {
+          context_hash: string
+          context_snapshot: Json
+          created_at?: string | null
+          id?: string
+          session_id: string
+          version_number: number
+        }
+        Update: {
+          context_hash?: string
+          context_snapshot?: Json
+          created_at?: string | null
+          id?: string
+          session_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_context_versions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_context_versions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "vw_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_health_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          detail: Json | null
+          id: string
+          office_id: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          session_id: string
+          severity: string
+          updated_at: string
+        }
+        Insert: {
+          alert_type: string
           created_at?: string
-          id?: number
-          kind?: string
-          note?: string
-          object_name?: string
+          detail?: Json | null
+          id?: string
+          office_id: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id: string
           severity?: string
+          updated_at?: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          detail?: Json | null
+          id?: string
+          office_id?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id?: string
+          severity?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_health_alerts_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_health_alerts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_health_alerts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "vw_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_jobs: {
+        Row: {
+          actual_tokens_input: number | null
+          actual_tokens_output: number | null
+          attempt_count: number
+          cache_hit: boolean | null
+          claimed_at: string | null
+          compensation_reason: string | null
+          config_json: Json
+          cost_usd: number | null
+          created_at: string
+          created_by: string | null
+          decision_taken: string | null
+          dedup_hit: boolean | null
+          estimated_cost_usd: number | null
+          execution_duration_ms: number | null
+          finished_at: string | null
+          heartbeat_interval_s: number
+          id: string
+          idempotency_key: string
+          job_type: Database["public"]["Enums"]["session_job_type"]
+          last_error: string | null
+          last_heartbeat_at: string | null
+          lease_duration_s: number
+          lease_expires_at: string | null
+          max_attempts: number
+          office_id: string
+          priority: number
+          reclaim_attempts: number
+          scheduled_at: string
+          session_id: string
+          side_effect_confirmed: boolean
+          started_at: string | null
+          status: Database["public"]["Enums"]["session_job_status"]
+          token_estimate: number | null
+          trace_id: string | null
+          updated_at: string
+          worker_id: string | null
+          worker_type: Database["public"]["Enums"]["session_worker_type"]
+        }
+        Insert: {
+          actual_tokens_input?: number | null
+          actual_tokens_output?: number | null
+          attempt_count?: number
+          cache_hit?: boolean | null
+          claimed_at?: string | null
+          compensation_reason?: string | null
+          config_json?: Json
+          cost_usd?: number | null
+          created_at?: string
+          created_by?: string | null
+          decision_taken?: string | null
+          dedup_hit?: boolean | null
+          estimated_cost_usd?: number | null
+          execution_duration_ms?: number | null
+          finished_at?: string | null
+          heartbeat_interval_s?: number
+          id?: string
+          idempotency_key: string
+          job_type: Database["public"]["Enums"]["session_job_type"]
+          last_error?: string | null
+          last_heartbeat_at?: string | null
+          lease_duration_s?: number
+          lease_expires_at?: string | null
+          max_attempts?: number
+          office_id: string
+          priority?: number
+          reclaim_attempts?: number
+          scheduled_at?: string
+          session_id: string
+          side_effect_confirmed?: boolean
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["session_job_status"]
+          token_estimate?: number | null
+          trace_id?: string | null
+          updated_at?: string
+          worker_id?: string | null
+          worker_type: Database["public"]["Enums"]["session_worker_type"]
+        }
+        Update: {
+          actual_tokens_input?: number | null
+          actual_tokens_output?: number | null
+          attempt_count?: number
+          cache_hit?: boolean | null
+          claimed_at?: string | null
+          compensation_reason?: string | null
+          config_json?: Json
+          cost_usd?: number | null
+          created_at?: string
+          created_by?: string | null
+          decision_taken?: string | null
+          dedup_hit?: boolean | null
+          estimated_cost_usd?: number | null
+          execution_duration_ms?: number | null
+          finished_at?: string | null
+          heartbeat_interval_s?: number
+          id?: string
+          idempotency_key?: string
+          job_type?: Database["public"]["Enums"]["session_job_type"]
+          last_error?: string | null
+          last_heartbeat_at?: string | null
+          lease_duration_s?: number
+          lease_expires_at?: string | null
+          max_attempts?: number
+          office_id?: string
+          priority?: number
+          reclaim_attempts?: number
+          scheduled_at?: string
+          session_id?: string
+          side_effect_confirmed?: boolean
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["session_job_status"]
+          token_estimate?: number | null
+          trace_id?: string | null
+          updated_at?: string
+          worker_id?: string | null
+          worker_type?: Database["public"]["Enums"]["session_worker_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_jobs_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_jobs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_jobs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "vw_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_processing_snapshots: {
+        Row: {
+          context_hash: string
+          context_version: number
+          created_at: string | null
+          created_by: string | null
+          excluded_sources_json: Json | null
+          id: string
+          model_metadata_json: Json | null
+          ordered_sources_json: Json
+          prompt_metadata_json: Json | null
+          session_id: string
+          snapshot_hash: string
+          transcription_id: string
+        }
+        Insert: {
+          context_hash: string
+          context_version: number
+          created_at?: string | null
+          created_by?: string | null
+          excluded_sources_json?: Json | null
+          id?: string
+          model_metadata_json?: Json | null
+          ordered_sources_json: Json
+          prompt_metadata_json?: Json | null
+          session_id: string
+          snapshot_hash: string
+          transcription_id: string
+        }
+        Update: {
+          context_hash?: string
+          context_version?: number
+          created_at?: string | null
+          created_by?: string | null
+          excluded_sources_json?: Json | null
+          id?: string
+          model_metadata_json?: Json | null
+          ordered_sources_json?: Json
+          prompt_metadata_json?: Json | null
+          session_id?: string
+          snapshot_hash?: string
+          transcription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_processing_snapshots_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_processing_snapshots_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "vw_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_processing_snapshots_transcription_id_fkey"
+            columns: ["transcription_id"]
+            isOneToOne: false
+            referencedRelation: "session_transcriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_recording_chunks: {
+        Row: {
+          checksum_sha256: string | null
+          chunk_index: number
+          confirmed_at: string | null
+          duration: number | null
+          id: string
+          retry_count: number | null
+          session_id: string
+          size_bytes: number | null
+          storage_path: string
+          upload_status: string | null
+          uploaded_at: string | null
+        }
+        Insert: {
+          checksum_sha256?: string | null
+          chunk_index: number
+          confirmed_at?: string | null
+          duration?: number | null
+          id?: string
+          retry_count?: number | null
+          session_id: string
+          size_bytes?: number | null
+          storage_path: string
+          upload_status?: string | null
+          uploaded_at?: string | null
+        }
+        Update: {
+          checksum_sha256?: string | null
+          chunk_index?: number
+          confirmed_at?: string | null
+          duration?: number | null
+          id?: string
+          retry_count?: number | null
+          session_id?: string
+          size_bytes?: number | null
+          storage_path?: string
+          upload_status?: string | null
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_recording_chunks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_recording_chunks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "vw_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_segments: {
+        Row: {
+          confidence: number | null
+          end_time: number
+          id: string
+          resolved_speaker_name: string | null
+          session_id: string
+          speaker_id: string | null
+          speaker_label: string | null
+          start_time: number
+          text: string | null
+          transcription_id: string
+        }
+        Insert: {
+          confidence?: number | null
+          end_time: number
+          id?: string
+          resolved_speaker_name?: string | null
+          session_id: string
+          speaker_id?: string | null
+          speaker_label?: string | null
+          start_time: number
+          text?: string | null
+          transcription_id: string
+        }
+        Update: {
+          confidence?: number | null
+          end_time?: number
+          id?: string
+          resolved_speaker_name?: string | null
+          session_id?: string
+          speaker_id?: string | null
+          speaker_label?: string | null
+          start_time?: number
+          text?: string | null
+          transcription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_segments_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_segments_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "vw_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_segments_speaker_id_fkey"
+            columns: ["speaker_id"]
+            isOneToOne: false
+            referencedRelation: "session_speakers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_segments_transcription_id_fkey"
+            columns: ["transcription_id"]
+            isOneToOne: false
+            referencedRelation: "session_transcriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_speakers: {
+        Row: {
+          created_at: string | null
+          id: string
+          mapped_at: string | null
+          mapped_by: string | null
+          mapped_name: string | null
+          role: string | null
+          session_id: string
+          speaker_label: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          mapped_at?: string | null
+          mapped_by?: string | null
+          mapped_name?: string | null
+          role?: string | null
+          session_id: string
+          speaker_label: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          mapped_at?: string | null
+          mapped_by?: string | null
+          mapped_name?: string | null
+          role?: string | null
+          session_id?: string
+          speaker_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_speakers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_speakers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "vw_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_transcriptions: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          is_locked: boolean | null
+          language: string | null
+          provider: string | null
+          provider_job_id: string | null
+          raw_text: string | null
+          session_id: string
+          source_transcription_id: string | null
+          structured_json: Json | null
+          version_number: number
+          version_type: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          is_locked?: boolean | null
+          language?: string | null
+          provider?: string | null
+          provider_job_id?: string | null
+          raw_text?: string | null
+          session_id: string
+          source_transcription_id?: string | null
+          structured_json?: Json | null
+          version_number: number
+          version_type: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          is_locked?: boolean | null
+          language?: string | null
+          provider?: string | null
+          provider_job_id?: string | null
+          raw_text?: string | null
+          session_id?: string
+          source_transcription_id?: string | null
+          structured_json?: Json | null
+          version_number?: number
+          version_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_transcriptions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_transcriptions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "vw_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_transcriptions_source_transcription_id_fkey"
+            columns: ["source_transcription_id"]
+            isOneToOne: false
+            referencedRelation: "session_transcriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          aggregate_session_hash: string | null
+          confidentiality_level: string | null
+          created_at: string | null
+          created_by: string
+          current_snapshot_id: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          final_audio_hash: string | null
+          final_audio_path: string | null
+          id: string
+          linked_entity_id: string | null
+          linked_entity_type: string | null
+          linked_later: boolean | null
+          office_id: string
+          processing_error: string | null
+          processing_lock_at: string | null
+          processing_step: string | null
+          session_type: Database["public"]["Enums"]["session_type"]
+          started_at: string | null
+          status: Database["public"]["Enums"]["session_status"]
+          title: string
+          total_chunks_expected: number | null
+          total_chunks_received: number | null
+          updated_at: string
+        }
+        Insert: {
+          aggregate_session_hash?: string | null
+          confidentiality_level?: string | null
+          created_at?: string | null
+          created_by: string
+          current_snapshot_id?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          final_audio_hash?: string | null
+          final_audio_path?: string | null
+          id?: string
+          linked_entity_id?: string | null
+          linked_entity_type?: string | null
+          linked_later?: boolean | null
+          office_id: string
+          processing_error?: string | null
+          processing_lock_at?: string | null
+          processing_step?: string | null
+          session_type?: Database["public"]["Enums"]["session_type"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["session_status"]
+          title: string
+          total_chunks_expected?: number | null
+          total_chunks_received?: number | null
+          updated_at?: string
+        }
+        Update: {
+          aggregate_session_hash?: string | null
+          confidentiality_level?: string | null
+          created_at?: string | null
+          created_by?: string
+          current_snapshot_id?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          final_audio_hash?: string | null
+          final_audio_path?: string | null
+          id?: string
+          linked_entity_id?: string | null
+          linked_entity_type?: string | null
+          linked_later?: boolean | null
+          office_id?: string
+          processing_error?: string | null
+          processing_lock_at?: string | null
+          processing_step?: string | null
+          session_type?: Database["public"]["Enums"]["session_type"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["session_status"]
+          title?: string
+          total_chunks_expected?: number | null
+          total_chunks_received?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_current_snapshot"
+            columns: ["current_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "session_processing_snapshots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signature_links: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          office_id: string
+          status: string | null
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          office_id: string
+          status?: string | null
+          token?: string
+          used_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          office_id?: string
+          status?: string | null
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signature_links_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signature_links_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_signatures"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
+      system_kill_switches: {
+        Row: {
+          activated_at: string | null
+          activated_by: string | null
+          activation_reason: string
+          confirmation_token: string | null
+          created_at: string
+          deactivated_at: string | null
+          deactivated_by: string | null
+          deactivation_reason: string | null
+          id: string
+          is_active: boolean
+          requires_confirmation: boolean
+          scope: string
+          scope_id: string | null
+          switch_type: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          activated_by?: string | null
+          activation_reason: string
+          confirmation_token?: string | null
+          created_at?: string
+          deactivated_at?: string | null
+          deactivated_by?: string | null
+          deactivation_reason?: string | null
+          id?: string
+          is_active?: boolean
+          requires_confirmation?: boolean
+          scope: string
+          scope_id?: string | null
+          switch_type: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          activated_by?: string | null
+          activation_reason?: string
+          confirmation_token?: string | null
+          created_at?: string
+          deactivated_at?: string | null
+          deactivated_by?: string | null
+          deactivation_reason?: string | null
+          id?: string
+          is_active?: boolean
+          requires_confirmation?: boolean
+          scope?: string
+          scope_id?: string | null
+          switch_type?: string
+          updated_at?: string
         }
         Relationships: []
       }
-      system_flags: {
+      system_scaling_config: {
         Row: {
-          key: string
-          updated_at: string
-          value: boolean
+          backpressure_active: boolean | null
+          default_max_tpm: number | null
+          id: string
+          max_global_concurrency: number | null
+          max_office_burst: number | null
+          updated_at: string | null
         }
         Insert: {
-          key: string
-          updated_at?: string
-          value: boolean
+          backpressure_active?: boolean | null
+          default_max_tpm?: number | null
+          id?: string
+          max_global_concurrency?: number | null
+          max_office_burst?: number | null
+          updated_at?: string | null
         }
         Update: {
-          key?: string
-          updated_at?: string
-          value?: boolean
+          backpressure_active?: boolean | null
+          default_max_tpm?: number | null
+          id?: string
+          max_global_concurrency?: number | null
+          max_office_burst?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
       system_telemetry: {
         Row: {
-          created_at: string
+          created_at: string | null
           duration_ms: number | null
           id: string
-          kind: string
+          kind: string | null
           office_id: string | null
-          payload: Json
+          payload: Json | null
           route: string | null
           user_id: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           duration_ms?: number | null
           id?: string
-          kind: string
+          kind?: string | null
           office_id?: string | null
-          payload?: Json
+          payload?: Json | null
           route?: string | null
           user_id?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           duration_ms?: number | null
           id?: string
-          kind?: string
+          kind?: string | null
           office_id?: string | null
-          payload?: Json
+          payload?: Json | null
           route?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "system_telemetry_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "system_telemetry_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "system_telemetry_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       template_ai_jobs: {
         Row: {
           case_id: string | null
-          created_at: string
+          created_at: string | null
           error: string | null
           id: string
-          input: Json
+          input: Json | null
           office_id: string | null
           output: Json | null
-          status: string
+          status: string | null
           template_id: string | null
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           error?: string | null
           id?: string
-          input?: Json
+          input?: Json | null
           office_id?: string | null
           output?: Json | null
-          status?: string
+          status?: string | null
           template_id?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           case_id?: string | null
-          created_at?: string
+          created_at?: string | null
           error?: string | null
           id?: string
-          input?: Json
+          input?: Json | null
           office_id?: string | null
           output?: Json | null
-          status?: string
+          status?: string | null
           template_id?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "template_ai_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "template_ai_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "template_ai_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "template_ai_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "template_ai_jobs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "template_ai_jobs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "template_ai_jobs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "template_ai_jobs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "template_ai_jobs_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "document_templates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "template_ai_jobs_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "vw_templates_catalog"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      template_tags: {
-        Row: {
-          created_at: string
-          created_by: string
-          id: string
-          office_id: string
-          tag: string
-          template_id: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          id?: string
-          office_id: string
-          tag: string
-          template_id: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          id?: string
-          office_id?: string
-          tag?: string
-          template_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "template_tags_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "template_tags_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "template_tags_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "template_tags_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "templates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "template_tags_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "v_templates_pro"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      template_usage_logs: {
-        Row: {
-          case_id: string
-          id: string
-          template_id: string
-          used_at: string
-          used_by: string
-        }
-        Insert: {
-          case_id: string
-          id?: string
-          template_id: string
-          used_at?: string
-          used_by: string
-        }
-        Update: {
-          case_id?: string
-          id?: string
-          template_id?: string
-          used_at?: string
-          used_by?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "template_usage_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "template_usage_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "template_usage_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "template_usage_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "template_usage_logs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "template_usage_logs_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "legal_templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      templates: {
-        Row: {
-          code: string | null
-          content: string
-          created_at: string
-          created_by: string
-          id: string
-          is_default: boolean
-          kind: Database["public"]["Enums"]["doc_kind"]
-          name: string
-          office_id: string
-          variables: Json
-          version: number
-        }
-        Insert: {
-          code?: string | null
-          content: string
-          created_at?: string
-          created_by: string
-          id?: string
-          is_default?: boolean
-          kind: Database["public"]["Enums"]["doc_kind"]
-          name: string
-          office_id: string
-          variables?: Json
-          version?: number
-        }
-        Update: {
-          code?: string | null
-          content?: string
-          created_at?: string
-          created_by?: string
-          id?: string
-          is_default?: boolean
-          kind?: Database["public"]["Enums"]["doc_kind"]
-          name?: string
-          office_id?: string
-          variables?: Json
-          version?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "templates_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "templates_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "templates_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tjto_document_dictionary: {
-        Row: {
-          category: string
-          code: string
-          created_at: string
-          id: string
-          label: string
-          legal_desc: string
-        }
-        Insert: {
-          category: string
-          code: string
-          created_at?: string
-          id?: string
-          label: string
-          legal_desc: string
-        }
-        Update: {
-          category?: string
-          code?: string
-          created_at?: string
-          id?: string
-          label?: string
-          legal_desc?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
-      video_chapters: {
-        Row: {
-          fim_seconds: number | null
-          id: string
-          inicio_seconds: number
-          resumo: string
-          tags: string[]
-          video_id: string
-        }
-        Insert: {
-          fim_seconds?: number | null
-          id?: string
-          inicio_seconds?: number
-          resumo: string
-          tags?: string[]
-          video_id: string
-        }
-        Update: {
-          fim_seconds?: number | null
-          id?: string
-          inicio_seconds?: number
-          resumo?: string
-          tags?: string[]
-          video_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "video_chapters_video_id_fkey"
-            columns: ["video_id"]
-            isOneToOne: false
-            referencedRelation: "legal_videos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       video_transcriptions: {
         Row: {
-          created_at: string
+          created_at: string | null
           created_by: string | null
           id: string
           office_id: string | null
           source: string | null
-          tags: string[] | null
-          title: string
-          transcription: string
-          updated_at: string
+          tags: string | null
+          title: string | null
+          transcription: string | null
+          updated_at: string | null
           url: string | null
           video_id: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           id?: string
           office_id?: string | null
           source?: string | null
-          tags?: string[] | null
-          title: string
-          transcription: string
-          updated_at?: string
+          tags?: string | null
+          title?: string | null
+          transcription?: string | null
+          updated_at?: string | null
           url?: string | null
           video_id?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           id?: string
           office_id?: string | null
           source?: string | null
-          tags?: string[] | null
-          title?: string
-          transcription?: string
-          updated_at?: string
+          tags?: string | null
+          title?: string | null
+          transcription?: string | null
+          updated_at?: string | null
           url?: string | null
           video_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "video_transcriptions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "video_transcriptions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "video_transcriptions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "video_transcriptions_video_id_fkey"
-            columns: ["video_id"]
-            isOneToOne: false
-            referencedRelation: "legal_videos"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       worker_state: {
         Row: {
@@ -8360,1143 +7102,65 @@ export type Database = {
       zapsign_webhook_events: {
         Row: {
           doc_token: string | null
-          event_type: string
+          event_type: string | null
           id: string
           last_error: string | null
           office_id: string | null
-          payload: Json
+          payload: Json | null
           processed_at: string | null
           received_at: string | null
           zapsign_event_id: string | null
         }
         Insert: {
           doc_token?: string | null
-          event_type: string
+          event_type?: string | null
           id?: string
           last_error?: string | null
           office_id?: string | null
-          payload?: Json
+          payload?: Json | null
           processed_at?: string | null
           received_at?: string | null
           zapsign_event_id?: string | null
         }
         Update: {
           doc_token?: string | null
-          event_type?: string
+          event_type?: string | null
           id?: string
           last_error?: string | null
           office_id?: string | null
-          payload?: Json
+          payload?: Json | null
           processed_at?: string | null
           received_at?: string | null
           zapsign_event_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "zapsign_webhook_events_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "zapsign_webhook_events_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "zapsign_webhook_events_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
-      audit_events: {
+      session_performance_metrics: {
         Row: {
-          action: string | null
-          created_at: string | null
-          entity: string | null
-          entity_id: string | null
-          id: string | null
-          metadata: Json | null
-          office_id: string | null
-          user_id: string | null
+          avg_duration_ms: number | null
+          count: number | null
+          retry_count: number | null
+          status: Database["public"]["Enums"]["session_job_status"] | null
+          total_tokens: number | null
+          worker_type: Database["public"]["Enums"]["session_worker_type"] | null
         }
-        Insert: {
-          action?: string | null
-          created_at?: string | null
-          entity?: string | null
-          entity_id?: string | null
-          id?: string | null
-          metadata?: Json | null
-          office_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          action?: string | null
-          created_at?: string | null
-          entity?: string | null
-          entity_id?: string | null
-          id?: string | null
-          metadata?: Json | null
-          office_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      audit_log: {
+      unified_client_events: {
         Row: {
-          action: string | null
-          actor_user_id: string | null
-          after_data: Json | null
-          before_data: Json | null
-          created_at: string | null
-          details: Json | null
-          entity: string | null
-          entity_id: string | null
-          id: string | null
-          metadata: Json | null
-          office_id: string | null
-          record_id: string | null
-          table_name: string | null
-        }
-        Insert: {
-          action?: string | null
-          actor_user_id?: string | null
-          after_data?: Json | null
-          before_data?: Json | null
-          created_at?: string | null
-          details?: Json | null
-          entity?: string | null
-          entity_id?: string | null
-          id?: string | null
-          metadata?: Json | null
-          office_id?: string | null
-          record_id?: string | null
-          table_name?: string | null
-        }
-        Update: {
-          action?: string | null
-          actor_user_id?: string | null
-          after_data?: Json | null
-          before_data?: Json | null
-          created_at?: string | null
-          details?: Json | null
-          entity?: string | null
-          entity_id?: string | null
-          id?: string | null
-          metadata?: Json | null
-          office_id?: string | null
-          record_id?: string | null
-          table_name?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      audit_log_legacy: {
-        Row: {
-          action: string | null
-          actor_user_id: string | null
-          after_data: Json | null
-          before_data: Json | null
-          created_at: string | null
-          details: Json | null
-          entity: string | null
-          entity_id: string | null
-          id: string | null
-          metadata: Json | null
-          office_id: string | null
-          record_id: string | null
-          table_name: string | null
-        }
-        Insert: {
-          action?: string | null
-          actor_user_id?: string | null
-          after_data?: Json | null
-          before_data?: Json | null
-          created_at?: string | null
-          details?: Json | null
-          entity?: string | null
-          entity_id?: string | null
-          id?: string | null
-          metadata?: Json | null
-          office_id?: string | null
-          record_id?: string | null
-          table_name?: string | null
-        }
-        Update: {
-          action?: string | null
-          actor_user_id?: string | null
-          after_data?: Json | null
-          before_data?: Json | null
-          created_at?: string | null
-          details?: Json | null
-          entity?: string | null
-          entity_id?: string | null
-          id?: string | null
-          metadata?: Json | null
-          office_id?: string | null
-          record_id?: string | null
-          table_name?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      audit_log_legacy_view: {
-        Row: {
-          action: string | null
-          actor_user_id: string | null
-          after_data: Json | null
-          before_data: Json | null
-          created_at: string | null
-          details: Json | null
-          entity: string | null
-          entity_id: string | null
-          id: string | null
-          metadata: Json | null
-          office_id: string | null
-          record_id: string | null
-          table_name: string | null
-        }
-        Insert: {
-          action?: string | null
-          actor_user_id?: string | null
-          after_data?: Json | null
-          before_data?: Json | null
-          created_at?: string | null
-          details?: Json | null
-          entity?: string | null
-          entity_id?: string | null
-          id?: string | null
-          metadata?: Json | null
-          office_id?: string | null
-          record_id?: string | null
-          table_name?: string | null
-        }
-        Update: {
-          action?: string | null
-          actor_user_id?: string | null
-          after_data?: Json | null
-          before_data?: Json | null
-          created_at?: string | null
-          details?: Json | null
-          entity?: string | null
-          entity_id?: string | null
-          id?: string | null
-          metadata?: Json | null
-          office_id?: string | null
-          record_id?: string | null
-          table_name?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      generated_docs: {
-        Row: {
-          case_id: string | null
           client_id: string | null
-          created_at: string | null
-          data_used: Json | null
-          file_path: string | null
-          generated_by: string | null
+          event_date: string | null
+          event_type: string | null
           id: string | null
-          mime_type: string | null
+          metadata: Json | null
+          module: string | null
           office_id: string | null
-          source_template_id: string | null
-          template_id: string | null
-        }
-        Insert: {
-          case_id?: string | null
-          client_id?: string | null
-          created_at?: string | null
-          data_used?: Json | null
-          file_path?: string | null
-          generated_by?: string | null
-          id?: string | null
-          mime_type?: string | null
-          office_id?: string | null
-          source_template_id?: string | null
-          template_id?: string | null
-        }
-        Update: {
-          case_id?: string | null
-          client_id?: string | null
-          created_at?: string | null
-          data_used?: Json | null
-          file_path?: string | null
-          generated_by?: string | null
-          id?: string | null
-          mime_type?: string | null
-          office_id?: string | null
-          source_template_id?: string | null
-          template_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "generated_documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "generated_documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "generated_documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "generated_documents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "generated_documents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_documents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_documents_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "document_templates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_documents_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "vw_templates_catalog"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lexos_healthcheck: {
-        Row: {
-          item: string | null
-          qtd: number | null
-        }
-        Relationships: []
-      }
-      lexos_healthcheck_latest: {
-        Row: {
-          office_id: string | null
-          ran_at: string | null
-          ran_by: string | null
-          results: Json | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lexos_healthcheck_runs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "lexos_healthcheck_runs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lexos_healthcheck_runs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lexos_kpi_cases_by_state: {
-        Row: {
-          office_id: string | null
-          state_code: string | null
-          state_name: string | null
-          total_cases: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cases_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "cases_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cases_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lexos_kpi_deadlines: {
-        Row: {
-          done_deadlines: number | null
-          office_id: string | null
-          open_deadlines: number | null
-          overdue_deadlines: number | null
-        }
-        Relationships: []
-      }
-      lexos_rls_audit_v1: {
-        Row: {
-          auth_delete: boolean | null
-          auth_insert: boolean | null
-          auth_select: boolean | null
-          auth_update: boolean | null
-          delete_policies: number | null
-          insert_policies: number | null
-          policies_count: number | null
-          risk_note: string | null
-          rls_enabled: boolean | null
-          rls_forced: boolean | null
-          schema_name: unknown
-          select_policies: number | null
-          table_name: unknown
-          update_policies: number | null
-        }
-        Relationships: []
-      }
-      lexos_template_usage_report: {
-        Row: {
-          branch: string | null
-          subject: string | null
-          total_usos: number | null
-        }
-        Relationships: []
-      }
-      mv_backup_core_monthly: {
-        Row: {
-          office_id: string | null
-          office_name: string | null
-          plan_code: string | null
-          snapshot_at: string | null
-          total_cases: number | null
-          total_nija_usage: number | null
-        }
-        Relationships: []
-      }
-      mv_deadline_alerts_dashboard: {
-        Row: {
-          avg_delay_from_notify_seconds: number | null
-          avg_time_to_send_seconds: number | null
-          office_id: string | null
-          pending_due: number | null
-          sla_violations: number | null
-          total_failed: number | null
-          total_pending: number | null
-          total_sent: number | null
-          total_sent_late: number | null
-        }
-        Relationships: []
-      }
-      mv_nija_kpis_hourly: {
-        Row: {
-          bucket: string | null
-          exec_24h: number | null
-          office_id: string | null
-          total_execucoes: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "nija_usage_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "nija_usage_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_usage_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      v_ai_context: {
-        Row: {
-          case_area: string | null
-          case_id: string | null
-          case_subtype: string | null
-          case_title: string | null
-          client_name: string | null
-          office_name: string | null
-        }
-        Relationships: []
-      }
-      v_case_kanban: {
-        Row: {
-          cnj_number: string | null
-          created_at: string | null
-          id: string | null
-          stage: string | null
-          tasks_done: number | null
-          tasks_total: number | null
-        }
-        Relationships: []
-      }
-      v_case_kpis: {
-        Row: {
-          archived_cases: number | null
-          office_id: string | null
-          total_cases: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cases_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "cases_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cases_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      v_deadline_kpis: {
-        Row: {
-          office_id: string | null
-          open_deadlines: number | null
-          overdue_deadlines: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "case_deadlines_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "case_deadlines_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_deadlines_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      v_finance_kpis: {
-        Row: {
-          office_id: string | null
-          paid_expenses: number | null
-          total_expenses: number | null
-          unpaid_expenses: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "case_expenses_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "case_expenses_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_expenses_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      v_lexos_security_definer_risk_report: {
-        Row: {
-          args: string | null
-          created_at: string | null
-          function_name: string | null
-          grantees: string | null
-          has_grant_to_anon: boolean | null
-          has_grant_to_authenticated: boolean | null
-          has_search_path_secure: boolean | null
-          has_set_search_path: boolean | null
-          leakproof: boolean | null
-          owner_name: string | null
-          risk_level: string | null
-          risk_reasons: string | null
-          schema_name: string | null
-          security_definer: boolean | null
-          volatile: string | null
-        }
-        Insert: {
-          args?: string | null
-          created_at?: string | null
-          function_name?: string | null
-          grantees?: string | null
-          has_grant_to_anon?: boolean | null
-          has_grant_to_authenticated?: boolean | null
-          has_search_path_secure?: boolean | null
-          has_set_search_path?: boolean | null
-          leakproof?: boolean | null
-          owner_name?: string | null
-          risk_level?: string | null
-          risk_reasons?: string | null
-          schema_name?: string | null
-          security_definer?: boolean | null
-          volatile?: string | null
-        }
-        Update: {
-          args?: string | null
-          created_at?: string | null
-          function_name?: string | null
-          grantees?: string | null
-          has_grant_to_anon?: boolean | null
-          has_grant_to_authenticated?: boolean | null
-          has_search_path_secure?: boolean | null
-          has_set_search_path?: boolean | null
-          leakproof?: boolean | null
-          owner_name?: string | null
-          risk_level?: string | null
-          risk_reasons?: string | null
-          schema_name?: string | null
-          security_definer?: boolean | null
-          volatile?: string | null
-        }
-        Relationships: []
-      }
-      v_nija_monthly_report: {
-        Row: {
-          ambos: number | null
-          decadencia: number | null
-          month: string | null
-          office_id: string | null
-          prescricao: number | null
-          total_execucoes: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "nija_usage_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "nija_usage_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nija_usage_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      v_system_health: {
-        Row: {
-          alerts_24h: number | null
-          checked_at: string | null
-          nija_1h: number | null
-          nija_24h: number | null
-          total_cases: number | null
-        }
-        Relationships: []
-      }
-      v_templates_pro: {
-        Row: {
-          code: string | null
-          created_at: string | null
-          id: string | null
-          is_default: boolean | null
-          kind: Database["public"]["Enums"]["doc_kind"] | null
-          name: string | null
-          office_id: string | null
-          version: number | null
-        }
-        Insert: {
-          code?: string | null
-          created_at?: string | null
-          id?: string | null
-          is_default?: boolean | null
-          kind?: Database["public"]["Enums"]["doc_kind"] | null
-          name?: string | null
-          office_id?: string | null
-          version?: number | null
-        }
-        Update: {
-          code?: string | null
-          created_at?: string | null
-          id?: string | null
-          is_default?: boolean | null
-          kind?: Database["public"]["Enums"]["doc_kind"] | null
-          name?: string | null
-          office_id?: string | null
-          version?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "templates_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "templates_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "templates_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_agenda_calendar: {
-        Row: {
-          all_day: boolean | null
-          assigned_to: string | null
-          case_id: string | null
-          client_id: string | null
-          created_at: string | null
-          created_by: string | null
-          duration_minutes: number | null
-          end_at: string | null
-          end_local: string | null
-          id: string | null
-          is_next_24h: boolean | null
-          is_overdue: boolean | null
-          kind: string | null
-          local_date: string | null
-          local_time: string | null
-          location: string | null
-          notes: string | null
-          office_id: string | null
-          priority: string | null
-          start_at: string | null
-          start_local: string | null
           status: string | null
           title: string | null
-          ui_kind_key: string | null
-          updated_at: string | null
-          visibility: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agenda_items_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agenda_items_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_agenda_overdue: {
-        Row: {
-          assigned_to: string | null
-          case_id: string | null
-          client_id: string | null
-          created_by: string | null
-          end_at: string | null
-          id: string | null
-          kind: string | null
-          now_local: string | null
-          office_id: string | null
-          overdue_days: number | null
-          overdue_interval: unknown
-          overdue_minutes: number | null
-          priority: string | null
-          start_at: string | null
-          start_local: string | null
-          status: string | null
-          title: string | null
-          visibility: string | null
-        }
-        Insert: {
-          assigned_to?: string | null
-          case_id?: string | null
-          client_id?: string | null
-          created_by?: string | null
-          end_at?: string | null
-          id?: string | null
-          kind?: string | null
-          now_local?: never
-          office_id?: string | null
-          overdue_days?: never
-          overdue_interval?: never
-          overdue_minutes?: never
-          priority?: string | null
-          start_at?: string | null
-          start_local?: never
-          status?: string | null
-          title?: string | null
-          visibility?: string | null
-        }
-        Update: {
-          assigned_to?: string | null
-          case_id?: string | null
-          client_id?: string | null
-          created_by?: string | null
-          end_at?: string | null
-          id?: string | null
-          kind?: string | null
-          now_local?: never
-          office_id?: string | null
-          overdue_days?: never
-          overdue_interval?: never
-          overdue_minutes?: never
-          priority?: string | null
-          start_at?: string | null
-          start_local?: never
-          status?: string | null
-          title?: string | null
-          visibility?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agenda_items_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "agenda_items_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agenda_items_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_audit_logs_full: {
-        Row: {
-          action: string | null
-          actor_role: string | null
-          actor_user_id: string | null
-          after_data: Json | null
-          before_data: Json | null
-          created_at: string | null
-          entity: string | null
-          entity_id: string | null
-          id: string | null
-          metadata: Json | null
-          office_id: string | null
-          office_name: string | null
-          record_id: string | null
-          table_name: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       vw_case_current_state: {
         Row: {
@@ -9509,380 +7173,20 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "cases_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "cases_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cases_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_case_documents: {
-        Row: {
-          case_id: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          deleted_reason: string | null
-          extracted_text: string | null
-          file_size: number | null
-          filename: string | null
-          id: string | null
-          is_locked: boolean | null
-          kind: Database["public"]["Enums"]["doc_kind"] | null
-          locked_at: string | null
-          locked_by: string | null
-          metadata: Json | null
-          mime_type: string | null
-          office_id: string | null
-          signed_at: string | null
-          signed_by: string | null
-          storage_bucket: string | null
-          storage_path: string | null
-          type_id: string | null
-          uploaded_at: string | null
-          uploaded_by: string | null
-        }
-        Insert: {
-          case_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          deleted_reason?: string | null
-          extracted_text?: string | null
-          file_size?: number | null
-          filename?: string | null
-          id?: string | null
-          is_locked?: boolean | null
-          kind?: Database["public"]["Enums"]["doc_kind"] | null
-          locked_at?: string | null
-          locked_by?: string | null
-          metadata?: Json | null
-          mime_type?: string | null
-          office_id?: string | null
-          signed_at?: string | null
-          signed_by?: string | null
-          storage_bucket?: string | null
-          storage_path?: string | null
-          type_id?: string | null
-          uploaded_at?: string | null
-          uploaded_by?: string | null
-        }
-        Update: {
-          case_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          deleted_reason?: string | null
-          extracted_text?: string | null
-          file_size?: number | null
-          filename?: string | null
-          id?: string | null
-          is_locked?: boolean | null
-          kind?: Database["public"]["Enums"]["doc_kind"] | null
-          locked_at?: string | null
-          locked_by?: string | null
-          metadata?: Json | null
-          mime_type?: string | null
-          office_id?: string | null
-          signed_at?: string | null
-          signed_by?: string | null
-          storage_bucket?: string | null
-          storage_path?: string | null
-          type_id?: string | null
-          uploaded_at?: string | null
-          uploaded_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "documents_case_id_fkey"
+            foreignKeyName: "lexos_case_state_history_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "cases"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
+            foreignKeyName: "lexos_case_state_history_to_state_id_fkey"
+            columns: ["current_state_id"]
             isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "documents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "documents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_type_id_fkey"
-            columns: ["type_id"]
-            isOneToOne: false
-            referencedRelation: "document_types"
+            referencedRelation: "lexos_case_states"
             referencedColumns: ["id"]
           },
         ]
-      }
-      vw_case_generated_docs: {
-        Row: {
-          case_id: string | null
-          content: string | null
-          created_at: string | null
-          created_by: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          deleted_reason: string | null
-          document_id: string | null
-          file_path: string | null
-          filename: string | null
-          id: string | null
-          kind: Database["public"]["Enums"]["doc_kind"] | null
-          metadata: Json | null
-          mime_type: string | null
-          office_id: string | null
-          source_template_id: string | null
-          title: string | null
-          version: number | null
-        }
-        Insert: {
-          case_id?: string | null
-          content?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          deleted_reason?: string | null
-          document_id?: string | null
-          file_path?: string | null
-          filename?: string | null
-          id?: string | null
-          kind?: Database["public"]["Enums"]["doc_kind"] | null
-          metadata?: Json | null
-          mime_type?: string | null
-          office_id?: string | null
-          source_template_id?: string | null
-          title?: string | null
-          version?: number | null
-        }
-        Update: {
-          case_id?: string | null
-          content?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          deleted_reason?: string | null
-          document_id?: string | null
-          file_path?: string | null
-          filename?: string | null
-          id?: string | null
-          kind?: Database["public"]["Enums"]["doc_kind"] | null
-          metadata?: Json | null
-          mime_type?: string | null
-          office_id?: string | null
-          source_template_id?: string | null
-          title?: string | null
-          version?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "generated_docs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "generated_docs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "generated_docs_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "generated_docs_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["document_id"]
-          },
-          {
-            foreignKeyName: "generated_docs_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "vw_documents_inbox"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "generated_docs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_source_template_id_fkey"
-            columns: ["source_template_id"]
-            isOneToOne: false
-            referencedRelation: "document_templates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_docs_source_template_id_fkey"
-            columns: ["source_template_id"]
-            isOneToOne: false
-            referencedRelation: "vw_templates_catalog"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_case_payments: {
-        Row: {
-          billing_type: Database["public"]["Enums"]["asaas_billing_type"] | null
-          boleto_url: string | null
-          case_id: string | null
-          client_id: string | null
-          created_at: string | null
-          due_date: string | null
-          id: string | null
-          invoice_url: string | null
-          paid_at: string | null
-          pix_payload: string | null
-          pix_qr_code_base64: string | null
-          status: Database["public"]["Enums"]["asaas_payment_status"] | null
-          value: number | null
-        }
-        Insert: {
-          billing_type?:
-            | Database["public"]["Enums"]["asaas_billing_type"]
-            | null
-          boleto_url?: string | null
-          case_id?: string | null
-          client_id?: string | null
-          created_at?: string | null
-          due_date?: string | null
-          id?: string | null
-          invoice_url?: string | null
-          paid_at?: string | null
-          pix_payload?: string | null
-          pix_qr_code_base64?: string | null
-          status?: Database["public"]["Enums"]["asaas_payment_status"] | null
-          value?: number | null
-        }
-        Update: {
-          billing_type?:
-            | Database["public"]["Enums"]["asaas_billing_type"]
-            | null
-          boleto_url?: string | null
-          case_id?: string | null
-          client_id?: string | null
-          created_at?: string | null
-          due_date?: string | null
-          id?: string | null
-          invoice_url?: string | null
-          paid_at?: string | null
-          pix_payload?: string | null
-          pix_qr_code_base64?: string | null
-          status?: Database["public"]["Enums"]["asaas_payment_status"] | null
-          value?: number | null
-        }
-        Relationships: []
       }
       vw_case_state_timeline: {
         Row: {
@@ -9907,34 +7211,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "lexos_case_state_history_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "lexos_case_state_history_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lexos_case_state_history_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "lexos_case_state_history_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
             foreignKeyName: "lexos_case_state_history_from_state_id_fkey"
             columns: ["from_state_id"]
             isOneToOne: false
@@ -9950,1708 +7226,325 @@ export type Database = {
           },
         ]
       }
-      vw_case_status_history: {
-        Row: {
-          actor_user_id: string | null
-          case_id: string | null
-          created_at: string | null
-          from_status: string | null
-          id: string | null
-          metadata: Json | null
-          office_id: string | null
-          reason: string | null
-          to_status: string | null
-        }
-        Insert: {
-          actor_user_id?: string | null
-          case_id?: string | null
-          created_at?: string | null
-          from_status?: string | null
-          id?: string | null
-          metadata?: Json | null
-          office_id?: string | null
-          reason?: string | null
-          to_status?: string | null
-        }
-        Update: {
-          actor_user_id?: string | null
-          case_id?: string | null
-          created_at?: string | null
-          from_status?: string | null
-          id?: string | null
-          metadata?: Json | null
-          office_id?: string | null
-          reason?: string | null
-          to_status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "case_status_transitions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_status_transitions_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_case_status_transitions: {
-        Row: {
-          description: string | null
-          from_status: string | null
-          to_status: string | null
-        }
-        Insert: {
-          description?: never
-          from_status?: string | null
-          to_status?: string | null
-        }
-        Update: {
-          description?: never
-          from_status?: string | null
-          to_status?: string | null
-        }
-        Relationships: []
-      }
-      vw_client_documents: {
-        Row: {
-          case_id: string | null
-          case_title: string | null
-          client_id: string | null
-          client_name: string | null
-          document_id: string | null
-          filename: string | null
-          storage_path: string | null
-          uploaded_at: string | null
-        }
-        Relationships: []
-      }
-      vw_client_files: {
-        Row: {
-          client_id: string | null
-          client_name: string | null
-          description: string | null
-          file_id: string | null
-          file_name: string | null
-          file_size: number | null
-          kind: Database["public"]["Enums"]["client_file_kind"] | null
-          mime_type: string | null
-          storage_bucket: string | null
-          storage_path: string | null
-          uploaded_at: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-        ]
-      }
-      vw_client_kit_latest_files: {
-        Row: {
-          case_id: string | null
-          client_id: string | null
-          description: string | null
-          file_name: string | null
-          file_size: number | null
-          id: string | null
-          kind: Database["public"]["Enums"]["client_file_kind"] | null
-          kit_type: string | null
-          metadata: Json | null
-          mime_type: string | null
-          office_id: string | null
-          status: string | null
-          storage_bucket: string | null
-          storage_path: string | null
-          uploaded_at: string | null
-          uploaded_by: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_files_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "client_files_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "client_files_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_client_kit_overview: {
-        Row: {
-          category: string | null
-          checked_at: string | null
-          checked_by: string | null
-          client_file_id: string | null
-          client_id: string | null
-          created_at: string | null
-          document_id: string | null
-          due_date: string | null
-          item_kind: string | null
-          office_id: string | null
-          status: string | null
-          title: string | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
       vw_client_signatures: {
         Row: {
-          case_id: string | null
           client_id: string | null
-          client_name: string | null
-          generated_document_id: string | null
-          id: string | null
-          ip: string | null
-          metadata: Json | null
+          cpf: string | null
+          full_name: string | null
           office_id: string | null
           signature_base64: string | null
-          signature_status: string | null
+          signature_id: string | null
           signed_at: string | null
-          signed_hash: string | null
-          signer_doc: string | null
-          signer_email: string | null
-          signer_name: string | null
-          signer_phone: string | null
-          signer_type: string | null
-          user_agent: string | null
-          zapsign_doc_token: string | null
-          zapsign_signer_token: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "e_signatures_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "e_signatures_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "e_signatures_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "e_signatures_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "e_signatures_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "e_signatures_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "e_signatures_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "e_signatures_generated_document_id_fkey"
-            columns: ["generated_document_id"]
-            isOneToOne: false
-            referencedRelation: "generated_docs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "e_signatures_generated_document_id_fkey"
-            columns: ["generated_document_id"]
-            isOneToOne: false
-            referencedRelation: "generated_documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "e_signatures_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "e_signatures_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "e_signatures_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_deadline_alerts_dashboard: {
-        Row: {
-          avg_delay_from_notify_seconds: number | null
-          avg_time_to_send_seconds: number | null
-          office_id: string | null
-          pending_due: number | null
-          sla_violations: number | null
-          total_failed: number | null
-          total_pending: number | null
-          total_sent: number | null
-          total_sent_late: number | null
         }
         Relationships: []
       }
-      vw_deadline_alerts_kpis: {
+      vw_meetings: {
         Row: {
-          failed: number | null
-          next_24h: number | null
-          office_id: string | null
-          overdue: number | null
-          pending: number | null
-        }
-        Relationships: []
-      }
-      vw_deadline_alerts_metrics: {
-        Row: {
-          avg_delay_from_notify_seconds: number | null
-          avg_time_to_send_seconds: number | null
-          office_id: string | null
-          total_failed: number | null
-          total_pending: number | null
-          total_sent: number | null
-          total_sent_late: number | null
-        }
-        Relationships: []
-      }
-      vw_deadline_alerts_pending: {
-        Row: {
-          case_id: string | null
-          channel: string | null
           created_at: string | null
-          deadline_id: string | null
-          fire_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          final_audio_hash: string | null
+          final_audio_path: string | null
           id: string | null
-          last_error: string | null
+          linked_later: boolean | null
           office_id: string | null
-          payload: Json | null
+          processing_error: string | null
+          started_at: string | null
           status: string | null
-          tries: number | null
-          updated_at: string | null
+          title: string | null
         }
         Insert: {
-          case_id?: never
-          channel?: string | null
           created_at?: string | null
-          deadline_id?: string | null
-          fire_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          final_audio_hash?: string | null
+          final_audio_path?: string | null
           id?: string | null
-          last_error?: never
+          linked_later?: boolean | null
           office_id?: string | null
-          payload?: never
-          status?: string | null
-          tries?: never
-          updated_at?: never
+          processing_error?: string | null
+          started_at?: string | null
+          status?: never
+          title?: string | null
         }
         Update: {
-          case_id?: never
-          channel?: string | null
           created_at?: string | null
-          deadline_id?: string | null
-          fire_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          final_audio_hash?: string | null
+          final_audio_path?: string | null
           id?: string | null
-          last_error?: never
+          linked_later?: boolean | null
           office_id?: string | null
-          payload?: never
-          status?: string | null
-          tries?: never
-          updated_at?: never
+          processing_error?: string | null
+          started_at?: string | null
+          status?: never
+          title?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "lexos_deadline_alerts_deadline_id_fkey"
-            columns: ["deadline_id"]
-            isOneToOne: false
-            referencedRelation: "lexos_case_deadlines"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_deadline_alerts_sla_notify_queue: {
-        Row: {
-          alert_id: string | null
-          deadline_id: string | null
-          delay_seconds: number | null
-          first_sent_at: string | null
-          notify_at: string | null
-          office_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lexos_deadline_alerts_deadline_id_fkey"
-            columns: ["deadline_id"]
-            isOneToOne: false
-            referencedRelation: "lexos_case_deadlines"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_deadline_alerts_sla_violations: {
-        Row: {
-          alert_id: string | null
-          deadline_id: string | null
-          delay_seconds: number | null
-          first_sent_at: string | null
-          notify_at: string | null
-          office_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lexos_deadline_alerts_deadline_id_fkey"
-            columns: ["deadline_id"]
-            isOneToOne: false
-            referencedRelation: "lexos_case_deadlines"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_document_timeline: {
-        Row: {
-          changed_at: string | null
-          changed_by: string | null
-          changed_by_email: string | null
-          item_id: string | null
-          item_type: string | null
-          log_id: string | null
-          new_status: string | null
-          old_status: string | null
-        }
-        Relationships: []
-      }
-      vw_documents_inbox: {
-        Row: {
-          case_id: string | null
-          client_name: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          deleted_reason: string | null
-          extracted_coverage_ratio: number | null
-          extracted_pages_total: number | null
-          extracted_pages_with_text: number | null
-          extracted_text: string | null
-          extracted_text_chars: number | null
-          extraction_method: string | null
-          extraction_report: Json | null
-          extraction_updated_at: string | null
-          file_size: number | null
-          filename: string | null
-          id: string | null
-          is_image_pdf: boolean | null
-          is_locked: boolean | null
-          kind: Database["public"]["Enums"]["doc_kind"] | null
-          locked_at: string | null
-          locked_by: string | null
-          metadata: Json | null
-          mime_type: string | null
-          office_id: string | null
-          reading_status: string | null
-          signed_at: string | null
-          signed_by: string | null
-          status: string | null
-          storage_bucket: string | null
-          storage_path: string | null
-          template_code: string | null
-          type_id: string | null
-          uploaded_at: string | null
-          uploaded_by: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_ai_context"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "v_case_kanban"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_case_current_state"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "documents_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["case_id"]
-          },
-          {
-            foreignKeyName: "documents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "documents_office_id_fkey"
+            foreignKeyName: "sessions_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_type_id_fkey"
-            columns: ["type_id"]
-            isOneToOne: false
-            referencedRelation: "document_types"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_financial_kpis: {
-        Row: {
-          conversion_rate_percent: number | null
-          paid_charges: number | null
-          ticket_medio: number | null
-          total_canceled: number | null
-          total_charges: number | null
-          total_overdue: number | null
-          total_paid: number | null
-          total_pending: number | null
-        }
-        Relationships: []
-      }
-      vw_financial_monthly: {
-        Row: {
-          month: string | null
-          total_charges: number | null
-          total_overdue: number | null
-          total_paid: number | null
-          total_pending: number | null
-        }
-        Relationships: []
-      }
-      vw_knowledge_kpis_day: {
-        Row: {
-          avg_precedents: number | null
-          avg_videos: number | null
-          cache_hit_rate: number | null
-          cache_hits: number | null
-          case_id: string | null
-          day: string | null
-          fresh_runs: number | null
-          office_id: string | null
-          refresh_runs: number | null
-          total_runs: number | null
-        }
-        Relationships: []
-      }
-      vw_knowledge_kpis_subject: {
-        Row: {
-          avg_precedents: number | null
-          avg_videos: number | null
-          cache_hits: number | null
-          case_id: string | null
-          last_run_at: string | null
-          office_id: string | null
-          refresh_runs: number | null
-          subject: string | null
-          subject_hash: string | null
-          total_runs: number | null
-        }
-        Relationships: []
-      }
-      vw_lexos_healthcheck: {
-        Row: {
-          details: Json | null
-          item: string | null
-          qtd: number | null
-          status: string | null
-        }
-        Relationships: []
-      }
-      vw_lexos_kit_files_audit: {
-        Row: {
-          bad_html_path: boolean | null
-          bad_pdf_path: boolean | null
-          client_id: string | null
-          description: string | null
-          file_name: string | null
-          file_size: number | null
-          html_path_wrong_mime: boolean | null
-          id: string | null
-          is_html: boolean | null
-          is_pdf: boolean | null
-          kind: Database["public"]["Enums"]["client_file_kind"] | null
-          mime_type: string | null
-          office_id: string | null
-          pdf_path_wrong_mime: boolean | null
-          storage_bucket: string | null
-          storage_path: string | null
-          uploaded_at: string | null
-        }
-        Insert: {
-          bad_html_path?: never
-          bad_pdf_path?: never
-          client_id?: string | null
-          description?: string | null
-          file_name?: string | null
-          file_size?: number | null
-          html_path_wrong_mime?: never
-          id?: string | null
-          is_html?: never
-          is_pdf?: never
-          kind?: Database["public"]["Enums"]["client_file_kind"] | null
-          mime_type?: string | null
-          office_id?: string | null
-          pdf_path_wrong_mime?: never
-          storage_bucket?: string | null
-          storage_path?: string | null
-          uploaded_at?: string | null
-        }
-        Update: {
-          bad_html_path?: never
-          bad_pdf_path?: never
-          client_id?: string | null
-          description?: string | null
-          file_name?: string | null
-          file_size?: number | null
-          html_path_wrong_mime?: never
-          id?: string | null
-          is_html?: never
-          is_pdf?: never
-          kind?: Database["public"]["Enums"]["client_file_kind"] | null
-          mime_type?: string | null
-          office_id?: string | null
-          pdf_path_wrong_mime?: never
-          storage_bucket?: string | null
-          storage_path?: string | null
-          uploaded_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_lexos_kit_inconsistencies: {
-        Row: {
-          bad_html_path: boolean | null
-          bad_pdf_path: boolean | null
-          client_id: string | null
-          file_name: string | null
-          html_path_wrong_mime: boolean | null
-          id: string | null
-          kind: Database["public"]["Enums"]["client_file_kind"] | null
-          mime_type: string | null
-          office_id: string | null
-          pdf_path_wrong_mime: boolean | null
-          storage_path: string | null
-          uploaded_at: string | null
-        }
-        Insert: {
-          bad_html_path?: never
-          bad_pdf_path?: never
-          client_id?: string | null
-          file_name?: string | null
-          html_path_wrong_mime?: never
-          id?: string | null
-          kind?: Database["public"]["Enums"]["client_file_kind"] | null
-          mime_type?: string | null
-          office_id?: string | null
-          pdf_path_wrong_mime?: never
-          storage_path?: string | null
-          uploaded_at?: string | null
-        }
-        Update: {
-          bad_html_path?: never
-          bad_pdf_path?: never
-          client_id?: string | null
-          file_name?: string | null
-          html_path_wrong_mime?: never
-          id?: string | null
-          kind?: Database["public"]["Enums"]["client_file_kind"] | null
-          mime_type?: string | null
-          office_id?: string | null
-          pdf_path_wrong_mime?: never
-          storage_path?: string | null
-          uploaded_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_lexos_kit_need_migration: {
-        Row: {
-          client_id: string | null
-          file_name: string | null
-          html_file_id: string | null
-          kind: Database["public"]["Enums"]["client_file_kind"] | null
-          mime_type: string | null
-          office_id: string | null
-          storage_path: string | null
-          uploaded_at: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_lexos_kit_status_by_client: {
-        Row: {
-          chosen_file_id: string | null
-          chosen_file_name: string | null
-          chosen_mime_type: string | null
-          chosen_storage_path: string | null
-          chosen_uploaded_at: string | null
-          client_id: string | null
-          kind: Database["public"]["Enums"]["client_file_kind"] | null
-          kit_status: string | null
-          office_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_documents"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_lexos_kit_status_summary_by_office: {
-        Row: {
-          kind: Database["public"]["Enums"]["client_file_kind"] | null
-          office_id: string | null
-          qtd_ausente: number | null
-          qtd_legado_html: number | null
-          qtd_ok_pdf: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_files_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_lexos_kpis: {
-        Row: {
-          cases_closed: number | null
-          cases_in_progress: number | null
-          ref_date: string | null
-          total_cases: number | null
-          total_clients: number | null
-          total_documents: number | null
-          total_generated_docs: number | null
-        }
-        Relationships: []
-      }
-      vw_lexos_risks: {
-        Row: {
-          description: string | null
-          object_name: unknown
-          risk_type: string | null
-          severity: string | null
-        }
-        Relationships: []
-      }
-      vw_lexos_timeline: {
-        Row: {
-          case_id: string | null
-          case_title: string | null
-          changed_at: string | null
-          changed_by: string | null
-          changed_by_email: string | null
-          client_id: string | null
-          document_id: string | null
-          generated_doc_id: string | null
-          item_type: string | null
-          kind: string | null
-          log_id: string | null
-          new_status: string | null
-          old_status: string | null
-        }
-        Relationships: []
-      }
-      vw_lexos_timeline_plus: {
-        Row: {
-          case_id: string | null
-          case_title: string | null
-          changed_at: string | null
-          changed_by: string | null
-          changed_by_email: string | null
-          client_id: string | null
-          document_id: string | null
-          generated_doc_id: string | null
-          item_type: string | null
-          kind: string | null
-          log_id: string | null
-          new_status: string | null
-          old_status: string | null
-        }
-        Relationships: []
-      }
-      vw_mv_deadline_alerts_dashboard_secure: {
-        Row: {
-          avg_delay_from_notify_seconds: number | null
-          avg_time_to_send_seconds: number | null
-          office_id: string | null
-          pending_due: number | null
-          sla_violations: number | null
-          total_failed: number | null
-          total_pending: number | null
-          total_sent: number | null
-          total_sent_late: number | null
-        }
-        Relationships: []
-      }
-      vw_my_recent_creations: {
-        Row: {
-          action: string | null
-          actor_user_id: string | null
-          after_data: Json | null
-          created_at: string | null
-          entity: string | null
-          entity_id: string | null
-          id: string | null
-          office_id: string | null
-          record_id: string | null
-          table_name: string | null
-        }
-        Insert: {
-          action?: string | null
-          actor_user_id?: string | null
-          after_data?: Json | null
-          created_at?: string | null
-          entity?: string | null
-          entity_id?: string | null
-          id?: string | null
-          office_id?: string | null
-          record_id?: string | null
-          table_name?: string | null
-        }
-        Update: {
-          action?: string | null
-          actor_user_id?: string | null
-          after_data?: Json | null
-          created_at?: string | null
-          entity?: string | null
-          entity_id?: string | null
-          id?: string | null
-          office_id?: string | null
-          record_id?: string | null
-          table_name?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_office_institutional_data: {
-        Row: {
-          address_city: string | null
-          address_neighborhood: string | null
-          address_number: string | null
-          address_state: string | null
-          address_street: string | null
-          address_zip_code: string | null
-          cnpj: string | null
-          contact_email: string | null
-          contact_phone: string | null
-          full_address: string | null
-          id: string | null
-          instagram_handle: string | null
-          logo_storage_bucket: string | null
-          logo_storage_path: string | null
-          metadata: Json | null
-          office_name: string | null
-          responsible_lawyer_name: string | null
-          responsible_lawyer_oab_number: string | null
-          responsible_lawyer_oab_uf: string | null
-          signature_storage_bucket: string | null
-          signature_storage_path: string | null
-          slug: string | null
-          website_url: string | null
-        }
-        Insert: {
-          address_city?: string | null
-          address_neighborhood?: string | null
-          address_number?: string | null
-          address_state?: string | null
-          address_street?: string | null
-          address_zip_code?: string | null
-          cnpj?: string | null
-          contact_email?: string | null
-          contact_phone?: string | null
-          full_address?: never
-          id?: string | null
-          instagram_handle?: string | null
-          logo_storage_bucket?: string | null
-          logo_storage_path?: string | null
-          metadata?: Json | null
-          office_name?: string | null
-          responsible_lawyer_name?: string | null
-          responsible_lawyer_oab_number?: string | null
-          responsible_lawyer_oab_uf?: string | null
-          signature_storage_bucket?: string | null
-          signature_storage_path?: string | null
-          slug?: string | null
-          website_url?: string | null
-        }
-        Update: {
-          address_city?: string | null
-          address_neighborhood?: string | null
-          address_number?: string | null
-          address_state?: string | null
-          address_street?: string | null
-          address_zip_code?: string | null
-          cnpj?: string | null
-          contact_email?: string | null
-          contact_phone?: string | null
-          full_address?: never
-          id?: string | null
-          instagram_handle?: string | null
-          logo_storage_bucket?: string | null
-          logo_storage_path?: string | null
-          metadata?: Json | null
-          office_name?: string | null
-          responsible_lawyer_name?: string | null
-          responsible_lawyer_oab_number?: string | null
-          responsible_lawyer_oab_uf?: string | null
-          signature_storage_bucket?: string | null
-          signature_storage_path?: string | null
-          slug?: string | null
-          website_url?: string | null
-        }
-        Relationships: []
-      }
-      vw_precedent_source_health: {
-        Row: {
-          enabled: boolean | null
-          failed_jobs: number | null
-          id: string | null
-          last_check: string | null
-          source_url: string | null
-          success_jobs: number | null
-        }
-        Relationships: []
-      }
-      vw_security_events_recent: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          details: Json | null
-          event_type: string | null
-          id: number | null
-          office_id: string | null
-          office_name: string | null
-          source: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      vw_templates_catalog: {
-        Row: {
-          category: string | null
-          code: string | null
-          created_at: string | null
-          id: string | null
-          is_default: boolean | null
-          name: string | null
-          office_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          category?: string | null
-          code?: string | null
-          created_at?: string | null
-          id?: string | null
-          is_default?: boolean | null
-          name?: string | null
-          office_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          category?: string | null
-          code?: string | null
-          created_at?: string | null
-          id?: string | null
-          is_default?: boolean | null
-          name?: string | null
-          office_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "document_templates_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "mv_backup_core_monthly"
-            referencedColumns: ["office_id"]
-          },
-          {
-            foreignKeyName: "document_templates_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_templates_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "vw_office_institutional_data"
             referencedColumns: ["id"]
           },
         ]
       }
     }
     Functions: {
-      _col_exists: { Args: { p_col: string; p_tbl: unknown }; Returns: boolean }
       accept_office_invite: { Args: { p_token: string }; Returns: Json }
-      add_business_days: {
-        Args: { p_days: number; p_office: string; p_start: string }
-        Returns: string
-      }
-      archive_client: {
-        Args: { p_client_id: string; p_reason?: string }
-        Returns: undefined
-      }
-      assign_plaud_asset: {
+      activate_kill_switch: {
         Args: {
-          p_asset_id: string
-          p_assigned_to: string
-          p_office_visible?: boolean
+          p_reason?: string
+          p_scope?: string
+          p_scope_id?: string
+          p_switch_type: string
         }
+        Returns: Json
+      }
+      assert_medical_output_certifiable: {
+        Args: { p_output_id: string }
         Returns: undefined
       }
-      backfill_generated_docs_documents: { Args: never; Returns: undefined }
-      block_actions_if_not_onboarded: { Args: never; Returns: undefined }
-      can_for_document_type: {
-        Args: { p_action: string; p_type_id: string }
-        Returns: boolean
-      }
-      can_for_generated_doc_type: {
-        Args: { p_action: string; p_type_id: string }
-        Returns: boolean
-      }
-      cancel_job: { Args: { p_job_id: string }; Returns: boolean }
-      case_all_stages: {
-        Args: never
+      calculate_office_cost_forecast: {
+        Args: { p_office_id: string }
         Returns: {
-          stage: string
+          avg_daily_usd: number
+          budget_remaining_usd: number
+          is_at_risk: boolean
+          projected_30d_usd: number
         }[]
       }
-      case_belongs_to_current_office: {
-        Args: { p_case_id: string }
-        Returns: boolean
-      }
-      case_next_stages_from: {
-        Args: { p_from_stage: string }
-        Returns: {
-          to_stage: string
-        }[]
-      }
-      case_next_statuses_for_case: {
-        Args: { p_case_id: string }
-        Returns: {
-          to_status: string
-        }[]
-      }
-      case_next_statuses_from: {
-        Args: { p_from_status: string }
-        Returns: {
-          to_status: string
-        }[]
-      }
-      claim_next_kit_job: {
-        Args: never
-        Returns: {
-          attempts: number
-          client_id: string | null
-          created_at: string
-          created_by: string | null
-          error_code: string | null
-          error_message: string | null
-          id: string
-          last_error: string | null
-          locked_at: string | null
-          locked_by: string | null
-          office_id: string | null
-          requested_codes: string[]
-          requested_codes_key: string
-          status: string
-          step: string | null
-          updated_at: string
+      check_and_charge_ai_budget: {
+        Args: {
+          p_estimated_tokens: number
+          p_is_critical?: boolean
+          p_job_type?: string
+          p_office_id: string
         }
-        SetofOptions: {
-          from: "*"
-          to: "kit_generation_jobs"
-          isOneToOne: true
-          isSetofReturn: false
+        Returns: Json
+      }
+      check_and_increment_rate_limit: {
+        Args: {
+          p_action: string
+          p_limit_per_window: number
+          p_scope_id: string
+          p_scope_type: string
+          p_window_minutes?: number
         }
+        Returns: Json
       }
-      clone_global_templates_to_my_office: { Args: never; Returns: number }
-      clone_template_for_edit: {
-        Args: { p_template_id: string }
-        Returns: string
+      check_rerun_loop_guard: {
+        Args: { p_session_id: string; p_snapshot_hash: string }
+        Returns: {
+          allowed: boolean
+          reason: string
+        }[]
       }
-      complete_onboarding_step: { Args: { p_step: string }; Returns: undefined }
-      create_initial_client_docs:
-        | { Args: { p_client_id: string }; Returns: undefined }
+      check_token_rate_limit: {
+        Args: { p_estimated_tokens: number; p_office_id: string }
+        Returns: {
+          allowed: boolean
+          current_tpm: number
+          limit_tpm: number
+        }[]
+      }
+      claim_session_job:
         | {
             Args: {
-              p_client_id: string
-              p_office_id: string
-              p_templates: string[]
+              p_lease_duration?: string
+              p_max_jobs?: number
+              p_worker_id: string
             }
-            Returns: undefined
+            Returns: {
+              actual_tokens_input: number | null
+              actual_tokens_output: number | null
+              attempt_count: number
+              cache_hit: boolean | null
+              claimed_at: string | null
+              compensation_reason: string | null
+              config_json: Json
+              cost_usd: number | null
+              created_at: string
+              created_by: string | null
+              decision_taken: string | null
+              dedup_hit: boolean | null
+              estimated_cost_usd: number | null
+              execution_duration_ms: number | null
+              finished_at: string | null
+              heartbeat_interval_s: number
+              id: string
+              idempotency_key: string
+              job_type: Database["public"]["Enums"]["session_job_type"]
+              last_error: string | null
+              last_heartbeat_at: string | null
+              lease_duration_s: number
+              lease_expires_at: string | null
+              max_attempts: number
+              office_id: string
+              priority: number
+              reclaim_attempts: number
+              scheduled_at: string
+              session_id: string
+              side_effect_confirmed: boolean
+              started_at: string | null
+              status: Database["public"]["Enums"]["session_job_status"]
+              token_estimate: number | null
+              trace_id: string | null
+              updated_at: string
+              worker_id: string | null
+              worker_type: Database["public"]["Enums"]["session_worker_type"]
+            }[]
+            SetofOptions: {
+              from: "*"
+              to: "session_jobs"
+              isOneToOne: false
+              isSetofReturn: true
+            }
           }
         | {
-            Args: { p_client_id: string; p_templates: string[] }
-            Returns: undefined
+            Args: {
+              p_ai_per_office_limit?: number
+              p_lease_duration?: string
+              p_max_jobs?: number
+              p_worker_id: string
+              p_worker_type: Database["public"]["Enums"]["session_worker_type"]
+            }
+            Returns: {
+              actual_tokens_input: number | null
+              actual_tokens_output: number | null
+              attempt_count: number
+              cache_hit: boolean | null
+              claimed_at: string | null
+              compensation_reason: string | null
+              config_json: Json
+              cost_usd: number | null
+              created_at: string
+              created_by: string | null
+              decision_taken: string | null
+              dedup_hit: boolean | null
+              estimated_cost_usd: number | null
+              execution_duration_ms: number | null
+              finished_at: string | null
+              heartbeat_interval_s: number
+              id: string
+              idempotency_key: string
+              job_type: Database["public"]["Enums"]["session_job_type"]
+              last_error: string | null
+              last_heartbeat_at: string | null
+              lease_duration_s: number
+              lease_expires_at: string | null
+              max_attempts: number
+              office_id: string
+              priority: number
+              reclaim_attempts: number
+              scheduled_at: string
+              session_id: string
+              side_effect_confirmed: boolean
+              started_at: string | null
+              status: Database["public"]["Enums"]["session_job_status"]
+              token_estimate: number | null
+              trace_id: string | null
+              updated_at: string
+              worker_id: string | null
+              worker_type: Database["public"]["Enums"]["session_worker_type"]
+            }[]
+            SetofOptions: {
+              from: "*"
+              to: "session_jobs"
+              isOneToOne: false
+              isSetofReturn: true
+            }
           }
-      create_kit_job_after_signature: {
-        Args: { p_client_id: string; p_office_id: string }
-        Returns: string
+        | {
+            Args: {
+              p_lease_duration?: string
+              p_max_jobs?: number
+              p_worker_id: string
+              p_worker_type?: string
+            }
+            Returns: {
+              actual_tokens_input: number | null
+              actual_tokens_output: number | null
+              attempt_count: number
+              cache_hit: boolean | null
+              claimed_at: string | null
+              compensation_reason: string | null
+              config_json: Json
+              cost_usd: number | null
+              created_at: string
+              created_by: string | null
+              decision_taken: string | null
+              dedup_hit: boolean | null
+              estimated_cost_usd: number | null
+              execution_duration_ms: number | null
+              finished_at: string | null
+              heartbeat_interval_s: number
+              id: string
+              idempotency_key: string
+              job_type: Database["public"]["Enums"]["session_job_type"]
+              last_error: string | null
+              last_heartbeat_at: string | null
+              lease_duration_s: number
+              lease_expires_at: string | null
+              max_attempts: number
+              office_id: string
+              priority: number
+              reclaim_attempts: number
+              scheduled_at: string
+              session_id: string
+              side_effect_confirmed: boolean
+              started_at: string | null
+              status: Database["public"]["Enums"]["session_job_status"]
+              token_estimate: number | null
+              trace_id: string | null
+              updated_at: string
+              worker_id: string | null
+              worker_type: Database["public"]["Enums"]["session_worker_type"]
+            }[]
+            SetofOptions: {
+              from: "*"
+              to: "session_jobs"
+              isOneToOne: false
+              isSetofReturn: true
+            }
+          }
+      complete_onboarding_step: { Args: { p_step: string }; Returns: undefined }
+      confirm_job_side_effect: {
+        Args: { p_job_id: string; p_worker_id: string }
+        Returns: boolean
+      }
+      confirm_kill_switch: {
+        Args: { p_confirmation_token: string; p_switch_id: string }
+        Returns: Json
       }
       current_office_id: { Args: never; Returns: string }
-      current_office_role: { Args: never; Returns: string }
-      current_uid: { Args: never; Returns: string }
-      delete_case_cascade: { Args: { p_case_id: string }; Returns: Json }
-      delete_client: { Args: { p_client_id: string }; Returns: undefined }
-      delete_client_cascade: { Args: { p_client_id: string }; Returns: Json }
-      doc_next_statuses_from: {
-        Args: { p_from_status: string }
-        Returns: {
-          to_status: string
-        }[]
+      deactivate_kill_switch: {
+        Args: { p_reason?: string; p_switch_id: string }
+        Returns: Json
       }
-      duplicate_template: { Args: { p_template_id: string }; Returns: string }
-      enqueue_ai_fill_job: {
-        Args: { p_case_id: string; p_input?: Json; p_template_id: string }
-        Returns: string
+      detect_job_cost_anomaly: {
+        Args: { p_actual_cost: number; p_job_id: string }
+        Returns: boolean
       }
-      enqueue_check_source_jobs: { Args: { p_limit?: number }; Returns: number }
-      enqueue_integration_job: {
-        Args: { p_kind: string; p_payload?: Json; p_provider: string }
-        Returns: string
-      }
-      enqueue_render_job: {
+      ensure_personal_office: { Args: never; Returns: string }
+      get_adaptive_model_tier: {
         Args: {
-          p_format: string
-          p_generated_document_id: string
-          p_payload?: Json
+          p_decision_taken?: string
+          p_job_type: string
+          p_office_id: string
         }
         Returns: string
       }
-      enqueue_sync_source_jobs: {
-        Args: { p_court?: string; p_kind?: string; p_limit?: number }
-        Returns: number
-      }
-      enqueue_sync_stj_sumulas_jobs: {
-        Args: { p_limit?: number }
-        Returns: number
-      }
-      ensure_case_tasks_for_stage: {
-        Args: { p_case_id: string; p_stage: string }
-        Returns: undefined
-      }
-      finalize_analysis_subject: {
-        Args: { p_case_id: string; p_office_id: string; p_subject: string }
+      get_agenda_month_bundle: {
+        Args: { p_month: number; p_office_id: string; p_year: number }
         Returns: Json
-      }
-      finalize_subject: {
-        Args: {
-          p_case_id?: string
-          p_office_id: string
-          p_snapshot?: Json
-          p_subject: string
-        }
-        Returns: {
-          case_id: string
-          created_by: string
-          finished_at: string
-          id: string
-          office_id: string
-          status: string
-          subject: string
-        }[]
-      }
-      get_active_office_for_user: { Args: never; Returns: string }
-      get_agenda_assignees_range: {
-        Args: {
-          p_from: string
-          p_include_done?: boolean
-          p_office_id: string
-          p_to: string
-        }
-        Returns: {
-          assigned_to: string
-          total: number
-        }[]
-      }
-      get_agenda_conflicts: {
-        Args: {
-          p_assigned_to?: string
-          p_from: string
-          p_office_id: string
-          p_to: string
-        }
-        Returns: {
-          a_end: string
-          a_id: string
-          a_kind: string
-          a_start: string
-          a_status: string
-          a_title: string
-          assigned_to: string
-          b_end: string
-          b_id: string
-          b_kind: string
-          b_start: string
-          b_status: string
-          b_title: string
-          overlap_minutes: number
-        }[]
-      }
-      get_agenda_month_bundle:
-        | {
-            Args: {
-              p_assigned_to?: string
-              p_include_conflicts?: boolean
-              p_include_done?: boolean
-              p_month_local: string
-              p_office_id: string
-              p_timezone?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_assigned_to?: string
-              p_include_conflicts?: boolean
-              p_include_done?: boolean
-              p_month_local: string
-              p_office_id: string
-            }
-            Returns: Json
-          }
-      get_agenda_overdue_items: {
-        Args: {
-          p_assigned_to?: string
-          p_days_back?: number
-          p_limit?: number
-          p_office_id: string
-          p_offset?: number
-        }
-        Returns: {
-          assigned_to: string
-          case_id: string
-          client_id: string
-          created_by: string
-          id: string
-          kind: string
-          overdue_days: number
-          overdue_minutes: number
-          priority: string
-          start_at: string
-          status: string
-          title: string
-          visibility: string
-        }[]
-      }
-      get_agenda_overdue_kpis: {
-        Args: {
-          p_assigned_to?: string
-          p_days_back?: number
-          p_office_id: string
-        }
-        Returns: Json
-      }
-      get_agenda_range:
-        | {
-            Args: {
-              p_assigned_to?: string
-              p_from: string
-              p_include_done?: boolean
-              p_office_id: string
-              p_timezone?: string
-              p_to: string
-            }
-            Returns: {
-              all_day: boolean
-              assigned_to: string
-              case_id: string
-              case_title: string
-              client_id: string
-              client_name: string
-              created_at: string
-              end_time: string
-              id: string
-              kind: string
-              local_date: string
-              local_time: string
-              location: string
-              meeting_provider: string
-              meeting_url: string
-              notes: string
-              priority: string
-              status: string
-              title: string
-              updated_at: string
-            }[]
-          }
-        | {
-            Args: {
-              p_assigned_to?: string
-              p_from: string
-              p_include_done?: boolean
-              p_office_id: string
-              p_to: string
-            }
-            Returns: {
-              all_day: boolean
-              assigned_to: string
-              case_id: string
-              client_id: string
-              created_by: string
-              end_at: string
-              id: string
-              kind: string
-              local_date: string
-              local_end_time: string
-              local_time: string
-              notes: string
-              office_id: string
-              priority: string
-              start_at: string
-              status: string
-              title: string
-              visibility: string
-            }[]
-          }
-      get_agenda_week_bundle: {
-        Args: {
-          p_assigned_to?: string
-          p_include_conflicts?: boolean
-          p_include_done?: boolean
-          p_office_id: string
-          p_week_start_local: string
-        }
-        Returns: Json
-      }
-      get_assistant_context: {
-        Args: { p_case_id?: string; p_client_id?: string }
-        Returns: Json
-      }
-      get_auth_user_email: { Args: { p_user_id: string }; Returns: string }
-      get_case_payments: {
-        Args: { p_case_id: string }
-        Returns: {
-          billing_type: string
-          created_at: string
-          due_date: string
-          id: string
-          paid_at: string
-          status: string
-          value: number
-        }[]
-      }
-      get_financial_kpis: {
-        Args: never
-        Returns: {
-          conversion_rate_percent: number
-          paid_charges: number
-          ticket_medio: number
-          total_canceled: number
-          total_charges: number
-          total_overdue: number
-          total_paid: number
-          total_pending: number
-        }[]
-      }
-      get_financial_monthly: {
-        Args: never
-        Returns: {
-          month: string | null
-          total_charges: number | null
-          total_overdue: number | null
-          total_paid: number | null
-          total_pending: number | null
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "vw_financial_monthly"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      get_my_active_office: {
-        Args: never
-        Returns: {
-          office_id: string
-          office_name: string
-        }[]
-      }
-      get_my_case_role: { Args: { p_case_id: string }; Returns: string }
-      get_nija_quota_status: { Args: { p_office_id?: string }; Returns: Json }
-      get_nija_usage: { Args: { p_office_id: string }; Returns: Json }
-      get_notifications: {
-        Args: {
-          p_limit?: number
-          p_office_id: string
-          p_offset?: number
-          p_only_unread?: boolean
-        }
-        Returns: {
-          body: string
-          created_at: string
-          href: string
-          id: string
-          kind: string
-          read_at: string
-          severity: string
-          source_id: string
-          source_table: string
-          title: string
-        }[]
-      }
-      get_office_branding_json: { Args: { p_office_id: string }; Returns: Json }
-      get_office_branding_json_by_slug: {
-        Args: { p_slug: string }
-        Returns: Json
-      }
-      get_office_header_block: {
-        Args: { p_office_id: string }
-        Returns: string
       }
       get_office_invite_public: {
         Args: { p_token: string }
         Returns: {
+          created_by: string
           email: string
           expires_at: string
           invite_id: string
@@ -11667,573 +7560,29 @@ export type Database = {
           step_key: string
         }[]
       }
-      get_office_settings: {
-        Args: { p_office_id: string }
+      get_pre_execution_verdict: {
+        Args: { p_estimated_tokens: number; p_job_id: string }
         Returns: {
-          precedents_limit: number
-          prefer_curated: boolean
-          videos_limit: number
+          allowed: boolean
+          decision_taken: string
+          estimated_cost_usd: number
+          reason: string
         }[]
       }
-      get_office_ui_settings: {
-        Args: { p_office_id: string }
-        Returns: {
-          accent: string
-          office_id: string
-          sidebar_logo_scale: number
-          ui_density: string
-          ui_font: string
-          ui_scale: number
-          updated_at: string
-        }[]
-      }
-      get_or_create_chat_thread: {
-        Args: {
-          p_case_id?: string
-          p_client_id?: string
-          p_route?: string
-          p_scope?: string
-        }
-        Returns: string
-      }
-      get_pending_jobs_count: { Args: never; Returns: number }
-      get_plaud_inbox: {
-        Args: { p_mode: string; p_office_id: string }
-        Returns: {
-          assigned_to: string | null
-          audio_url: string | null
-          case_id: string | null
-          created_at: string
-          created_at_source: string | null
-          created_by: string | null
-          duration: number | null
-          external_id: string
-          id: string
-          is_office_visible: boolean
-          language: string | null
-          linked_at: string | null
-          linked_by: string | null
-          occurred_at: string | null
-          office_id: string
-          raw: Json
-          received_at: string | null
-          source: string
-          summary: string | null
-          title: string | null
-          transcript: string | null
-          updated_at: string
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "plaud_assets"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      get_template_code_from_name: { Args: { p_name: string }; Returns: string }
-      get_video_chapters: {
-        Args: { p_video_id: string }
-        Returns: {
-          end_seconds: number
-          id: string
-          start_seconds: number
-          title: string
-        }[]
-      }
+      get_service_config: { Args: { query: string }; Returns: Json }
       hard_delete_client: { Args: { p_client_id: string }; Returns: Json }
-      has_office_role:
-        | { Args: { p_office_id: string; p_roles: string[] }; Returns: boolean }
-        | { Args: { required_role: string }; Returns: boolean }
-      increment_nija_counter: { Args: { p_office_id: string }; Returns: Json }
+      increment_session_chunks: {
+        Args: { session_id: string }
+        Returns: undefined
+      }
       init_office_onboarding_steps: {
         Args: { p_office_id: string }
         Returns: undefined
       }
-      is_case_paid: { Args: { p_case_id: string }; Returns: boolean }
-      is_office_admin: { Args: { p_office_id: string }; Returns: boolean }
-      is_office_member: { Args: { p_office_id: string }; Returns: boolean }
-      is_valid_cnj: { Args: { p: string }; Returns: boolean }
-      kit_job_mark_error: {
-        Args: {
-          p_error_code: string
-          p_error_message: string
-          p_job_id: string
-          p_step: string
-        }
-        Returns: undefined
-      }
-      kit_job_mark_ok: {
-        Args: { p_job_id: string; p_step?: string }
-        Returns: undefined
-      }
-      kit_jobs_claim_one: {
-        Args: never
-        Returns: {
-          attempts: number
-          client_id: string | null
-          created_at: string
-          created_by: string | null
-          error_code: string | null
-          error_message: string | null
-          id: string
-          last_error: string | null
-          locked_at: string | null
-          locked_by: string | null
-          office_id: string | null
-          requested_codes: string[]
-          requested_codes_key: string
-          status: string
-          step: string | null
-          updated_at: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "kit_generation_jobs"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      kit_jobs_requeue_stuck: { Args: { p_minutes?: number }; Returns: number }
-      knowledge_stats_apply_snapshot: {
-        Args: { p_snapshot_id: string }
-        Returns: Json
-      }
-      lexos_active_office_id: { Args: never; Returns: string }
-      lexos_assert_admin:
-        | { Args: never; Returns: undefined }
-        | { Args: { p_office_id: string }; Returns: boolean }
-      lexos_audit_db_snapshot: { Args: { p_office_id: string }; Returns: Json }
-      lexos_audit_health: { Args: { p_office_id: string }; Returns: Json }
-      lexos_audit_kit_pdf_all: { Args: never; Returns: Json }
-      lexos_audit_matrix_access: {
-        Args: { p_office_id: string }
-        Returns: Json
-      }
-      lexos_audit_save_full_snapshot: {
-        Args: {
-          p_edge_manifest: Json
-          p_frontend_manifest: Json
-          p_mode?: string
-          p_office_id: string
-        }
-        Returns: string
-      }
-      lexos_can_access_case: { Args: { p_case_id: string }; Returns: boolean }
-      lexos_cleanup_old_alerts: { Args: { p_days?: number }; Returns: number }
-      lexos_cleanup_orphan_documents: { Args: never; Returns: number }
-      lexos_codes_key: { Args: { p_codes: string[] }; Returns: string }
-      lexos_col_exists: {
-        Args: { p_col: string; p_rel: unknown }
+      is_kill_switch_active: {
+        Args: { p_scope_id?: string; p_switch_type: string }
         Returns: boolean
       }
-      lexos_create_initial_client_docs: {
-        Args: { p_client_id: string }
-        Returns: undefined
-      }
-      lexos_create_notification: {
-        Args: {
-          p_body: string
-          p_dedupe_key: string
-          p_href: string
-          p_kind: string
-          p_office_id: string
-          p_severity: string
-          p_source_id: string
-          p_source_table: string
-          p_title: string
-          p_user_id: string
-        }
-        Returns: undefined
-      }
-      lexos_cron_schedule: {
-        Args: { p_command: string; p_schedule: string }
-        Returns: number
-      }
-      lexos_cron_set_active: {
-        Args: { job_ids: number[]; p_active: boolean }
-        Returns: string
-      }
-      lexos_cron_unschedule: { Args: { job_ids: number[] }; Returns: string }
-      lexos_debug_client_kit: { Args: { p_client_id: string }; Returns: Json }
-      lexos_delete_client_soft: {
-        Args: { p_client_id: string }
-        Returns: undefined
-      }
-      lexos_diag_generated_docs: {
-        Args: never
-        Returns: {
-          columns: Json
-          has_document_id: boolean
-          null_document_id: number
-          tbl: string
-          total_rows: number
-          triggers_count: number
-        }[]
-      }
-      lexos_generate_document: {
-        Args: { p_case_id: string; p_text_base: string }
-        Returns: string
-      }
-      lexos_get_audit_logs: {
-        Args: { p_limit?: number; p_office_id?: string; p_offset?: number }
-        Returns: {
-          action: string | null
-          actor_role: string | null
-          actor_user_id: string | null
-          after_data: Json | null
-          before_data: Json | null
-          created_at: string | null
-          entity: string | null
-          entity_id: string | null
-          id: string | null
-          metadata: Json | null
-          office_id: string | null
-          office_name: string | null
-          record_id: string | null
-          table_name: string | null
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "vw_audit_logs_full"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      lexos_get_audit_trail: {
-        Args: {
-          p_limit?: number
-          p_offset?: number
-          p_record_id: string
-          p_table_name: string
-        }
-        Returns: {
-          action: string | null
-          actor_role: string | null
-          actor_user_id: string | null
-          after_data: Json | null
-          before_data: Json | null
-          created_at: string | null
-          entity: string | null
-          entity_id: string | null
-          id: string | null
-          metadata: Json | null
-          office_id: string | null
-          office_name: string | null
-          record_id: string | null
-          table_name: string | null
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "vw_audit_logs_full"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      lexos_get_case_documents: {
-        Args: { p_case_id: string; p_limit?: number; p_offset?: number }
-        Returns: {
-          case_id: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          deleted_reason: string | null
-          extracted_text: string | null
-          file_size: number | null
-          filename: string | null
-          id: string | null
-          is_locked: boolean | null
-          kind: Database["public"]["Enums"]["doc_kind"] | null
-          locked_at: string | null
-          locked_by: string | null
-          metadata: Json | null
-          mime_type: string | null
-          office_id: string | null
-          signed_at: string | null
-          signed_by: string | null
-          storage_bucket: string | null
-          storage_path: string | null
-          type_id: string | null
-          uploaded_at: string | null
-          uploaded_by: string | null
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "vw_case_documents"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      lexos_get_case_generated_docs: {
-        Args: { p_case_id: string; p_limit?: number; p_offset?: number }
-        Returns: {
-          case_id: string | null
-          content: string | null
-          created_at: string | null
-          created_by: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          deleted_reason: string | null
-          document_id: string | null
-          file_path: string | null
-          filename: string | null
-          id: string | null
-          kind: Database["public"]["Enums"]["doc_kind"] | null
-          metadata: Json | null
-          mime_type: string | null
-          office_id: string | null
-          source_template_id: string | null
-          title: string | null
-          version: number | null
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "vw_case_generated_docs"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      lexos_get_case_status_history: {
-        Args: { p_case_id: string; p_limit?: number; p_offset?: number }
-        Returns: {
-          actor_user_id: string | null
-          case_id: string | null
-          created_at: string | null
-          from_status: string | null
-          id: string | null
-          metadata: Json | null
-          office_id: string | null
-          reason: string | null
-          to_status: string | null
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "vw_case_status_history"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      lexos_get_chat_context: {
-        Args: { p_case_id: string; p_office_id: string; p_user_id: string }
-        Returns: Json
-      }
-      lexos_get_cron_jobs_status: {
-        Args: never
-        Returns: {
-          active: boolean
-          command: string
-          jobid: number
-          last_run_duration: string
-          last_run_end: string
-          last_run_message: string
-          last_run_start: string
-          last_run_status: string
-          schedule: string
-        }[]
-      }
-      lexos_get_dashboard_overview: {
-        Args: { p_office_id: string }
-        Returns: Json
-      }
-      lexos_get_db_connection_stats: { Args: never; Returns: Json }
-      lexos_get_document_audited: { Args: { p_id: string }; Returns: Json }
-      lexos_get_kpis: {
-        Args: never
-        Returns: {
-          cases_closed: number | null
-          cases_in_progress: number | null
-          ref_date: string | null
-          total_cases: number | null
-          total_clients: number | null
-          total_documents: number | null
-          total_generated_docs: number | null
-        }
-        SetofOptions: {
-          from: "*"
-          to: "vw_lexos_kpis"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      lexos_get_my_recent_actions: {
-        Args: { p_limit?: number; p_offset?: number }
-        Returns: {
-          action: string | null
-          actor_role: string | null
-          actor_user_id: string | null
-          after_data: Json | null
-          before_data: Json | null
-          created_at: string | null
-          entity: string | null
-          entity_id: string | null
-          id: string | null
-          metadata: Json | null
-          office_id: string | null
-          office_name: string | null
-          record_id: string | null
-          table_name: string | null
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "vw_audit_logs_full"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      lexos_get_my_recent_creations: {
-        Args: { p_limit?: number; p_offset?: number }
-        Returns: {
-          action: string | null
-          actor_user_id: string | null
-          after_data: Json | null
-          created_at: string | null
-          entity: string | null
-          entity_id: string | null
-          id: string | null
-          office_id: string | null
-          record_id: string | null
-          table_name: string | null
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "vw_my_recent_creations"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      lexos_get_nija_sessions: {
-        Args: {
-          p_case_id?: string
-          p_engine?: string
-          p_limit?: number
-          p_office_id: string
-          p_offset?: number
-        }
-        Returns: {
-          acting_side: string | null
-          analysis_result: Json | null
-          attachments: Json
-          case_id: string | null
-          client_name: string | null
-          cnj_number: string | null
-          created_at: string
-          created_by: string
-          document_ids: Json | null
-          document_names: Json | null
-          documents_hash: string | null
-          extraction_result: Json | null
-          id: string
-          input_summary: string | null
-          mode: string
-          office_id: string
-          opponent_name: string | null
-          output_alerts: Json
-          output_checklist: Json
-          output_draft: string | null
-          status: string | null
-          updated_at: string | null
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "nija_sessions"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      lexos_get_notifications: {
-        Args: { p_limit?: number; p_offset?: number; p_only_unread?: boolean }
-        Returns: {
-          body: string
-          created_at: string
-          id: string
-          is_read: boolean
-          kind: string
-          metadata: Json
-          office_id: string
-          read_at: string | null
-          title: string
-          user_id: string
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "notifications"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      lexos_get_security_events: {
-        Args: {
-          p_event_type?: string
-          p_limit?: number
-          p_office_id?: string
-          p_offset?: number
-          p_source?: string
-        }
-        Returns: {
-          created_at: string | null
-          description: string | null
-          details: Json | null
-          event_type: string | null
-          id: number | null
-          office_id: string | null
-          office_name: string | null
-          source: string | null
-          user_id: string | null
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "vw_security_events_recent"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      lexos_get_subject_tree: { Args: never; Returns: Json }
-      lexos_get_template_tags: {
-        Args: { p_template_id: string }
-        Returns: {
-          created_at: string
-          created_by: string
-          id: string
-          office_id: string
-          tag: string
-          template_id: string
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "template_tags"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      lexos_get_top_queries:
-        | {
-            Args: never
-            Returns: {
-              pid: number
-              query_snippet: string
-              runtime: string
-              state: string
-              wait_event: string
-            }[]
-          }
-        | {
-            Args: { p_limit?: number }
-            Returns: {
-              pid: number
-              query_snippet: string
-              runtime: unknown
-              state: string
-              wait_event: string
-            }[]
-          }
-      lexos_healthcheck: {
-        Args: never
-        Returns: {
-          details: Json
-          item: string
-          qtd: number
-          status: string
-        }[]
-      }
-      lexos_healthcheck_and_notify: { Args: never; Returns: undefined }
       lexos_healthcheck_session: {
         Args: never
         Returns: {
@@ -12244,80 +7593,6 @@ export type Database = {
           role: string
         }[]
       }
-      lexos_is_active_member: {
-        Args: { p_office_id: string }
-        Returns: boolean
-      }
-      lexos_is_admin: { Args: { p_office_id: string }; Returns: boolean }
-      lexos_is_member: { Args: { p_office_id: string }; Returns: boolean }
-      lexos_is_office_member: {
-        Args: { p_office_id: string }
-        Returns: boolean
-      }
-      lexos_is_owner: { Args: { p_office_id: string }; Returns: boolean }
-      lexos_is_owner_or_admin: {
-        Args: { p_office_id: string }
-        Returns: boolean
-      }
-      lexos_jwt_office_id: { Args: never; Returns: string }
-      lexos_list_office_members: {
-        Args: { p_office_id: string }
-        Returns: {
-          created_at: string
-          role: Database["public"]["Enums"]["office_role"]
-          user_id: string
-        }[]
-      }
-      lexos_list_pending_alerts: {
-        Args: { p_limit?: number }
-        Returns: {
-          alert_id: string
-          case_id: string
-          channel: string
-          deadline_id: string
-          due_at: string
-          notify_at: string
-          office_id: string
-          priority: string
-          title: string
-        }[]
-      }
-      lexos_log_function_event: {
-        Args: {
-          p_description?: string
-          p_details?: Json
-          p_event_type: string
-          p_function_name: string
-          p_office_id?: string
-          p_user_id?: string
-        }
-        Returns: undefined
-      }
-      lexos_log_read: {
-        Args: { p_office_id: string; p_row_pk: string; p_table: string }
-        Returns: undefined
-      }
-      lexos_log_security_event: {
-        Args: {
-          p_description?: string
-          p_details?: Json
-          p_event_type: string
-          p_office_id?: string
-          p_source: string
-          p_user_id?: string
-        }
-        Returns: undefined
-      }
-      lexos_map_deadline_status_to_agenda: {
-        Args: { p_status: string }
-        Returns: string
-      }
-      lexos_mark_notification_read: {
-        Args: { p_notification_id: string }
-        Returns: undefined
-      }
-      lexos_meeting_provider: { Args: { p_url: string }; Returns: string }
-      lexos_my_role: { Args: { p_office_id: string }; Returns: string }
       lexos_next_states_for_case: {
         Args: { p_case_id: string }
         Returns: {
@@ -12327,675 +7602,78 @@ export type Database = {
           to_state_name: string
         }[]
       }
-      lexos_nija_create_case: {
-        Args: {
-          p_client_id: string
-          p_side: Database["public"]["Enums"]["case_side"]
-          p_stage?: string
-          p_subject_id?: string
-          p_title: string
-        }
-        Returns: string
-      }
-      lexos_nija_healthcheck: { Args: never; Returns: Json }
-      lexos_nija_insert_analysis: {
-        Args: {
-          p_analysis: Json
-          p_analysis_key: string
-          p_case_id?: string
-          p_documents_hash: string
-          p_session_id?: string
-        }
-        Returns: string
-      }
-      lexos_nija_insert_piece: {
-        Args: {
-          p_case_id: string
-          p_documents_hash: string
-          p_piece: Json
-          p_piece_type: string
-        }
-        Returns: string
-      }
-      lexos_nija_log_event: {
-        Args: {
-          p_action: string
-          p_case_id?: string
-          p_duration_ms?: number
-          p_error?: Json
-          p_level: string
-          p_office_id?: string
-          p_payload?: Json
-          p_result?: Json
-          p_session_id?: string
-          p_source: string
-        }
-        Returns: string
-      }
-      lexos_nija_update_case_metadata: {
-        Args: { p_case_id: string; p_patch: Json }
-        Returns: undefined
-      }
-      lexos_norm_codes_key: { Args: { codes: string[] }; Returns: string }
-      lexos_normalize_role: {
-        Args: { p_role: string }
-        Returns: Database["public"]["Enums"]["office_role"]
-      }
-      lexos_notify_agenda_window: {
-        Args: { p_item_id: string; p_window: string }
-        Returns: undefined
-      }
-      lexos_notify_deadline_d_window: {
-        Args: { p_item_id: string; p_window: string }
-        Returns: undefined
-      }
-      lexos_notify_overdue_daily: { Args: never; Returns: undefined }
-      lexos_policy_simulate: {
-        Args: {
-          p_case_id?: string
-          p_office_id: string
-          p_role: string
-          p_user_id?: string
-        }
-        Returns: Json
-      }
-      lexos_precedents_claim_jobs: {
-        Args: { p_limit?: number }
-        Returns: {
-          created_at: string
-          finished_at: string | null
-          id: string
-          job_type: string
-          last_error: string | null
-          payload: Json
-          source_id: string | null
-          started_at: string | null
-          status: string
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "legal_precedent_jobs"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      lexos_precedents_enqueue_due_jobs: {
-        Args: { p_limit_sources?: number }
-        Returns: {
-          enqueued: number
-        }[]
-      }
-      lexos_precedents_finish_job: {
-        Args: { p_job_id: string; p_last_error?: string; p_success: boolean }
-        Returns: undefined
-      }
-      lexos_precedents_touch_source_run: {
-        Args: { p_source_id: string }
-        Returns: undefined
-      }
-      lexos_process_alert_queue_cron_safe: { Args: never; Returns: undefined }
-      lexos_process_deadline_alerts:
-        | { Args: never; Returns: undefined }
-        | { Args: { p_limit?: number }; Returns: Json }
-      lexos_process_deadline_alerts_cron_safe: {
-        Args: never
-        Returns: undefined
-      }
-      lexos_process_precedents_worker_cron_safe: {
-        Args: never
-        Returns: undefined
-      }
-      lexos_process_sla_notify_queue: {
-        Args: never
-        Returns: {
-          alert_id: string
-          deadline_id: string
-          delay_seconds: number
-          first_sent_at: string
-          notify_at: string
-          office_id: string
-        }[]
-      }
-      lexos_promote_release: {
-        Args: { p_office_id: string; p_snapshot_id: string; p_target?: string }
-        Returns: Json
-      }
-      lexos_quota_consume: {
-        Args: { p_amount?: number; p_kind: string }
-        Returns: Json
-      }
-      lexos_remove_member: {
-        Args: { p_office_id: string; p_user_id: string }
-        Returns: Json
-      }
-      lexos_request_uid: { Args: never; Returns: string }
-      lexos_resolve_template: {
-        Args: { p_subject_id: string }
-        Returns: {
-          branch_id: string | null
-          content: string
-          created_at: string
-          id: string
-          is_active: boolean
-          subject_id: string | null
-          title: string
-          version: number
-        }
-        SetofOptions: {
-          from: "*"
-          to: "legal_templates"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      lexos_run_daily_agenda_notifications: { Args: never; Returns: undefined }
-      lexos_run_daily_deadline_notifications: {
-        Args: never
-        Returns: undefined
-      }
-      lexos_safe_count: {
-        Args: { p_table_name: string; p_where?: string }
-        Returns: number
-      }
-      lexos_save_legal_precedent: { Args: { p: Json }; Returns: string }
-      lexos_set_case_state: {
-        Args: { p_case_id: string; p_note?: string; p_to_state_code: string }
-        Returns: undefined
-      }
-      lexos_set_member_role: {
-        Args: { p_new_role: string; p_office_id: string; p_user_id: string }
-        Returns: Json
-      }
-      lexos_suggest_subject: { Args: { p_text: string }; Returns: string }
-      lexos_telemetry_log: {
-        Args: {
-          p_duration_ms?: number
-          p_kind: string
-          p_office_id: string
-          p_payload: Json
-          p_route?: string
-        }
-        Returns: string
-      }
       lexos_transition_case_state: {
         Args: { p_case_id: string; p_note?: string; p_to_state_id: string }
         Returns: string
       }
-      lexos_update_case_status: {
-        Args: { p_case_id: string; p_new_status: string; p_reason?: string }
-        Returns: {
-          area: string | null
-          client_id: string
-          cnj_number: string | null
-          cnj_validated_at: string | null
-          comarca: string | null
-          court_name: string | null
-          created_at: string
-          created_by: string
-          deleted_at: string | null
-          deleted_by: string | null
-          deleted_reason: string | null
-          id: string
-          identified_docs: Json | null
-          internal_id: string | null
-          judicialized_at: string | null
-          lawyer_name: string | null
-          nija_full_analysis: Json | null
-          nija_full_last_run_at: string | null
-          nija_phase: string | null
-          oab_number: string | null
-          office_id: string
-          opponent_doc: string | null
-          opponent_name: string | null
-          side: Database["public"]["Enums"]["case_side"]
-          stage: string
-          state_id: string | null
-          status: string
-          subject_id: string | null
-          subtype: string | null
-          summary: string | null
-          title: string
-          updated_at: string
+      lookup_smart_dedup: {
+        Args: {
+          p_job_type: string
+          p_office_id: string
+          p_snapshot_hash: string
         }
-        SetofOptions: {
-          from: "*"
-          to: "cases"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      lexos_user_in_office: { Args: { p_office_id: string }; Returns: boolean }
-      lexos_user_office_ids: { Args: never; Returns: string[] }
-      link_plaud_asset_to_case: {
-        Args: { p_asset_id: string; p_case_id: string }
-        Returns: undefined
-      }
-      list_office_plans: {
-        Args: never
         Returns: {
-          code: string
-          name: string
-          nija_monthly_limit: number
+          existing_output_id: string
+          found: boolean
         }[]
       }
-      log_audit_event: {
-        Args: {
-          p_action: string
-          p_entity: string
-          p_entity_id: string
-          p_metadata?: Json
-        }
-        Returns: undefined
-      }
-      log_case_event: {
-        Args: {
-          p_case_id: string
-          p_event_type: string
-          p_payload?: Json
-          p_title: string
-        }
-        Returns: undefined
-      }
-      log_document_access: {
-        Args: { p_action: string; p_document_id: string; p_metadata?: Json }
-        Returns: undefined
-      }
-      log_document_event: {
-        Args: {
-          p_document_id: string
-          p_event_type: string
-          p_message?: string
-          p_metadata?: Json
-        }
-        Returns: undefined
-      }
-      log_document_generation: {
-        Args: { p_case_id: string; p_data: Json; p_template_id: string }
-        Returns: undefined
-      }
-      log_knowledge_run: {
-        Args: {
-          p_case_id: string
-          p_office_id: string
-          p_precedents_count: number
-          p_run_source: string
-          p_settings: Json
-          p_subject: string
-          p_used_query: string
-          p_videos_count: number
-        }
-        Returns: undefined
-      }
-      log_nija_quota_alert: {
-        Args: { p_alert_type: string }
-        Returns: undefined
-      }
-      log_nija_usage: {
-        Args: { p_case_id: string; p_module: string }
-        Returns: undefined
-      }
-      make_precedent_code: {
-        Args: {
-          p_court: string
-          p_kind: Database["public"]["Enums"]["precedent_kind"]
-          p_number: string
-        }
-        Returns: string
-      }
-      map_user_friendly_error: { Args: { p_code: string }; Returns: string }
-      mark_all_notifications_read: {
-        Args: { p_office_id: string }
-        Returns: undefined
-      }
-      mark_document_signed: {
-        Args: { p_document_id: string }
-        Returns: undefined
-      }
-      mark_kit_job_done: {
-        Args: { p_job_id: string; p_note?: string }
-        Returns: undefined
-      }
-      mark_kit_job_error: {
-        Args: { p_error: string; p_job_id: string; p_worker?: string }
-        Returns: undefined
-      }
-      mark_notification_read: { Args: { p_id: string }; Returns: undefined }
-      my_office_id: { Args: never; Returns: string }
-      nija_month_usage: {
-        Args: { p_month: string; p_office_id: string }
-        Returns: number
-      }
-      notify_nija_quota_webhook: {
-        Args: { p_alert_type: string }
-        Returns: undefined
-      }
-      omni_trace_log: {
-        Args: {
-          p_asset_id: string
-          p_case_id: string
-          p_decision: string
-          p_input_hash?: string
-          p_metadata?: Json
-          p_office_id: string
-          p_rationale?: Json
-          p_source: string
-          p_summary?: string
-          p_title?: string
-        }
-        Returns: string
-      }
-      persist_knowledge_snapshot: {
-        Args: {
-          p_case_id: string
-          p_office_id: string
-          p_precedents: Json
-          p_settings: Json
-          p_subject: string
-          p_used_query: string
-          p_videos: Json
-        }
-        Returns: undefined
-      }
-      promote_suggestion_to_precedent: {
-        Args: {
-          p_status?: Database["public"]["Enums"]["precedent_status"]
-          p_suggestion_id: string
-        }
-        Returns: string
-      }
-      purge_old_audit_events: {
-        Args: { p_months?: number }
-        Returns: undefined
-      }
-      recommend_knowledge: {
-        Args: {
-          p_case_id?: string
-          p_force_refresh?: boolean
-          p_office_id: string
-          p_subject: string
-        }
-        Returns: {
-          cached: boolean
-          cached_at: string
-          precedents: Json
-          trilha: Json
-          used_query: string
-          videos: Json
-        }[]
-      }
-      recommend_knowledge_advanced: {
-        Args: {
-          p_case_id?: string
-          p_force_refresh?: boolean
-          p_office_id: string
-          p_precedents_limit?: number
-          p_prefer_curated?: boolean
-          p_subject: string
-          p_videos_limit?: number
-        }
-        Returns: {
-          cached: boolean
-          precedents: Json
-          used_query: string
-          videos: Json
-        }[]
-      }
-      recommend_knowledge_ranked: {
-        Args: {
-          p_case_id: string
-          p_force_refresh?: boolean
-          p_office_id: string
-          p_subject: string
-        }
-        Returns: Json[]
-      }
-      recommend_knowledge_uncached: {
-        Args: {
-          p_case_id?: string
-          p_force_refresh?: boolean
-          p_office_id: string
-          p_subject: string
-        }
-        Returns: {
-          cached: boolean
-          cached_at: string
-          precedents: Json
-          trilha: Json
-          used_query: string
-          videos: Json
-        }[]
-      }
-      recommend_videos: {
-        Args: { p_case_id: string; p_limit?: number }
-        Returns: {
-          area: string
-          duracao_seconds: number
-          id: string
-          office_id: string
-          score: number
-          tags: string[]
-          tipo: string
-          titulo: string
-          url: string
-        }[]
-      }
-      reenable_all_sources: { Args: never; Returns: number }
-      refresh_knowledge: {
-        Args: {
-          p_case_id?: string
-          p_office_id: string
-          p_precedents_limit?: number
-          p_prefer_curated?: boolean
-          p_subject: string
-          p_videos_limit?: number
-        }
-        Returns: {
-          cached: boolean
-          precedents: Json
-          used_query: string
-          videos: Json
-        }[]
-      }
-      refresh_lexos_schema_audit_findings: { Args: never; Returns: undefined }
+      normalize_document: { Args: { doc: string }; Returns: string }
       render_template_preview: {
         Args: { p_data: Json; p_template_id: string }
         Returns: string
       }
-      request_document_signature:
-        | { Args: { p_document_id: string }; Returns: string }
-        | {
-            Args: { p_document_id: string; p_provider?: string }
-            Returns: string
-          }
-      restore_document_version: {
-        Args: { p_document_id: string; p_version_no: number }
-        Returns: undefined
-      }
-      restore_soft_deleted_document: {
-        Args: { p_document_id: string }
-        Returns: undefined
-      }
-      retry_failed_check_source_jobs: {
-        Args: { p_limit?: number }
-        Returns: number
-      }
-      retry_failed_sync_source_jobs: {
-        Args: { p_limit?: number }
-        Returns: number
-      }
-      retry_single_job: { Args: { p_job_id: string }; Returns: boolean }
-      rpc_link_client_file_to_requirement: {
-        Args: { p_file_id: string; p_req_id: string; p_status: string }
-        Returns: undefined
-      }
-      run_lexos_healthcheck: { Args: never; Returns: Json }
-      run_nija_with_quota: {
-        Args: { p_case_id: string; p_module: string }
-        Returns: Json
-      }
-      save_precedent_suggestion:
-        | {
-            Args: {
-              p_case_id: string
-              p_confidence?: number
-              p_court: string
-              p_kind: string
-              p_number: string
-              p_source_url?: string
-              p_text_full: string
-              p_title: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_case_id: string
-              p_court: string
-              p_kind: Database["public"]["Enums"]["precedent_kind"]
-              p_number: string
-              p_office_id: string
-              p_rationale?: string
-              p_source_url?: string
-              p_text_full?: string
-              p_title?: string
-              p_year?: number
-            }
-            Returns: string
-          }
-      search_legal_precedents: {
-        Args: {
-          p_kinds?: string[]
-          p_limit?: number
-          p_office_id: string
-          p_only_curated?: boolean
-          p_query: string
-          p_tribunal?: string
-        }
-        Returns: Json[]
-      }
-      search_legal_precedents_ranked: {
-        Args: {
-          p_limit?: number
-          p_office_id: string
-          p_prefer_curated?: boolean
-          p_query: string
-        }
-        Returns: {
-          ementa: string
-          link: string
-          ref_code: string
-          score: number
-          tags: string[]
-          tese: string
-          tipo: string
-          titulo: string
-          tribunal: string
-        }[]
-      }
-      search_precedents:
-        | {
-            Args: {
-              p_area?: string
-              p_keywords?: string[]
-              p_limit?: number
-              p_query?: string
-            }
-            Returns: {
-              area: string
-              ementa: string
-              id: string
-              link_oficial: string
-              numero: string
-              office_id: string
-              palavras_chave: string[]
-              tipo: string
-              titulo: string
-              tribunal: string
-            }[]
-          }
-        | {
-            Args: { p_limit?: number; p_office_id: string; p_query: string }
-            Returns: {
-              court: string
-              id: string
-              ref_code: string
-              score: number
-              summary: string
-              thesis: string
-              title: string
-            }[]
-          }
-      seed_client_kit_requirements: {
-        Args: {
-          p_client_id: string
-          p_is_company?: boolean
-          p_office_id: string
-        }
-        Returns: number
-      }
-      set_my_office_plan: { Args: { p_plan_code: string }; Returns: undefined }
-      sign_generated_document: {
-        Args: {
-          p_generated_document_id: string
-          p_metadata?: Json
-          p_signature_base64: string
-          p_signed_hash: string
-          p_signer_doc: string
-          p_signer_name: string
-          p_signer_type: string
-        }
-        Returns: string
-      }
-      soft_delete_document: {
-        Args: { p_document_id: string; p_reason?: string }
-        Returns: undefined
-      }
-      sua_funcao_exemplo: { Args: never; Returns: undefined }
-      sync_stj_sumulas_first_load: { Args: never; Returns: undefined }
-      template_missing_vars: {
-        Args: { p_data: Json; p_template_id: string }
-        Returns: {
-          var: string
-        }[]
-      }
-      template_vars: {
-        Args: { p_template_id: string }
-        Returns: {
-          var: string
-        }[]
-      }
-      title_case_br: { Args: { input: string }; Returns: string }
-      upsert_google_calendar_connection: {
-        Args: {
-          p_access_token: string
-          p_calendar_id: string
-          p_office_id: string
-          p_refresh_token: string
-          p_scopes: string[]
-          p_token_expires_at: string
-        }
-        Returns: Json
-      }
-      upsert_legal_precedent: {
-        Args: {
-          p_checksum_text?: string
-          p_court: string
-          p_kind: Database["public"]["Enums"]["precedent_kind"]
-          p_number: string
-          p_source_kind?: Database["public"]["Enums"]["precedent_source_kind"]
-          p_source_url?: string
-          p_status?: Database["public"]["Enums"]["precedent_status"]
-          p_text_full?: string
-          p_title?: string
-          p_year?: number
-        }
-        Returns: string
-      }
-      worker_lock_release: { Args: never; Returns: undefined }
-      worker_lock_try: {
-        Args: { p_lock_duration_seconds?: number }
+      renew_job_lease: {
+        Args: { p_extend_s?: number; p_job_id: string; p_worker_id: string }
         Returns: boolean
       }
+      reset_ai_budgets: { Args: never; Returns: undefined }
+      resolve_session_job_worker: {
+        Args: { p_job_type: Database["public"]["Enums"]["session_job_type"] }
+        Returns: Database["public"]["Enums"]["session_worker_type"]
+      }
+      run_readiness_checks: { Args: { p_trigger?: string }; Returns: Json }
+      session_job_janitor: { Args: never; Returns: undefined }
+      system_housekeeping: {
+        Args: { p_dry_run?: boolean; p_trigger?: string }
+        Returns: Json
+      }
+      transition_session_fsm:
+        | {
+            Args: {
+              p_caller_office_id?: string
+              p_execution_context?: string
+              p_metadata?: Json
+              p_reason?: string
+              p_session_id: string
+              p_target_status: Database["public"]["Enums"]["session_status"]
+              p_target_step?: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_metadata?: Json
+              p_performed_by?: string
+              p_reason?: string
+              p_session_id: string
+              p_target_status: Database["public"]["Enums"]["session_status"]
+              p_target_step?: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_caller_office_id?: string
+              p_execution_context?: string
+              p_metadata?: Json
+              p_performed_by?: string
+              p_reason?: string
+              p_session_id: string
+              p_target_status: Database["public"]["Enums"]["session_status"]
+              p_target_step?: string
+            }
+            Returns: undefined
+          }
     }
     Enums: {
       asaas_billing_type: "PIX" | "BOLETO" | "CREDIT_CARD"
@@ -13020,6 +7698,13 @@ export type Database = {
         | "ASSINATURA"
         | "COMPROVANTE_RENDA"
         | "KIT_RECIBO"
+      context_source_type:
+        | "audio"
+        | "legal_document"
+        | "medical_record"
+        | "exam"
+        | "image"
+        | "prior_note"
       doc_kind:
         | "PROCURACAO"
         | "DECLARACAO"
@@ -13028,7 +7713,21 @@ export type Database = {
         | "ANEXO"
         | "PROCESSO_PDF"
         | "OUTRO"
+      governance_incident_category: "clinical_behavioral" | "operational_engine"
+      governance_severity:
+        | "info"
+        | "warning"
+        | "high"
+        | "critical"
+        | "operational"
+      medical_output_status:
+        | "ai_draft"
+        | "pending_medical_review"
+        | "approved_signed"
+        | "approved_with_edits"
+        | "rejected"
       office_role: "OWNER" | "ADMIN" | "MEMBER"
+      output_validation_level: "LEVEL_A" | "LEVEL_B" | "LEVEL_C" | "LEVEL_D"
       person_type: "PF" | "PJ"
       person_type_enum: "PF" | "PJ"
       precedent_job_type: "CHECK_SOURCE"
@@ -13049,6 +7748,46 @@ export type Database = {
         | "ALTERADA"
         | "SUPERADA"
         | "DESCONHECIDO"
+      session_job_status:
+        | "queued"
+        | "claimed"
+        | "running"
+        | "succeeded"
+        | "failed"
+        | "dead_lettered"
+        | "cancelled"
+        | "heartbeat_lost"
+        | "compensated"
+      session_job_type:
+        | "TRANSCRIBE"
+        | "INGEST"
+        | "SNAPSHOT"
+        | "ANALYZE_LEGAL"
+        | "ANALYZE_MEDICAL"
+        | "FULL_PROCESS"
+      session_status:
+        | "created"
+        | "recording"
+        | "uploading"
+        | "processing"
+        | "transcribed"
+        | "analyzed"
+        | "archived"
+        | "interrupted"
+        | "failed"
+        | "ready_for_integrity_check"
+        | "ready_for_transcription"
+        | "context_ready"
+        | "snapshot_created"
+        | "analyzing"
+        | "outputs_generated"
+        | "approved"
+        | "compensating"
+        | "dead_lettered"
+      session_type: "legal_meeting" | "medical_consultation" | "generic"
+      session_worker_type: "IO" | "CPU" | "AI"
+      variable_context: "GLOBAL" | "LEGAL" | "MEDICAL" | "AGENDA"
+      variable_source: "TABLE_FIELD" | "COMPUTED" | "STATIC" | "CUSTOM"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -13174,6 +7913,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       asaas_billing_type: ["PIX", "BOLETO", "CREDIT_CARD"],
@@ -13200,6 +7942,14 @@ export const Constants = {
         "COMPROVANTE_RENDA",
         "KIT_RECIBO",
       ],
+      context_source_type: [
+        "audio",
+        "legal_document",
+        "medical_record",
+        "exam",
+        "image",
+        "prior_note",
+      ],
       doc_kind: [
         "PROCURACAO",
         "DECLARACAO",
@@ -13209,7 +7959,26 @@ export const Constants = {
         "PROCESSO_PDF",
         "OUTRO",
       ],
+      governance_incident_category: [
+        "clinical_behavioral",
+        "operational_engine",
+      ],
+      governance_severity: [
+        "info",
+        "warning",
+        "high",
+        "critical",
+        "operational",
+      ],
+      medical_output_status: [
+        "ai_draft",
+        "pending_medical_review",
+        "approved_signed",
+        "approved_with_edits",
+        "rejected",
+      ],
       office_role: ["OWNER", "ADMIN", "MEMBER"],
+      output_validation_level: ["LEVEL_A", "LEVEL_B", "LEVEL_C", "LEVEL_D"],
       person_type: ["PF", "PJ"],
       person_type_enum: ["PF", "PJ"],
       precedent_job_type: ["CHECK_SOURCE"],
@@ -13232,6 +8001,49 @@ export const Constants = {
         "SUPERADA",
         "DESCONHECIDO",
       ],
+      session_job_status: [
+        "queued",
+        "claimed",
+        "running",
+        "succeeded",
+        "failed",
+        "dead_lettered",
+        "cancelled",
+        "heartbeat_lost",
+        "compensated",
+      ],
+      session_job_type: [
+        "TRANSCRIBE",
+        "INGEST",
+        "SNAPSHOT",
+        "ANALYZE_LEGAL",
+        "ANALYZE_MEDICAL",
+        "FULL_PROCESS",
+      ],
+      session_status: [
+        "created",
+        "recording",
+        "uploading",
+        "processing",
+        "transcribed",
+        "analyzed",
+        "archived",
+        "interrupted",
+        "failed",
+        "ready_for_integrity_check",
+        "ready_for_transcription",
+        "context_ready",
+        "snapshot_created",
+        "analyzing",
+        "outputs_generated",
+        "approved",
+        "compensating",
+        "dead_lettered",
+      ],
+      session_type: ["legal_meeting", "medical_consultation", "generic"],
+      session_worker_type: ["IO", "CPU", "AI"],
+      variable_context: ["GLOBAL", "LEGAL", "MEDICAL", "AGENDA"],
+      variable_source: ["TABLE_FIELD", "COMPUTED", "STATIC", "CUSTOM"],
     },
   },
 } as const

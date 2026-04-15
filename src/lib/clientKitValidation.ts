@@ -9,7 +9,6 @@ export interface ClientData {
   cpf: string | null;
   cnpj: string | null;
   rg: string | null;
-  rg_issuer: string | null;
   address_line: string | null;
   city: string | null;
   state: string | null;
@@ -39,7 +38,6 @@ const REQUIRED_PF_FIELDS: ValidationField[] = [
   { field: 'full_name', label: 'Nome completo' },
   { field: 'cpf', label: 'CPF' },
   { field: 'rg', label: 'RG' },
-  { field: 'rg_issuer', label: 'Órgão emissor do RG' },
   { field: 'address_line', label: 'Endereço' },
   { field: 'city', label: 'Cidade' },
   { field: 'state', label: 'Estado' },

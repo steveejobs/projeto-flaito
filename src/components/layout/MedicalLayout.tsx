@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, RefreshCw, UserCog, Building2 } from 'lucide-react';
+import { LogOut, RefreshCw, UserCog, Building2, Phone, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDevPanel } from '@/contexts/DevPanelContext';
 import { HeaderNotifications } from '@/components/HeaderNotifications';
@@ -23,6 +23,7 @@ import { RouteTransitionOverlay } from '@/components/RouteTransitionOverlay';
 import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 import { DevDiagnosticsPanel } from '@/components/DevDiagnosticsPanel';
 import { LegalClock } from '@/components/LegalClock';
+import { useActiveClient } from '@/contexts/ActiveClientContext';
 
 interface MedicalLayoutProps {
     children: ReactNode;
@@ -30,7 +31,7 @@ interface MedicalLayoutProps {
 
 const RETRY_DELAY_MS = 3000;
 
-export function MedicalLayout({ children }: MedicalLayoutProps) {
+function MedicalLayoutInner({ children }: MedicalLayoutProps) {
     const { user, session, loading: authLoading, signOut } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -113,25 +114,43 @@ export function MedicalLayout({ children }: MedicalLayoutProps) {
             if (parts.length >= 2) {
                 return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
             }
-            return parts[0]?.slice(0, 2).toUpperCase() || 'U';
+            return parts[0]?.slice(0, 2)?.toUpperCase() || 'U';
         }
-        return user?.email?.slice(0, 2).toUpperCase() || 'U';
+        return user?.email?.slice(0, 2)?.toUpperCase() || 'U';
     };
 
     const userInitials = getInitials();
+    const { activeProfile, setActiveClientId } = useActiveClient();
 
     return (
         <SidebarProvider>
             <div className="medical-theme min-h-screen flex w-full bg-background font-inter text-foreground">
                 <MedicalSidebar />
-                <div className="flex-1 flex flex-col bg-background text-foreground">
+                <div className="flex-1 flex flex-col bg-background text-foreground overflow-hidden">
                     {/* Header clean/Apple style */}
-                    <header className="h-16 border-b border-gray-200/50 bg-white/80 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50 transition-all duration-300 shadow-sm">
-                        <div className="flex items-center gap-4">
-                            <SidebarTrigger className="text-gray-500 hover:text-teal-600 transition-colors" />
+                    <header className="h-16 border-b border-border/50 bg-background/80 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50 transition-all duration-300 shadow-sm shrink-0">
+                        <div className="flex items-center gap-4 flex-1">
+                            <SidebarTrigger className="text-muted-foreground hover:text-teal-600 transition-colors" />
                             <div className="h-6 w-px bg-gray-200" />
 
                             <LegalClock />
+                            
+                            {activeProfile && (
+                                <div className="ml-4 flex items-center pl-4 border-l border-teal-100 hidden md:flex animate-in fade-in slide-in-from-left-4 duration-500">
+                                    <div className="flex flex-col mr-3">
+                                        <span className="text-[10px] uppercase font-bold text-teal-600 tracking-wider">Cliente Ativo</span>
+                                        <span className="text-sm font-semibold text-foreground leading-tight">{activeProfile.full_name}</span>
+                                    </div>
+                                    <Button size="sm" variant="ghost" className="h-8 px-2 text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-50" onClick={() => {
+                                        setActiveClientId(null);
+                                        if (location.pathname.includes('/paciente/') || location.pathname.includes('/atendimento/')) {
+                                            navigate('/medical/patients');
+                                        }
+                                    }}>
+                                        Encerrar
+                                    </Button>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -139,7 +158,7 @@ export function MedicalLayout({ children }: MedicalLayoutProps) {
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-gray-100 ring-1 ring-gray-200">
+                                    <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-accent ring-1 ring-border">
                                         <Avatar className="h-9 w-9">
                                             {avatarUrl && <AvatarImage src={avatarUrl} alt={memberName || ''} />}
                                             <AvatarFallback className="bg-teal-50 text-teal-700 font-medium">
@@ -148,25 +167,33 @@ export function MedicalLayout({ children }: MedicalLayoutProps) {
                                         </Avatar>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56" align="end" forceMount>
+                                <DropdownMenuContent className="w-56 medical-theme" align="end" forceMount>
                                     <DropdownMenuLabel className="font-normal">
                                         <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-semibold text-gray-800">
+                                            <p className="text-sm font-semibold text-foreground">
                                                 {getDisplayName() || 'Doutor(a)'}
                                             </p>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-muted-foreground">
                                                 {user?.email}
                                             </p>
                                         </div>
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={() => navigate('/settings/profile')} className="cursor-pointer">
-                                        <UserCog className="mr-2 h-4 w-4 text-gray-500" />
-                                        <span className="text-gray-700">Meu Perfil</span>
+                                        <UserCog className="mr-2 h-4 w-4 text-muted-foreground" />
+                                        <span className="text-foreground">Meu Perfil</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => navigate('/meu-escritorio')} className="cursor-pointer">
-                                        <Building2 className="mr-2 h-4 w-4 text-gray-500" />
-                                        <span className="text-gray-700">Minha Clínica</span>
+                                    <DropdownMenuItem onClick={() => navigate('/settings/office')} className="cursor-pointer">
+                                        <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                                        <span className="text-foreground">Meu Escritório</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => navigate('/medical/whatsapp')} className="cursor-pointer">
+                                        <MessageSquare className="mr-2 h-4 w-4 text-emerald-500" />
+                                        <span className="text-foreground font-semibold">Inbox WhatsApp</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => navigate('/settings/office')} className="cursor-pointer">
+                                        <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
+                                        <span className="text-foreground">Configurar WhatsApp</span>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50">
@@ -181,9 +208,9 @@ export function MedicalLayout({ children }: MedicalLayoutProps) {
                     <main className="flex-1 overflow-auto relative p-6 max-w-7xl mx-auto w-full">
                         {isBlocking ? (
                             <div className="flex items-center justify-center min-h-[400px]">
-                                <div className="flex flex-col items-center gap-4 text-gray-400">
-                                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-teal-500" />
-                                    <span className="text-sm font-medium tracking-wider uppercase text-gray-500">Iniciando ambiente seguro</span>
+                                <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-teal-500" />
+                                    <span className="text-sm font-medium tracking-wider uppercase text-muted-foreground">Iniciando ambiente seguro</span>
                                 </div>
                             </div>
                         ) : (
@@ -199,7 +226,7 @@ export function MedicalLayout({ children }: MedicalLayoutProps) {
                                 <Button
                                     variant="outline"
                                     onClick={() => officeSession.retry()}
-                                    className="gap-2 shadow-lg rounded-full bg-white border-gray-200 text-gray-700 hover:bg-gray-50 px-6"
+                                    className="gap-2 shadow-lg rounded-full bg-background border-border text-foreground hover:bg-accent px-6"
                                 >
                                     <RefreshCw className="h-4 w-4 animate-spin-slow" />
                                     Sincronizando
@@ -220,5 +247,13 @@ export function MedicalLayout({ children }: MedicalLayoutProps) {
                 )}
             </div>
         </SidebarProvider>
+    );
+}
+
+export function MedicalLayout({ children }: MedicalLayoutProps) {
+    return (
+        <MedicalLayoutInner>
+            {children}
+        </MedicalLayoutInner>
     );
 }

@@ -44,15 +44,21 @@ import {
   saveEventSegments,
   mapCategoryToNature,
   NATURE_LABELS,
-  type EventSegment,
-  type DocumentNature,
-  type EventSegmentInput,
-  extractEprocDataPure,
-  inferCategoryFromText,
-  getEprocEventDictionaryCached,
-  getTjtoDictionaryCached,
-  extractDocCode,
-} from "@/nija";
+} from "@/nija/extraction/eventSegments";
+import type { 
+  EventSegment, 
+  DocumentNature, 
+  EventSegmentInput 
+} from "@/types/nija-contracts";
+import { extractEprocDataPure } from "@/nija/connectors/eproc/detector";
+import { 
+  inferCategoryFromText, 
+  getEprocEventDictionaryCached 
+} from "@/nija/connectors/eproc/eventDictionary";
+import { 
+  getTjtoDictionaryCached, 
+  extractDocCode 
+} from "@/nija/connectors/tjto/dictionary";
 
 interface CaseForensicAuditPanelProps {
   caseId: string;

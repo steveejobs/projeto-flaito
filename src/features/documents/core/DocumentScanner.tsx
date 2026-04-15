@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Upload, Loader2, Sparkles, FileText, Home, X, FolderOpen, ZoomIn, ImageOff } from "lucide-react";
-import { convertPdfFirstPageToImage } from "@/nija";
+import { convertPdfFirstPageToImage } from "@/nija/connectors/pdf/pdfToImage";
 import { DocumentScannerModal } from "@/components/DocumentScannerModal";
 import {
   Dialog,
@@ -381,23 +381,25 @@ export function DocumentScanner({
                 type="button"
                 variant="outline"
                 size="sm"
+                className="hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 transition-colors"
                 onClick={() => {
                   setScannerModalKind(kind);
                   setScannerModalOpen(true);
                 }}
                 disabled={disabled || extracting}
               >
-                <Camera className="h-4 w-4 mr-1" />
+                <Camera className="h-4 w-4 mr-1 text-teal-600" />
                 Câmera
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
+                className="hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-colors"
                 onClick={() => fileRef.current?.click()}
                 disabled={disabled || extracting}
               >
-                <FolderOpen className="h-4 w-4 mr-1" />
+                <FolderOpen className="h-4 w-4 mr-1 text-blue-600" />
                 Arquivo
               </Button>
             </div>
@@ -450,24 +452,24 @@ export function DocumentScanner({
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1 aspect-[4/3] flex flex-col items-center justify-center gap-1"
+                className="flex-1 aspect-[4/3] flex flex-col items-center justify-center gap-1 hover:bg-teal-50 hover:text-teal-700 border-teal-100/50"
                 onClick={() => {
                   setScannerModalKind(kind);
                   setScannerModalOpen(true);
                 }}
                 disabled={disabled || extracting}
               >
-                <Camera className="h-4 w-4" />
+                <Camera className="h-4 w-4 text-teal-600" />
                 <span className="text-[10px]">Foto</span>
               </Button>
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1 aspect-[4/3] flex flex-col items-center justify-center gap-1"
+                className="flex-1 aspect-[4/3] flex flex-col items-center justify-center gap-1 hover:bg-blue-50 hover:text-blue-700 border-blue-100/50"
                 onClick={() => fileRef.current?.click()}
                 disabled={disabled || extracting}
               >
-                <FolderOpen className="h-4 w-4" />
+                <FolderOpen className="h-4 w-4 text-blue-600" />
                 <span className="text-[10px]">Arquivo</span>
               </Button>
             </div>
@@ -514,7 +516,7 @@ export function DocumentScanner({
               <Button
                 type="button"
                 variant={hasExtractableDocuments ? "default" : "secondary"}
-                className="w-full"
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white shadow-sm transition-all"
                 onClick={extractDataFromImages}
                 disabled={disabled || extracting || !hasExtractableDocuments}
               >

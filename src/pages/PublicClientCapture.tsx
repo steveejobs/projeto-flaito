@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 
-const SUPABASE_FUNCTIONS_BASE = "https://uxrakfbedmkiqhidruxx.supabase.co/functions/v1";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4cmFrZmJlZG1raXFoaWRydXh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2Nzc0NDksImV4cCI6MjA4MTI1MzQ0OX0.urYN1qLC5O_NHuiLamFEGTmjkskrOu6bldycZmOX-bo";
-const PUBLIC_CAPTURE_FN_URL = `${SUPABASE_FUNCTIONS_BASE}/public-client-registration`;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const PUBLIC_CAPTURE_FN_URL = `${SUPABASE_URL}/functions/v1/public-client-registration`;
 
 import { CaptureShell } from "@/components/capture/CaptureShell";
 import { CaptureStepIndicator } from "@/components/capture/CaptureStepIndicator";

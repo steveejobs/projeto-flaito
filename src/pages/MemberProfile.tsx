@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { isMemberProfileComplete, getMissingProfileFields } from "@/lib/lawyerIdentification";
 import { AvatarUpload } from "@/components/AvatarUpload";
+import { VoiceSettingsCard } from "@/components/VoiceSettingsCard";
 
 interface MemberData {
   id: string;
@@ -347,7 +348,7 @@ export default function MemberProfile() {
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => navigate("/meu-escritorio")}
+        onClick={() => navigate("/settings/office")}
         className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -662,6 +663,8 @@ export default function MemberProfile() {
           </div>
         </CardContent>
       </Card>
+
+      <VoiceSettingsCard />
 
       {/* Save Button */}
       <div className="flex justify-end">

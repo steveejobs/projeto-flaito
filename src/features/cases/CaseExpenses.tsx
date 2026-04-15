@@ -16,13 +16,12 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Expense {
   id: string;
-  case_id: string | null;
+  case_id: string;
   description: string;
   kind: string;
   amount: number;
-  paid: boolean;
-  paid_at: string | null;
-  receipt_url: string | null;
+  status: string;
+  receipt_url?: string | null;
   created_at: string;
 }
 
@@ -54,8 +53,8 @@ export function CaseExpenses({ caseId, canEdit }: CaseExpensesProps) {
   const fetchExpenses = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('case_expenses')
+      const { data, error } = await (supabase
+        .from('case_expenses' as any) as any)
         .select('*')
         .eq('case_id', caseId)
         .order('created_at', { ascending: false });
@@ -83,11 +82,12 @@ export function CaseExpenses({ caseId, canEdit }: CaseExpensesProps) {
 
     setSaving(true);
     try {
-      const { error } = await supabase.from('case_expenses').insert({
+      const { error } = await (supabase.from('case_expenses' as any) as any).insert({
         case_id: caseId,
         description: formData.description.trim(),
         kind: formData.kind,
         amount,
+        status: 'pending'
       });
 
       if (error) throw error;
@@ -105,9 +105,9 @@ export function CaseExpenses({ caseId, canEdit }: CaseExpensesProps) {
 
   const handleMarkPaid = async (expenseId: string) => {
     try {
-      const { error } = await supabase
-        .from('case_expenses')
-        .update({ paid: true, paid_at: new Date().toISOString().split('T')[0] })
+      const { error } = await (supabase
+        .from('case_expenses' as any) as any)
+        .update({ status: 'paid' })
         .eq('id', expenseId);
 
       if (error) throw error;
@@ -119,8 +119,8 @@ export function CaseExpenses({ caseId, canEdit }: CaseExpensesProps) {
 
   const handleDelete = async (expenseId: string) => {
     try {
-      const { error } = await supabase
-        .from('case_expenses')
+      const { error } = await (supabase
+        .from('case_expenses' as any) as any)
         .delete()
         .eq('id', expenseId);
 
@@ -137,7 +137,7 @@ export function CaseExpenses({ caseId, canEdit }: CaseExpensesProps) {
   };
 
   const totalAmount = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
-  const paidAmount = expenses.filter((e) => e.paid).reduce((sum, e) => sum + Number(e.amount), 0);
+  const paidAmount = expenses.filter((e) => e.status === 'paid').reduce((sum, e) => sum + Number(e.amount), 0);
 
   return (
     <Card>
@@ -253,7 +253,7 @@ export function CaseExpenses({ caseId, canEdit }: CaseExpensesProps) {
                   <TableCell className="table-cell-secondary capitalize">{e.kind}</TableCell>
                   <TableCell className="table-cell-mono">{formatCurrency(Number(e.amount))}</TableCell>
                   <TableCell>
-                    {e.paid ? (
+                    {e.status === 'paid' ? (
                       <Badge variant="outline" className="bg-green-100 text-green-700">Pago</Badge>
                     ) : (
                       <Badge variant="outline" className="bg-amber-100 text-amber-700">Pendente</Badge>
@@ -261,7 +261,7 @@ export function CaseExpenses({ caseId, canEdit }: CaseExpensesProps) {
                   </TableCell>
                   <TableCell className="table-cell-actions">
                     <div className="flex items-center justify-end gap-1">
-                      {canEdit && !e.paid && (
+                      {canEdit && e.status !== 'paid' && (
                         <Button
                           variant="ghost"
                           size="icon"

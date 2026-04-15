@@ -64,8 +64,9 @@ export type LexosArchitectureSnapshot = {
   };
 };
 
-// Mapeia os módulos do projeto (apenas dentro de src/)
-const fileModules = import.meta.glob("./**/*", { eager: false });
+// import.meta.glob varre toda a pasta src e força o Rollup a buildar a árvore TSType recursivamente, causando stack overflow!
+// const fileModules = import.meta.glob("./**/*", { eager: false });
+const fileModules: Record<string, () => Promise<unknown>> = {};
 
 const guessKindAndCategory = (
   path: string
