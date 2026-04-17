@@ -415,10 +415,10 @@ export default function Clientes() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm md:text-base lg:text-lg leading-tight truncate">
+                        <span className="font-semibold text-sm md:text-base truncate">
                           {client.full_name}
                         </span>
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                        <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4">
                           {client.person_type}
                         </Badge>
                       </div>

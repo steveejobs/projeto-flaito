@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Check, AlertTriangle } from "lucide-react";
+import { Check, AlertTriangle, RotateCw, Smartphone } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface SignatureCanvasApi {
   clear: () => void;
@@ -31,7 +32,6 @@ export function SignatureCanvas({
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const drawingRef = useRef(false);
   const hasDrawnRef = useRef(false);
-  const baselineImageDataRef = useRef<ImageData | null>(null);
 
   // Stable refs for callbacks
   const onReadyRef = useRef(onReady);
@@ -39,6 +39,20 @@ export function SignatureCanvas({
   const minCoverageRef = useRef(minCoverage);
 
   const [validationState, setValidationState] = useState<"empty" | "invalid" | "valid">("empty");
+  const [isPortrait, setIsPortrait] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [ignoreOrientationAdvice, setIgnoreOrientationAdvice] = useState(false);
+
+  useEffect(() => {
+    const checkOrientation = () => {
+      setIsPortrait(window.innerHeight > window.innerWidth);
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    return () => window.removeEventListener('resize', checkOrientation);
+  }, []);
 
   useEffect(() => {
     onReadyRef.current = onReady;
@@ -46,41 +60,20 @@ export function SignatureCanvas({
     minCoverageRef.current = minCoverage;
   }, [onReady, onValidChange, minCoverage]);
 
-  const drawBaseline = useCallback((ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
-    const y = canvas.height * 0.8;
-    const marginX = canvas.width * 0.1;
-    ctx.save();
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(marginX, y);
-    ctx.lineTo(canvas.width - marginX, y);
-    ctx.stroke();
-    ctx.restore();
-  }, []);
-
   const calculateCoverage = useCallback((): number => {
     const canvas = canvasRef.current;
     const ctx = ctxRef.current;
     if (!canvas || !ctx) return 0;
 
     const currentData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const baselineData = baselineImageDataRef.current;
     let drawnPixels = 0;
     const totalPixels = canvas.width * canvas.height;
 
     for (let i = 0; i < currentData.data.length; i += 4) {
-      if (baselineData) {
-        const dr = Math.abs(currentData.data[i] - baselineData.data[i]);
-        const dg = Math.abs(currentData.data[i + 1] - baselineData.data[i + 1]);
-        const db = Math.abs(currentData.data[i + 2] - baselineData.data[i + 2]);
-        if (dr + dg + db > 30) drawnPixels++;
-      } else {
-        const r = currentData.data[i];
-        const g = currentData.data[i + 1];
-        const b = currentData.data[i + 2];
-        if (r < 250 || g < 250 || b < 250) drawnPixels++;
-      }
+      const r = currentData.data[i];
+      const g = currentData.data[i + 1];
+      const b = currentData.data[i + 2];
+      if (r < 250 || g < 250 || b < 250) drawnPixels++;
     }
     return (drawnPixels / totalPixels) * 100;
   }, []);
@@ -97,8 +90,6 @@ export function SignatureCanvas({
     onValidChangeRef.current?.(isValid);
   }, [calculateCoverage]);
 
-  const initializedRef = useRef(false);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -108,29 +99,9 @@ export function SignatureCanvas({
 
     ctxRef.current = ctx;
 
-    // Only fully re-initialize if dimensions changed or first time
-    if (!initializedRef.current) {
-      initializedRef.current = true;
-
-      // Fill background
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Draw baseline helper
-      const y = canvas.height * 0.8;
-      const marginX = canvas.width * 0.1;
-      ctx.save();
-      ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(marginX, y);
-      ctx.lineTo(canvas.width - marginX, y);
-      ctx.stroke();
-      ctx.restore();
-
-      // Capture baseline for coverage diff
-      baselineImageDataRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    }
+    // Fill background to prevent transparency breaking data on resize
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Always ensure drawing properties are set
     ctx.imageSmoothingEnabled = true;
@@ -147,19 +118,6 @@ export function SignatureCanvas({
         if (!canvas || !ctx) return;
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        const y = canvas.height * 0.8;
-        const marginX = canvas.width * 0.1;
-        ctx.save();
-        ctx.strokeStyle = "#000000";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(marginX, y);
-        ctx.lineTo(canvas.width - marginX, y);
-        ctx.stroke();
-        ctx.restore();
-
-        baselineImageDataRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
         hasDrawnRef.current = false;
         setValidationState("empty");
         onValidChangeRef.current?.(false);
@@ -274,6 +232,9 @@ export function SignatureCanvas({
 
   return (
     <>
+      <div className="relative">
+      {/* Linha de apoio puramente CSS e Visual */}
+      <div className="absolute inset-x-[10%] bottom-[20%] h-[2px] bg-slate-300 pointer-events-none rounded-full" />
       <canvas
         ref={canvasRef}
         width={width}
@@ -287,7 +248,24 @@ export function SignatureCanvas({
         onContextMenu={(e) => e.preventDefault()}
       />
 
-      {showValidation && (
+      <AnimatePresence>
+        {isMobile && isPortrait && !hasDrawnRef.current && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute top-2 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+          >
+            <div className="bg-slate-900/95 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2.5 shadow-2xl border border-white/5 whitespace-nowrap">
+              <RotateCw className="h-3.5 w-3.5 text-blue-400 animate-spin-slow" />
+              <span className="text-[10px] font-black text-white uppercase tracking-[0.1em]">Gire para melhorar (Opcional)</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+
+    {showValidation && (
         <div className="flex items-center gap-2 mt-2">
           {validationState === "valid" ? (
             <span className="text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">

@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';

@@ -4,10 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Building2, User, Loader2, Save, Globe, Sparkles } from 'lucide-react';
+import { Building2, User, Loader2, Save, Globe } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { CaptureDocumentScanStep, ExtractedDocumentData, ScannedFile } from '@/components/capture/CaptureDocumentScanStep';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface OfficeInfoWizardProps {
@@ -25,8 +24,7 @@ export const OfficeInfoWizard: React.FC<OfficeInfoWizardProps> = ({ officeId, on
     responsible_name: '',
     responsible_oab: ''
   });
-  const [showIAExtractionModal, setShowIAExtractionModal] = useState(false);
-  const [iaFiles, setIaFiles] = useState<ScannedFile[]>([]);
+
 
   const maskCNPJ = (value: string) => {
     const digits = value.replace(/\D/g, "");
@@ -51,27 +49,7 @@ export const OfficeInfoWizard: React.FC<OfficeInfoWizardProps> = ({ officeId, on
     return result.slice(0, 10);
   };
 
-  const handleExtractedData = (extracted: ExtractedDocumentData) => {
-    const updatedData = {
-      ...data,
-      responsible_name: extracted.full_name || data.responsible_name,
-      responsible_oab: extracted.rg || extracted.cpf || data.responsible_oab
-    };
-    
-    setData(updatedData);
-    setShowIAExtractionModal(false);
-    
-    // Verifica se podemos salvar e avançar automaticamente
-    // (Precisamos do nome do escritório e slug, que não vêm do documento do responsável)
-    if (updatedData.name && updatedData.slug) {
-      toast.success("Responsável preenchido! Finalizando etapa...");
-      setTimeout(() => {
-        handleSave(updatedData);
-      }, 1500);
-    } else {
-      toast.info("Dados do responsável preenchidos! Agora complete o nome do escritório para salvar.");
-    }
-  };
+
 
   useEffect(() => {
     const fetchOffice = async () => {
@@ -213,15 +191,7 @@ export const OfficeInfoWizard: React.FC<OfficeInfoWizardProps> = ({ officeId, on
           <div className="pt-4 border-t border-white/5 space-y-4">
             <div className="flex justify-between items-center">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Advogado Responsável</p>
-              <Button 
-                variant="outline" 
-                size="xs" 
-                onClick={() => setShowIAExtractionModal(true)}
-                className="h-7 text-[10px] bg-blue-600 hover:bg-blue-700 text-white border-transparent gap-1.5 shadow-lg shadow-blue-500/20 transition-all hover:scale-105"
-              >
-                <Sparkles className="h-3 w-3 fill-white/20" />
-                Preencher Automático
-              </Button>
+
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -274,29 +244,7 @@ export const OfficeInfoWizard: React.FC<OfficeInfoWizardProps> = ({ officeId, on
       </div>
       </div>
 
-      {/* IA Extraction Modal */}
-      <Dialog open={showIAExtractionModal} onOpenChange={setShowIAExtractionModal}>
-        <DialogContent className="max-w-md bg-slate-950 border-white/10 p-0 overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto minimal-scrollbar">
-          <DialogHeader className="p-6 pb-2 border-b border-white/5">
-            <DialogTitle className="text-white flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-blue-500" />
-              Preenchimento Automático
-            </DialogTitle>
-            <DialogDescription className="text-slate-400 text-xs">
-              Anexe o RG ou CNH do advogado (máx. 5MB) para preencher automaticamente.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="p-6">
-            <CaptureDocumentScanStep 
-              files={iaFiles}
-              onFilesChange={setIaFiles}
-              onExtractedData={handleExtractedData}
-              onContinue={() => setShowIAExtractionModal(false)}
-              onBack={() => setShowIAExtractionModal(false)}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+
     </>
   );
 };

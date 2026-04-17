@@ -48,4 +48,9 @@ async function testInsert() {
   }
 }
 
-testInsert();
+async function run() {
+  await checkSchema();
+  await testInsert();
+}
+
+run();

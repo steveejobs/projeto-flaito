@@ -154,7 +154,7 @@ export default function CRMPage() {
 
   return (
     <div className="flex h-full bg-background/50 overflow-hidden relative">
-      <div className={`flex flex-col flex-1 transition-all duration-500 ${selectedLead ? 'mr-[400px]' : ''}`}>
+      <div className={`flex flex-col flex-1 transition-all duration-500 ${selectedLead ? 'lg:mr-[400px]' : ''}`}>
         {/* Header Premium */}
         <div className="p-6 pb-2 border-b bg-background/30 backdrop-blur-xl sticky top-0 z-10 transition-all">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -177,7 +177,7 @@ export default function CRMPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <MetricCard title="Leads Ativos" value={leads.length.toString()} subValue="Base auditada" icon={Users} color="primary" />
             <MetricCard title="Aguardando Agenda" value={leads.filter(l => l.pipeline_stage === 'qualificacao').length.toString()} subValue="Potencial conversão" icon={Calendar} color="orange" />
             <MetricCard title="Conversas IA" value={activities.length.toString()} subValue="Interações registradas" icon={MessageSquare} color="purple" />
@@ -237,7 +237,7 @@ export default function CRMPage() {
       </div>
 
       {/* Side Panel: Detalhes e WhatsApp */}
-      <div className={`fixed right-0 top-0 h-full w-[400px] border-l bg-background/80 backdrop-blur-xl shadow-2xl z-20 transition-transform duration-500 transform ${selectedLead ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed right-0 top-0 h-full w-full sm:w-[400px] border-l bg-background/95 lg:bg-background/80 backdrop-blur-xl shadow-2xl z-[60] transition-transform duration-500 transform ${selectedLead ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex flex-col h-full">
           <div className="p-4 border-b flex items-center justify-between bg-muted/20">
             <h3 className="font-black text-sm uppercase tracking-widest">Detalhes do Lead</h3>

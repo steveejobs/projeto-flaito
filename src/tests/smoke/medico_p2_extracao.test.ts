@@ -10,11 +10,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
   }
 };
 import { renderHook, waitFor } from '@testing-library/react';
-import { usePatientExtraction } from '../hooks/usePatientExtraction';
-import { supabase } from '../integrations/supabase/client';
+import { usePatientExtraction } from '@/hooks/usePatientExtraction';
+import { supabase } from '@/integrations/supabase/client';
+
+// Mock do File.prototype.arrayBuffer pois JSDOM não implementa
+if (!File.prototype.arrayBuffer) {
+  File.prototype.arrayBuffer = function() {
+    return Promise.resolve(new ArrayBuffer(0));
+  };
+}
 
 // Mock do Supabase
-vi.mock('../integrations/supabase/client', () => ({
+vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {
       getSession: vi.fn(),
@@ -30,14 +37,14 @@ vi.mock('../integrations/supabase/client', () => ({
 }));
 
 // Mock do toast
-vi.mock('../hooks/use-toast', () => ({
+vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({
     toast: vi.fn(),
   }),
 }));
 
 // Mock do conversor de PDF
-vi.mock('../../nija/connectors/pdf/pdfToImage', () => ({
+vi.mock('@/nija/connectors/pdf/pdfToImage', () => ({
   convertPdfFirstPageToImage: vi.fn(() => Promise.resolve({ success: true, imageBase64: 'base64data' })),
 }));
 
@@ -53,29 +60,32 @@ describe('Médico P2: Pipeline M4 (Extração de Documento)', () => {
     });
 
     (supabase.from as any).mockImplementation((table: string) => {
+      const mockChain = {
+        select: vi.fn().mockReturnThis(),
+        insert: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: null, error: null }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      };
+
       if (table === 'office_members') {
-        return {
-          select: () => ({
-            eq: () => ({
-              eq: () => ({
-                limit: () => ({
-                  maybeSingle: () => Promise.resolve({ data: { office_id: 'office-456' } }),
-                }),
-              }),
-            }),
-          }),
-        };
+        mockChain.maybeSingle = vi.fn().mockResolvedValue({ data: { office_id: 'office-456' } });
+      } else if (table === 'patient_documents') {
+        mockChain.single = vi.fn().mockResolvedValue({ data: { id: 'doc-789' }, error: null });
+      } else if (table === 'offices') {
+        mockChain.single = vi.fn().mockResolvedValue({ 
+          data: { name: 'Office Test', legal_name: 'Office Test LTDA', cnpj: '00.000.000/0001-00' }, 
+          error: null 
+        });
+      } else if (table === 'office_units') {
+        mockChain.select = vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: null })
+        });
       }
-      if (table === 'patient_documents') {
-        return {
-          insert: () => ({
-            select: () => ({
-              single: () => Promise.resolve({ data: { id: 'doc-789' }, error: null }),
-            }),
-          }),
-        };
-      }
-      return {};
+
+      return mockChain;
     });
 
     (supabase.storage.from as any).mockReturnValue({

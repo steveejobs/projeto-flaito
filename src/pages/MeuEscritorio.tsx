@@ -1105,7 +1105,7 @@ export default function MeuEscritorio() {
                 {/* Preview com fundo branco de simulação de papel */}
                 <div
                   ref={signaturePreviewRef}
-                  className={`bg-gradient-to-br from-white to-muted/30 border-2 border-dashed border-muted rounded-xl p-6 min-h-[200px] flex items-center justify-center relative ${canEdit ? 'cursor-ns-resize' : ''}`}
+                  className={`bg-gradient-to-br from-white to-muted/30 border-2 border-dashed border-muted rounded-xl p-4 md:p-6 min-h-[160px] md:min-h-[200px] flex items-center justify-center relative ${canEdit ? 'cursor-ns-resize' : ''}`}
                   title={canEdit ? "Scroll para redimensionar" : undefined}
                 >
                   {signatureUrl ? (

@@ -63,17 +63,21 @@ export default function Onboarding() {
     return fullName.split(' ')[0] || 'Aventureiro';
   }, [user]);
 
-  // Define etapas críticas e de valor
+  // Define etapas visíveis e críticas
+  const visibleStepKeys = ['institutional_config', 'office_info', 'first_client'];
   const criticalStepKeys = ['institutional_config', 'office_info'];
   
   // Calcula estatísticas
   const stats = useMemo(() => {
-    const total = steps.length || 0;
-    const completedSteps = steps.filter(s => s.completed);
-    const criticalCompleted = steps.filter(s => s.completed && criticalStepKeys.includes(s.step_key)).length;
-    const totalCritical = 2; // Institutional + Office
+    // Filtra apenas os passos que realmente mostramos nos cards
+    const relevantSteps = steps.filter(s => visibleStepKeys.includes(s.step_key));
+    const total = relevantSteps.length || visibleStepKeys.length; // Fallback para o total esperado
+    const completedSteps = relevantSteps.filter(s => s.completed);
     
-    const percentage = total > 0 ? Math.round((completedSteps.length / total) * 100) : 0;
+    const criticalCompleted = relevantSteps.filter(s => s.completed && criticalStepKeys.includes(s.step_key)).length;
+    const totalCritical = criticalStepKeys.length;
+    
+    const percentage = Math.round((completedSteps.length / total) * 100);
     const isReady = criticalCompleted >= totalCritical;
 
     return { total, completed: completedSteps.length, percentage, isReady };
@@ -164,7 +168,7 @@ export default function Onboarding() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-4xl md:text-5xl font-bold text-white tracking-tight"
+              className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight"
             >
               Olá, {displayTitle} {firstName}. <br /> <span className="text-blue-500">Prepare seu ambiente.</span>
             </motion.h1>
@@ -197,7 +201,7 @@ export default function Onboarding() {
           {/* Step Cards - Centered & Clean */}
           <div className="max-w-6xl mx-auto w-full">
             <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <StepCard 
                   index={1}
                   title="Identidade Profissional"
@@ -296,7 +300,18 @@ export default function Onboarding() {
                     <h3 className="text-white font-semibold">Escritório não encontrado</h3>
                     <p className="text-sm text-slate-400">Houve um problema ao carregar as permissões do seu usuário.</p>
                   </div>
-                  <Button onClick={() => window.location.reload()} variant="outline">Recarregar</Button>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button onClick={() => window.location.reload()} variant="outline">Recarregar</Button>
+                    <Button 
+                      onClick={async () => {
+                        await signOut();
+                        window.location.href = '/login';
+                      }} 
+                      variant="destructive"
+                    >
+                      Limpar Sessão e Sair
+                    </Button>
+                  </div>
                 </motion.div>
               ) : (
                 <motion.div

@@ -164,10 +164,12 @@ export function LegalLayout({ children }: AppLayoutProps) {
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="text-foreground/80 hover:text-primary transition-colors" />
                 <div className="h-6 w-px bg-border/50" />
-                <LegalClock />
+                <div className="hidden sm:block">
+                  <LegalClock />
+                </div>
 
                 {activeProfile && (
-                  <div className="ml-4 flex items-center pl-4 border-l border-white/10 hidden md:flex animate-in fade-in slide-in-from-left-4 duration-500">
+                  <div className="ml-4 items-center pl-4 border-l border-white/10 hidden lg:flex animate-in fade-in slide-in-from-left-4 duration-500">
                     <div className="flex flex-col mr-3 text-left">
                       <span className="text-[10px] uppercase font-bold text-primary tracking-wider">Cliente em Foco</span>
                       <span className="text-sm font-semibold text-foreground leading-tight">{activeProfile.full_name}</span>

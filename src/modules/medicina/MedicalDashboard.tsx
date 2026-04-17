@@ -153,15 +153,15 @@ const MedicalDashboard = () => {
     }, [officeId]);
 
     return (
-        <div className="p-2 md:p-3 lg:p-4 space-y-3 dashboard-fade-in max-w-[1400px] mx-auto min-h-screen bg-background text-foreground selection:bg-teal-500/30">
+        <div className="p-3 md:p-4 lg:p-6 space-y-4 dashboard-fade-in max-w-[1600px] mx-auto min-h-screen bg-background text-foreground selection:bg-teal-500/30">
             {/* 1. Dashboard Header */}
-            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: '50ms' }}>
+            <section className="animate-in fade-in slide-in-from-bottom-6 duration-1000 ease-out fill-mode-both">
                 <DashboardHeader type="MEDICAL" />
             </section>
 
             {/* Focus / Next Critical Step - Clean Bento Style */}
-            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: '100ms' }}>
-                <Card className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md group p-4 md:p-5">
+            <section className="animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-100 ease-out fill-mode-both">
+                <Card className="relative overflow-hidden rounded-2xl border border-white/5 bg-card shadow-xl transition-all hover:shadow-2xl group p-6">
                     <div className="relative z-10 flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
                         <div className="space-y-1.5">
                             <div className="flex items-center gap-1.5 mb-1">
@@ -193,7 +193,7 @@ const MedicalDashboard = () => {
 
             {/* 2. KPI Grid (Clean Metrics) */}
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: '150ms' }}>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
                     <Card className="p-4 flex items-center gap-3 bg-card rounded-2xl border border-border/60 shadow-sm transition-all hover:shadow-md hover:border-blue-200 group">
                         <div className="p-2.5 bg-blue-50/50 rounded-xl group-hover:scale-110 group-hover:bg-blue-100/50 transition-all">
                             <Users className="w-5 h-5 text-blue-500" />
@@ -362,7 +362,7 @@ const MedicalDashboard = () => {
 
                 {/* Módulos Clínicos - Expandido */}
                 <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both md:col-span-2 xl:col-span-3 flex flex-col" style={{ animationDelay: '550ms' }}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                         {quickModules.map((mod) => {
                             const Icon = mod.icon;
                             return (

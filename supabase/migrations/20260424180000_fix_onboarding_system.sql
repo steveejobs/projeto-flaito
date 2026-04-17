@@ -52,9 +52,7 @@ BEGIN
     VALUES 
         (p_office_id, 'institutional_config', false),
         (p_office_id, 'office_info', false),
-        (p_office_id, 'first_client', false),
-        (p_office_id, 'first_case', false),
-        (p_office_id, 'first_template', false)
+        (p_office_id, 'first_client', false)
     ON CONFLICT (office_id, step_key) DO NOTHING;
 END;
 $$;
@@ -102,6 +100,10 @@ GRANT EXECUTE ON FUNCTION public.get_office_onboarding_status() TO authenticated
 GRANT EXECUTE ON FUNCTION public.complete_onboarding_step(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.init_office_onboarding_steps(uuid) TO authenticated;
 
--- 7. Seed Existing Offices
--- Garantir que todos os escritórios atuais tenham seus passos inicializados
+-- 7. Seed & Cleanup Existing Offices
+-- Remover passos legados
+DELETE FROM public.office_onboarding_steps 
+WHERE step_key NOT IN ('institutional_config', 'office_info', 'first_client');
+
+-- Garantir que todos os escritórios atuais tenham os 3 passos corretos
 SELECT public.init_office_onboarding_steps(id) FROM public.offices;

@@ -742,157 +742,291 @@ export default function OfficeMembers() {
               <p className="text-xs text-muted-foreground/70 mt-1">Convide colaboradores para começar</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Colaborador
-                  </TableHead>
-                  <TableHead className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Perfil
-                  </TableHead>
-                  <TableHead className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Permissão
-                  </TableHead>
-                  <TableHead className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Acesso
-                  </TableHead>
-                  <TableHead className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Membro Desde
-                  </TableHead>
-                  <TableHead className="text-right text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Ações
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {members.map((member) => (
-                  <TableRow key={member.id} className={!member.is_active ? 'opacity-50 bg-muted/20' : ''}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center border border-border/50">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <div className="font-semibold text-sm text-foreground flex items-center gap-2">
-                            {member.user_id === currentUserId ? (
+            <div className="space-y-4">
+              {/* Desktop Table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                        Colaborador
+                      </TableHead>
+                      <TableHead className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                        Perfil
+                      </TableHead>
+                      <TableHead className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                        Permissão
+                      </TableHead>
+                      <TableHead className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                        Acesso
+                      </TableHead>
+                      <TableHead className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                        Membro Desde
+                      </TableHead>
+                      <TableHead className="text-right text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                        Ações
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {members.map((member) => (
+                      <TableRow key={member.id} className={!member.is_active ? 'opacity-50 bg-muted/20' : ''}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center border border-border/50">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm text-foreground flex items-center gap-2">
+                                {member.user_id === currentUserId ? (
+                                  <>
+                                    Você
+                                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-primary/5 border-primary/20 text-primary">
+                                      Atual
+                                    </Badge>
+                                  </>
+                                ) : (
+                                  member.email || 'Colaborador'
+                                )}
+                              </div>
+                              <div className="text-[10px] text-muted-foreground/60 font-mono tracking-tight mt-0.5">
+                                ID: {member.user_id.slice(0, 8)}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {member.full_name ? (
                               <>
-                                Você
-                                <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-primary/5 border-primary/20 text-primary">
-                                  Atual
-                                </Badge>
+                                <span className="text-sm font-medium text-foreground/80 truncate max-w-[100px]">
+                                  {member.full_name.split(' ')[0]}
+                                </span>
+                                {member.profession === 'Advogado' && member.oab_number && member.oab_uf ? (
+                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-primary/5 border-primary/20 text-primary font-mono">
+                                    OAB/{member.oab_uf} {member.oab_number}
+                                  </Badge>
+                                ) : member.profession ? (
+                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-muted/50 border-border text-muted-foreground">
+                                    {member.profession}
+                                  </Badge>
+                                ) : null}
                               </>
                             ) : (
-                              member.email || 'Colaborador'
+                              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-amber-500/10 border-amber-500/30 text-amber-600">
+                                Incompleto
+                              </Badge>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                              onClick={() => setProfileMemberId(member.id)}
+                              title="Editar perfil profissional"
+                            >
+                              <FileUser className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>{getRoleBadge(member.role)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2.5">
+                            <Switch
+                              checked={member.is_active}
+                              onCheckedChange={() => handleToggleActive(member)}
+                              disabled={member.user_id === currentUserId || (member.role === 'OWNER' && currentUserRole !== 'OWNER')}
+                            />
+                            <div className="flex items-center gap-1.5">
+                              <div className={`h-1.5 w-1.5 rounded-full ${member.is_active ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`} />
+                              <span className={`text-xs font-medium ${member.is_active ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                                {member.is_active ? 'Ativo' : 'Suspenso'}
+                              </span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm font-medium text-foreground/80">
+                            {format(new Date(member.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {canEditMember(member) && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                onClick={() => {
+                                  setEditingMember(member);
+                                  setEditRole(member.role);
+                                }}
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                            {canRemoveMember(member) && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle className="text-lg font-semibold">Remover Colaborador</AlertDialogTitle>
+                                    <AlertDialogDescription className="text-sm">
+                                      Esta ação removerá permanentemente o acesso deste colaborador ao escritório. Dados criados por ele serão mantidos.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel className="text-muted-foreground">Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      onClick={() => handleRemoveMember(member)}
+                                    >
+                                      Remover Acesso
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             )}
                           </div>
-                          <div className="text-[10px] text-muted-foreground/60 font-mono tracking-tight mt-0.5">
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card List */}
+              <div className="grid grid-cols-1 gap-4 md:hidden">
+                {members.map((member) => (
+                  <div
+                    key={member.id}
+                    className={`p-4 rounded-xl border border-border/50 space-y-4 shadow-sm bg-card/50 transition-all ${
+                      !member.is_active ? 'opacity-60 grayscale' : ''
+                    }`}
+                  >
+                    {/* Card Header: Avatar + Info */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center border border-primary/20 shadow-inner">
+                          <User className="h-5 w-5 text-primary/70" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-bold text-sm text-foreground flex items-center gap-1.5 flex-wrap">
+                            {member.user_id === currentUserId ? 'Você' : member.email || 'Colaborador'}
+                            {member.user_id === currentUserId && (
+                              <Badge variant="outline" className="text-[8px] px-1 py-0 h-3.5 bg-primary/5 border-primary/20 text-primary">
+                                Atual
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground font-mono">
                             ID: {member.user_id.slice(0, 8)}
                           </div>
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {member.full_name ? (
-                          <>
-                            <span className="text-sm font-medium text-foreground/80 truncate max-w-[100px]">
-                              {member.full_name.split(' ')[0]}
-                            </span>
-                            {member.profession === 'Advogado' && member.oab_number && member.oab_uf ? (
-                              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-primary/5 border-primary/20 text-primary font-mono">
-                                OAB/{member.oab_uf} {member.oab_number}
-                              </Badge>
-                            ) : member.profession ? (
-                              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-muted/50 border-border text-muted-foreground">
-                                {member.profession}
-                              </Badge>
-                            ) : null}
-                          </>
-                        ) : (
-                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-amber-500/10 border-amber-500/30 text-amber-600">
-                            Incompleto
-                          </Badge>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                          onClick={() => setProfileMemberId(member.id)}
-                          title="Editar perfil profissional"
-                        >
-                          <FileUser className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getRoleBadge(member.role)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2.5">
-                        <Switch
-                          checked={member.is_active}
-                          onCheckedChange={() => handleToggleActive(member)}
-                          disabled={member.user_id === currentUserId || (member.role === 'OWNER' && currentUserRole !== 'OWNER')}
-                        />
-                        <div className="flex items-center gap-1.5">
-                          <div className={`h-1.5 w-1.5 rounded-full ${member.is_active ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`} />
-                          <span className={`text-xs font-medium ${member.is_active ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-                            {member.is_active ? 'Ativo' : 'Suspenso'}
+                      {getRoleBadge(member.role)}
+                    </div>
+
+                    {/* Card Profile Section */}
+                    <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-muted/30 border border-border/30">
+                      {member.full_name ? (
+                        <span className="text-xs font-semibold text-foreground/80">
+                          {member.full_name}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-amber-600 font-medium">Perfil incompleto</span>
+                      )}
+                      
+                      {member.profession === 'Advogado' && member.oab_number && (
+                        <Badge variant="outline" className="text-[9px] h-4 bg-primary/5 border-primary/20 text-primary font-mono ml-auto">
+                          OAB/{member.oab_uf} {member.oab_number}
+                        </Badge>
+                      )}
+                      
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-foreground ml-auto"
+                        onClick={() => setProfileMemberId(member.id)}
+                      >
+                        <FileUser className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* Card Controls */}
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-tight">Status de Acesso</span>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={member.is_active}
+                            onCheckedChange={() => handleToggleActive(member)}
+                            disabled={member.user_id === currentUserId || (member.role === 'OWNER' && currentUserRole !== 'OWNER')}
+                          />
+                          <span className={`text-[11px] font-bold ${member.is_active ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                            {member.is_active ? 'ATIVO' : 'SUSPENSO'}
                           </span>
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm font-medium text-foreground/80">
-                        {format(new Date(member.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                      
+                      <div className="text-right">
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-tight block">Membro desde</span>
+                        <span className="text-xs font-medium">{format(new Date(member.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {canEditMember(member) && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                            onClick={() => {
-                              setEditingMember(member);
-                              setEditRole(member.role);
-                            }}
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
-                        {canRemoveMember(member) && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle className="text-lg font-semibold">Remover Colaborador</AlertDialogTitle>
-                                <AlertDialogDescription className="text-sm">
-                                  Esta ação removerá permanentemente o acesso deste colaborador ao escritório. Dados criados por ele serão mantidos.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel className="text-muted-foreground">Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  onClick={() => handleRemoveMember(member)}
-                                >
-                                  Remover Acesso
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+
+                    {/* Card Actions */}
+                    <div className="flex gap-2 pt-2 border-t border-border/30">
+                      {canEditMember(member) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 h-9 gap-2 text-xs font-semibold shadow-sm"
+                          onClick={() => {
+                            setEditingMember(member);
+                            setEditRole(member.role);
+                          }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          Permissões
+                        </Button>
+                      )}
+                      
+                      {canRemoveMember(member) && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="flex-1 h-9 gap-2 text-xs font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive shadow-sm">
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Remover
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="w-[95vw] rounded-2xl">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remover Acesso?</AlertDialogTitle>
+                              <AlertDialogDescription className="text-sm">
+                                Esta ação removerá o acesso deste colaborador ao escritório. Os dados dele serão preservados.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-4">
+                              <AlertDialogCancel className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="w-full sm:w-auto bg-destructive text-white hover:bg-destructive/90"
+                                onClick={() => handleRemoveMember(member)}
+                              >
+                                Confirmar Remoção
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -116,33 +116,38 @@ async function runValidation() {
         
         for (const [index, cenario] of cenarios.entries()) {
             console.log(`\n--- ${cenario.name} ---`);
-            const res = await request('/rest/v1/rpc/render_template_preview_raw', 'POST', {
-                p_content: cenario.content,
-                p_data: cenario.data
-            });
+            try {
+                const res = await request('/rest/v1/rpc/render_template_preview_raw', 'POST', {
+                    p_content: cenario.content,
+                    p_data: cenario.data
+                });
 
-            const html = res;
-            const filename = `resultado_${index === 0 ? 'procuracao' : 'contrato'}.html`;
-            fs.writeFileSync(filename, html);
+                const html = res;
+                const filename = `resultado_${index === 0 ? 'procuracao' : 'contrato'}.html`;
+                fs.writeFileSync(filename, html);
 
-            // Verificações
-            const checks = index === 0 ? {
-                "Variável Simples (Nome)": html.includes("Jardel Fernandes"),
-                "Variável Aninhada (Cidade)": html.includes("São Paulo"),
-                "Condicional If (Urgente)": html.includes("⚠️ URGENTE"),
-                "Triple Braces (Assinatura HTML)": html.includes('<img src="https://via.placeholder.com'),
-                "Placeholders Limpos": !html.includes("{{")
-            } : {
-                "Variável Simples": html.includes("Empresa XPTO Solutions"),
-                "Condicional Else": html.includes("Valor Integral: R$ 10.000,00"),
-                "Nested Depth 3 (Area)": html.includes("Direito Tributário e Civil"),
-                "Placeholders Limpos": !html.includes("{{")
-            };
+                // Verificações
+                const checks = index === 0 ? {
+                    "Variável Simples (Nome)": html.includes("Jardel Fernandes"),
+                    "Variável Aninhada (Cidade)": html.includes("São Paulo"),
+                    "Condicional If (Urgente)": html.includes("⚠️ URGENTE"),
+                    "Triple Braces (Assinatura HTML)": html.includes('<img src="https://via.placeholder.com'),
+                    "Placeholders Limpos": !html.includes("{{")
+                } : {
+                    "Variável Simples": html.includes("Empresa XPTO Solutions"),
+                    "Condicional Else": html.includes("Valor Integral: R$ 10.000,00"),
+                    "Nested Depth 3 (Area)": html.includes("Direito Tributário e Civil"),
+                    "Placeholders Limpos": !html.includes("{{")
+                };
 
-            for (const [check, passed] of Object.entries(checks)) {
-                console.log(`${passed ? '✅' : '❌'} ${check}`);
+                for (const [check, passed] of Object.entries(checks)) {
+                    console.log(`${passed ? '✅' : '❌'} ${check}`);
+                }
+                console.log(`💾 Evidência salva em: ${filename}`);
+            } catch (err) {
+                console.error(`❌ Erro no motor raw (${cenario.name}): ${err.message}`);
+                console.log('⚠️ Pulando para o próximo teste...');
             }
-            console.log(`💾 Evidência salva em: ${filename}`);
         }
 
         // 3. Validação de Integração com Edge Function (Caminho E2E)

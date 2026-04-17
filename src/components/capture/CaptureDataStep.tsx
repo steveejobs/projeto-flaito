@@ -492,7 +492,7 @@ export function CaptureDataStep({
             touched={touched.nome}
           />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <PremiumField
               label="CPF"
               name="cpf"
@@ -544,9 +544,8 @@ export function CaptureDataStep({
               error={errors.profissao}
               touched={touched.profissao}
             />
-          </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <PremiumField
               label="Nacionalidade"
               name="nacionalidade"
@@ -586,7 +585,7 @@ export function CaptureDataStep({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <PremiumField
               label="Telefone"
               name="telefone"
@@ -645,7 +644,7 @@ export function CaptureDataStep({
             touched={touched.razao_social}
           />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <PremiumField
               label="Telefone"
               name="telefone"
@@ -690,7 +689,7 @@ export function CaptureDataStep({
                 touched={touched.representante_nome}
               />
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <PremiumField
                   label="CPF"
                   name="representante_cpf"
@@ -742,9 +741,7 @@ export function CaptureDataStep({
                   error={errors.representante_profissao}
                   touched={touched.representante_profissao}
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <PremiumField
                   label="Nacionalidade"
                   name="representante_nacionalidade"
@@ -801,7 +798,7 @@ export function CaptureDataStep({
             <ChevronDown className={cn("w-4 h-4 transition-transform", attachmentsOpen && "rotate-180")} />
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-3 space-y-3">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <label className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-white/5 border border-dashed border-white/20 text-white/70 text-sm cursor-pointer hover:bg-white/10 hover:border-white/30 transition-colors">
                 <Image className="w-4 h-4" />
                 <span>RG / CNH</span>

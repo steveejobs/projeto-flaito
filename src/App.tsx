@@ -16,6 +16,7 @@ import { ModuleProtectedRoute } from "@/components/ModuleProtectedRoute";
 import { ActiveClientProvider } from "@/contexts/ActiveClientContext";
 import { AppInitializer } from "@/components/system/AppInitializer";
 import { SimpleErrorBoundary } from "@/components/system/SimpleErrorBoundary";
+import { SessionBootstrap } from "@/components/auth/SessionBootstrap";
 
 
 // Pages
@@ -127,12 +128,13 @@ const App = () => {
         <Toaster />
         <BrowserRouter>
           <AuthProvider>
-            <OfficeBrandingProvider>
-              <DevPanelProvider>
-                <ChatContextProvider>
-                  <AppInitializer>
-                    <Routes>
-                      {/* ====== ROTAS PÚBLICAS (SEM LAYOUT) ====== */}
+            <SessionBootstrap>
+              <OfficeBrandingProvider>
+                <DevPanelProvider>
+                  <ChatContextProvider>
+                    <AppInitializer>
+                      <Routes>
+                        {/* ====== ROTAS PÚBLICAS (SEM LAYOUT) ====== */}
                       <Route path="/" element={<Navigate to="/login" replace />} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/signup" element={<Signup />} />
@@ -855,6 +857,7 @@ const App = () => {
                 </ChatContextProvider>
               </DevPanelProvider>
             </OfficeBrandingProvider>
+            </SessionBootstrap>
           </AuthProvider>
         </BrowserRouter>
         <Sonner />

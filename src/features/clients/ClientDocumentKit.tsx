@@ -920,7 +920,7 @@ export function ClientDocumentKit({ clientId, compact = false }: Props) {
       {/* Signature Requirements Alert */}
       {showSignatureAlert && (
         <Dialog open={showSignatureAlert} onOpenChange={setShowSignatureAlert}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md w-[95vw]">
             <DialogHeader>
               <DialogTitle>Pendências de Assinatura</DialogTitle>
               <DialogDescription className="sr-only">
@@ -938,7 +938,7 @@ export function ClientDocumentKit({ clientId, compact = false }: Props) {
 
       {/* HTML Preview Dialog with Print Button */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="sm:max-w-4xl w-[95vw] max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <div className="flex items-center justify-between">
               <DialogTitle>{previewDocName || "Pré-visualização do Documento"}</DialogTitle>
@@ -998,7 +998,7 @@ export function ClientDocumentKit({ clientId, compact = false }: Props) {
 
       {/* Instructions Modal */}
       <Dialog open={showInstructionsModal} onOpenChange={setShowInstructionsModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md w-[95vw]">
           <DialogHeader>
             <DialogTitle>Como salvar em PDF</DialogTitle>
             <DialogDescription>

@@ -177,9 +177,9 @@ const WhatsAppInbox = () => {
     });
 
     return (
-        <div className="flex bg-[#09090b] h-[calc(100vh-120px)] rounded-3xl overflow-hidden border border-white/5 shadow-2xl animate-in fade-in zoom-in-95 duration-700">
+        <div className="flex bg-[#09090b] h-[calc(100vh-120px)] md:rounded-3xl overflow-hidden border border-white/5 shadow-2xl animate-in fade-in zoom-in-95 duration-700">
             {/* Sidebar / Chat List */}
-            <div className="w-[380px] border-r border-white/5 bg-white/[0.02] flex flex-col">
+            <div className={`${selectedChat ? 'hidden md:flex' : 'flex'} w-full md:w-[380px] border-r border-white/5 bg-white/[0.02] flex-col`}>
                 <div className="p-6 space-y-4 border-b border-white/5">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -332,9 +332,20 @@ const WhatsAppInbox = () => {
             </div>
 
             {/* Chat Detail Content */}
-            <div className="flex-1 bg-black/20 flex flex-col relative">
+            <div className={`${selectedChat ? 'flex' : 'hidden md:flex'} flex-1 bg-black/20 flex-col relative overflow-hidden`}>
                 {selectedChat ? (
-                    <div className="h-full animate-in slide-in-from-right-4 duration-500">
+                    <div className="h-full animate-in slide-in-from-right-4 duration-500 overflow-hidden flex flex-col">
+                        <div className="p-3 border-b border-white/5 bg-white/5 md:hidden flex items-center gap-3">
+                           <Button variant="ghost" size="icon" onClick={() => setSelectedChat(null)} className="shrink-0">
+                               <ChevronRight className="h-5 w-5 rotate-180" />
+                           </Button>
+                           <div className="flex items-center gap-3 truncate">
+                               <div className="h-8 w-8 rounded-lg bg-emerald-500 flex items-center justify-center text-xs font-bold shrink-0">
+                                   {selectedChat.client_name.charAt(0)}
+                               </div>
+                               <span className="font-bold text-sm truncate text-white">{selectedChat.client_name}</span>
+                           </div>
+                        </div>
                         <WhatsAppTab 
                             clientId={selectedChat.client_id}
                             patientName={selectedChat.client_name}

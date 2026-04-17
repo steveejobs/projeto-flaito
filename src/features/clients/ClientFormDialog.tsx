@@ -930,7 +930,7 @@ export function ClientFormDialog({
         onOpenChange(o);
         if (!o) resetForm();
       }}>
-        <DialogContent className="sm:max-w-3xl h-[85vh] p-0 overflow-hidden border-white/10 glass-panel flex flex-col">
+        <DialogContent className="sm:max-w-3xl w-[95vw] h-[85vh] p-0 overflow-hidden border-white/10 glass-panel flex flex-col">
           <DialogHeader className="p-6 pb-2 border-b border-white/5 bg-background/50 backdrop-blur-sm">
             <DialogTitle className="text-2xl font-bold tracking-tight">
               {editingClient ? 'Editar Cliente' : newlyCreatedClientId ? 'Completar Cadastro' : 'Novo Cliente'}

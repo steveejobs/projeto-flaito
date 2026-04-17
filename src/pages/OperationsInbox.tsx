@@ -130,10 +130,10 @@ const OperationsInbox = () => {
   const selectedConv = conversations.find(c => c.id === selectedId);
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-background/50 backdrop-blur-xl border border-white/10 rounded-2xl m-4 shadow-2xl animate-in fade-in zoom-in duration-500">
+    <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-background/50 backdrop-blur-xl border border-white/10 rounded-2xl md:m-4 shadow-2xl animate-in fade-in zoom-in duration-500">
       
       {/* SIDEBAR: Lista de Conversas */}
-      <div className="w-80 border-r border-white/10 flex flex-col bg-black/5">
+      <div className={`${selectedId ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-r border-white/10 flex-col bg-black/5`}>
         <div className="p-4 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Central Inbox</h2>
@@ -188,21 +188,24 @@ const OperationsInbox = () => {
       </div>
 
       {/* MAIN: Chat e Ações */}
-      <div className="flex-1 flex flex-col">
+      <div className={`${selectedId ? 'flex' : 'hidden md:flex'} flex-1 flex-col overflow-hidden`}>
         {selectedConv ? (
           <>
             {/* Header */}
             <div className="p-4 border-b border-white/10 bg-white/5 flex items-center justify-between backdrop-blur-md">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center font-bold text-white shadow-lg">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={() => setSelectedId(null)}>
+                  <ArrowRight className="w-4 h-4 rotate-180" />
+                </Button>
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center font-bold text-white shadow-lg shrink-0">
                   {(selectedConv.crm_leads?.full_name?.[0] || 'U').toUpperCase()}
                 </div>
-                <div>
-                  <h3 className="font-bold text-lg leading-tight">{selectedConv.crm_leads?.full_name || selectedConv.normalized_phone}</h3>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="overflow-hidden">
+                  <h3 className="font-bold text-lg leading-tight truncate">{selectedConv.crm_leads?.full_name || selectedConv.normalized_phone}</h3>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground whitespace-nowrap overflow-hidden">
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> SLA: 15min</span>
                     <Separator orientation="vertical" className="h-3" />
-                    <span className="flex items-center gap-1"><User className="w-3 h-3" /> {selectedConv.assigned_user_id ? 'Responsável Ativo' : 'Aguardando'}</span>
+                    <span className="flex items-center gap-1 truncate"><User className="w-3 h-3" /> {selectedConv.assigned_user_id ? 'Responsável' : 'Aguardando'}</span>
                   </div>
                 </div>
               </div>

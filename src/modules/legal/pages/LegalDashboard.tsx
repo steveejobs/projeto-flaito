@@ -589,16 +589,16 @@ export function LegalDashboard() {
   // ─────────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="p-2 md:p-3 lg:p-4 space-y-3 dashboard-fade-in max-w-[1400px] mx-auto min-h-screen bg-background text-foreground selection:bg-primary/30">
-
+    <div className="p-3 md:p-4 lg:p-6 space-y-4 dashboard-fade-in max-w-[1600px] mx-auto min-h-screen bg-background text-foreground selection:bg-primary/30">
+      
       {/* 1. Dashboard Header (Hero Typography) */}
-      <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: '50ms' }}>
+      <section className="animate-in fade-in slide-in-from-bottom-6 duration-1000 ease-out fill-mode-both">
         <DashboardHeader />
       </section>
 
       {/* Focus / Next Critical Step - Bento Style */}
-      <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: '100ms' }}>
-        <div className="dashboard-card relative overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md group p-4 md:p-5">
+      <section className="animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-100 ease-out fill-mode-both">
+        <div className="dashboard-card relative overflow-hidden rounded-2xl border border-white/5 bg-card text-card-foreground shadow-xl transition-all hover:shadow-2xl group p-6">
           {/* Decorative blur removed */}
 
           <div className="relative z-10 flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">

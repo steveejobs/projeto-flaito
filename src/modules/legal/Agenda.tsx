@@ -483,10 +483,13 @@ export default function Agenda() {
   };
 
   return (
-    <div className="p-4 lg:p-6">
-      <div className="grid h-[calc(100vh-7rem)] gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.8fr)]">
+    <div className="p-4 lg:p-6 h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)] overflow-hidden">
+      <div className="grid h-full gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.8fr)]">
         {/* Coluna esquerda - Lista/Grid */}
-        <Card className="flex h-full flex-col">
+        <Card className={cn(
+          "h-full flex flex-col overflow-hidden transition-all duration-300",
+          selectedItem ? "hidden lg:flex" : "flex"
+        )}>
           <CardHeader className="border-b pb-3">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-3">
@@ -851,13 +854,26 @@ export default function Agenda() {
         </Card>
 
         {/* Coluna direita - Detalhes */}
-        <Card className="hidden h-full flex-col lg:flex">
+        <Card className={cn(
+          "h-full flex-col overflow-hidden transition-all duration-300",
+          selectedItem ? "flex" : "hidden lg:flex"
+        )}>
           {selectedItem && officeId ? (
             <>
               <CardHeader className="border-b pb-3">
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
+                    <div className="flex items-start gap-3 min-w-0">
+                      {/* Back button for mobile Master-Detail */}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 lg:hidden"
+                        onClick={() => setSelectedItem(null)}
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                      <div className="min-w-0">
                       <CardTitle className="text-base leading-tight">
                         {selectedItem.title}
                       </CardTitle>
@@ -898,7 +914,8 @@ export default function Agenda() {
                     </div>
                   </div>
                 </div>
-              </CardHeader>
+              </div>
+            </CardHeader>
 
               <CardContent className="flex min-h-0 flex-1 flex-col p-0">
                 <Tabs

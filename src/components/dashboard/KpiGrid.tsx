@@ -24,7 +24,7 @@ export function KpiGrid({ kpis, loading }: KpiGridProps) {
   const hasHighRisk = (kpis?.highRiskCases ?? 0) > 0;
 
   return (
-    <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
       {/* Alertas Críticos */}
       <Link to="/alerts" className="block transform transition-transform duration-300 hover:scale-[1.02]">
         <Card className="bento-card cursor-pointer h-full group">
@@ -49,7 +49,7 @@ export function KpiGrid({ kpis, loading }: KpiGridProps) {
                       <Badge variant="destructive" className="animate-pulse shadow-sm shadow-destructive/20 border-white/10 uppercase tracking-widest text-[9px] font-bold">Urgente</Badge>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-widest">Alertas Críticos</p>
+                  <p className="text-[10px] text-muted-foreground/80 font-bold uppercase tracking-[0.15em] truncate">Alertas Críticos</p>
                 </div>
               </div>
             )}
@@ -75,7 +75,7 @@ export function KpiGrid({ kpis, loading }: KpiGridProps) {
                 <span className="text-3xl font-bold text-foreground block mb-1">
                   {kpis?.todayAppointments ?? 0}
                 </span>
-                <p className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-widest">Compromissos Hoje</p>
+                <p className="text-[10px] text-muted-foreground/80 font-bold uppercase tracking-[0.15em] truncate">Compromissos</p>
               </div>
             )}
           </CardContent>
@@ -98,7 +98,7 @@ export function KpiGrid({ kpis, loading }: KpiGridProps) {
                   <CreditCard className="h-5 w-5 text-amber-600" />
                 </div>
                 <span className="text-3xl font-bold text-foreground block mb-1">—</span>
-                <p className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-widest">Pagamentos Pendentes</p>
+                <p className="text-[10px] text-muted-foreground/80 font-bold uppercase tracking-[0.15em] truncate">Pagamentos</p>
               </div>
             )}
           </CardContent>
@@ -129,7 +129,7 @@ export function KpiGrid({ kpis, loading }: KpiGridProps) {
                       <Badge variant="destructive" className="shadow-sm shadow-destructive/20 border-white/10 text-[9px] uppercase font-bold tracking-widest">Nija AI</Badge>
                     )}
                   </div>
-                  <p className={`text-xs font-semibold uppercase tracking-widest ${hasHighRisk ? 'text-destructive/80' : 'text-muted-foreground/80'}`}>Casos em Risco</p>
+                  <p className={`text-[10px] font-bold uppercase tracking-[0.15em] truncate ${hasHighRisk ? 'text-destructive/80' : 'text-muted-foreground/80'}`}>Casos em Risco</p>
                 </div>
               </div>
             )}
@@ -156,7 +156,7 @@ export function KpiGrid({ kpis, loading }: KpiGridProps) {
                   <span className="block text-3xl font-bold text-foreground tracking-tight drop-shadow-sm mb-1">
                     {kpis?.myCases ?? 0}
                   </span>
-                  <p className="text-xs text-primary/80 font-bold uppercase tracking-widest">Meus Casos</p>
+                  <p className="text-[10px] text-primary/80 font-bold uppercase tracking-[0.15em] truncate">Meus Casos</p>
                 </div>
               </div>
             )}

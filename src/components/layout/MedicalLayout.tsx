@@ -133,10 +133,12 @@ function MedicalLayoutInner({ children }: MedicalLayoutProps) {
                             <SidebarTrigger className="text-muted-foreground hover:text-teal-600 transition-colors" />
                             <div className="h-6 w-px bg-gray-200" />
 
-                            <LegalClock />
+                            <div className="hidden sm:block">
+                                <LegalClock />
+                            </div>
                             
                             {activeProfile && (
-                                <div className="ml-4 flex items-center pl-4 border-l border-teal-100 hidden md:flex animate-in fade-in slide-in-from-left-4 duration-500">
+                                <div className="ml-4 flex items-center pl-4 border-l border-teal-100 hidden lg:flex animate-in fade-in slide-in-from-left-4 duration-500">
                                     <div className="flex flex-col mr-3">
                                         <span className="text-[10px] uppercase font-bold text-teal-600 tracking-wider">Cliente Ativo</span>
                                         <span className="text-sm font-semibold text-foreground leading-tight">{activeProfile.full_name}</span>
@@ -205,7 +207,7 @@ function MedicalLayoutInner({ children }: MedicalLayoutProps) {
                         </div>
                     </header>
 
-                    <main className="flex-1 overflow-auto relative p-6 max-w-7xl mx-auto w-full">
+                    <main className="flex-1 overflow-auto relative p-4 sm:p-6 max-w-7xl mx-auto w-full">
                         {isBlocking ? (
                             <div className="flex items-center justify-center min-h-[400px]">
                                 <div className="flex flex-col items-center gap-4 text-muted-foreground">
