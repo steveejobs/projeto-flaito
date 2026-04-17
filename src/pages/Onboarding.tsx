@@ -71,7 +71,7 @@ export default function Onboarding() {
   const stats = useMemo(() => {
     // Filtra apenas os passos que realmente mostramos nos cards
     const relevantSteps = steps.filter(s => visibleStepKeys.includes(s.step_key));
-    const total = relevantSteps.length || visibleStepKeys.length; // Fallback para o total esperado
+    const total = visibleStepKeys.length; // Usa o total esperado de etapas visíveis
     const completedSteps = relevantSteps.filter(s => s.completed);
     
     const criticalCompleted = relevantSteps.filter(s => s.completed && criticalStepKeys.includes(s.step_key)).length;
