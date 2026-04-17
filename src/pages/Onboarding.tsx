@@ -69,19 +69,25 @@ export default function Onboarding() {
   
   // Calcula estatísticas
   const stats = useMemo(() => {
-    // Filtra apenas os passos que realmente mostramos nos cards
+    // 1. Filtragem estrita de etapas visíveis retornadas pelo banco
     const relevantSteps = steps.filter(s => visibleStepKeys.includes(s.step_key));
-    const total = visibleStepKeys.length; // Usa o total esperado de etapas visíveis
-    const completedSteps = relevantSteps.filter(s => s.completed);
+    
+    // 2. Denominador fixo
+    const total = visibleStepKeys.length;
+    
+    // 3. Contagem de concluídos apenas entre os visíveis
+    const completedCount = relevantSteps.filter(s => s.completed).length;
+    
+    // 4. Proteção contra divisão por zero
+    const percentage = total > 0 ? Math.round((completedCount / total) * 100) : 0;
     
     const criticalCompleted = relevantSteps.filter(s => s.completed && criticalStepKeys.includes(s.step_key)).length;
     const totalCritical = criticalStepKeys.length;
     
-    const percentage = Math.round((completedSteps.length / total) * 100);
-    const isReady = criticalCompleted >= totalCritical;
+    const isReady = totalCritical > 0 ? criticalCompleted >= totalCritical : true;
 
-    return { total, completed: completedSteps.length, percentage, isReady };
-  }, [steps]);
+    return { total, completed: completedCount, percentage, isReady };
+  }, [steps, visibleStepKeys, criticalStepKeys]);
 
   // Lógica Dr./Dra.
   const displayTitle = useMemo(() => {
