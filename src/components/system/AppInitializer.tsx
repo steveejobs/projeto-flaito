@@ -20,7 +20,8 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loading: authLoading } = useAuth();
-  const { role, loading: roleLoading, module: officeModule, officeId } = useOfficeRole();
+  const { role, loading: roleLoading, module: rawOfficeModule, officeId } = useOfficeRole();
+  const officeModule = rawOfficeModule === 'MEDICAL' || (rawOfficeModule as string) === 'MEDICO' ? 'MEDICAL' : 'LEGAL';
   const { office: config, isLoading: configLoading } = (useInstitutionalConfig as any)(officeId);
   const [onboardingLoading, setOnboardingLoading] = useState(false);
   const [onboardingData, setOnboardingData] = useState<any[] | null>(null);
@@ -40,14 +41,10 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
 
   // Debug Logs
   useEffect(() => {
-    console.log('[Gatekeeper] State Sync:', {
-      auth: state.auth,
-      office: state.office,
-      config: state.config,
-      isStabilized: state.isStabilized,
-      pathname: location.pathname
-    });
-  }, [state, location.pathname]);
+    if (state.isStabilized) {
+      console.log('[Gatekeeper] System Stabilized. Module:', officeModule, 'Path:', location.pathname);
+    }
+  }, [state.isStabilized, officeModule, location.pathname]);
 
   // Fail-safe Timeout
   useEffect(() => {
@@ -65,6 +62,17 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
   // Fetch Onboarding Status
   useEffect(() => {
     if (state.office === 'ready' && officeId) {
+      const userUuid = user?.id || 'anonymous';
+      const cacheKey = `flaito_onboarding_complete_${userUuid}_${officeId}`;
+      const isCachedComplete = localStorage.getItem(cacheKey) === 'true';
+      
+      // Se já está no cache, não precisamos dar block no loading do app
+      if (isCachedComplete) {
+        console.log('[Gatekeeper] Onboarding complete (cached)');
+        setOnboardingData([{ step_key: 'institutional_config', completed: true }, { step_key: 'office_info', completed: true }]);
+        return;
+      }
+
       const fetchOnboarding = async () => {
         setOnboardingLoading(true);
         try {
@@ -103,19 +111,44 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
     }
 
     // Onboarding State
-    if (onboardingLoading) {
+    const userUuid = user?.id || 'anonymous';
+    const cacheKey = `flaito_onboarding_complete_${userUuid}_${officeId}`;
+    const isCachedComplete = officeId ? localStorage.getItem(cacheKey) === 'true' : false;
+
+    if (isCachedComplete) {
+      newState.onboarding = 'ready';
+    } else if (onboardingLoading) {
       newState.onboarding = 'unknown';
+    } else if (onboardingData === null) {
+      newState.onboarding = (newState.auth === 'ready' && newState.office === 'ready') ? 'unknown' : 'ready';
     } else {
       const criticalSteps = ['institutional_config', 'office_info'];
-      const isComplete = Array.isArray(onboardingData) && 
-                         onboardingData.length > 0 && 
+      const hasData = Array.isArray(onboardingData) && onboardingData.length > 0;
+      
+      const isComplete = hasData && 
                          onboardingData
                            .filter(s => criticalSteps.includes(s.step_key))
                            .every(s => s.completed);
-      newState.onboarding = isComplete ? 'ready' : (newState.auth === 'ready' ? 'missing' : 'unknown');
+      
+      if (isComplete && officeId && user?.id) {
+        localStorage.setItem(cacheKey, 'true');
+      }
+      
+      // Só marca como 'missing' se tivermos dados e eles mostrarem que está incompleto.
+      // Se não tiver dados (onboardingData vazia), mantemos como 'unknown' para evitar redirect precoce.
+      if (isComplete) {
+        newState.onboarding = 'ready';
+      } else if (newState.auth === 'ready' && newState.office === 'ready') {
+        // Se temos dados e não está completo -> missing
+        // Se NÃO temos dados (onboardingData é []), mas auth/office estão prontos, 
+        // ainda aguardamos um pouco antes de assumir 'missing' (unknown)
+        newState.onboarding = hasData ? 'missing' : 'unknown';
+      } else {
+        newState.onboarding = 'ready'; // Fallback seguro para não travar o app
+      }
     }
 
-    // Check if critical resources are resolved based on auth status
+    // Check if critical resources are resolved
     const criticalResolved = 
       newState.auth === 'missing' || 
       (newState.auth === 'ready' && newState.office !== 'unknown' && newState.onboarding !== 'unknown');

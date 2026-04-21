@@ -93,7 +93,7 @@ export default function Onboarding() {
   const displayTitle = useMemo(() => {
     const prof = institutionalData?.professional;
     if (prof?.identNumber) {
-      return mainModule === 'MEDICO' ? 'Dr(a).' : 'Dr(a).';
+      return mainModule === 'MEDICAL' ? 'Dr(a).' : 'Dr(a).';
     }
     return '';
   }, [institutionalData, mainModule]);
@@ -113,7 +113,15 @@ export default function Onboarding() {
       toast.error('Complete as etapas de Identidade e Unidade para acessar o sistema.');
       return;
     }
-    const dest = mainModule === 'MEDICO' ? '/medical/dashboard' : '/dashboard';
+    
+    // Persistência local para evitar redirecionamento imediato no refresh
+    if (officeId && user?.id) {
+      const cacheKey = `flaito_onboarding_complete_${user.id}_${officeId}`;
+      localStorage.setItem(cacheKey, 'true');
+      console.log(`[Onboarding] Marcando completude local para user: ${user.id}, office: ${officeId}`);
+    }
+
+    const dest = mainModule === 'MEDICAL' ? '/medical/dashboard' : '/dashboard';
     navigate(dest);
   };
 
@@ -218,8 +226,8 @@ export default function Onboarding() {
                 />
                 <StepCard 
                   index={2}
-                  title={mainModule === 'MEDICO' ? "Minha Clínica" : "Meu Escritório"}
-                  description={mainModule === 'MEDICO' ? "Configure os dados da unidade e branding da clínica." : "Configurações do escritório, logo e dados jurídicos."}
+                  title={mainModule === 'MEDICAL' ? "Minha Clínica" : "Meu Escritório"}
+                  description={mainModule === 'MEDICAL' ? "Configure os dados da unidade e branding da clínica." : "Configurações do escritório, logo e dados jurídicos."}
                   icon={<Building2 className="h-6 w-6" />}
                   status={steps.find(s => s.step_key === 'office_info')?.completed ? 'completed' : 'pending'}
                   onClick={() => handleStepAction('office_info')}
@@ -237,8 +245,8 @@ export default function Onboarding() {
                 ) : (
                   <StepCard 
                     index={3}
-                    title={mainModule === 'MEDICO' ? "Primeiro Paciente" : "Primeiro Cliente"}
-                    description={mainModule === 'MEDICO' ? "Simule um atendimento e gere seu primeiro laudo IA." : "Cadastre seu primeiro caso para testar o fluxo completo."}
+                    title={mainModule === 'MEDICAL' ? "Primeiro Paciente" : "Primeiro Cliente"}
+                    description={mainModule === 'MEDICAL' ? "Simule um atendimento e gere seu primeiro laudo IA." : "Cadastre seu primeiro caso para testar o fluxo completo."}
                     icon={<Rocket className="h-6 w-6" />}
                     status={steps.find(s => s.step_key === 'first_client')?.completed ? 'completed' : 'pending'}
                     onClick={() => handleStepAction('first_client')}
