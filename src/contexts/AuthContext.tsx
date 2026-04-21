@@ -34,7 +34,7 @@ const selectiveCleanup = () => {
   try {
     const namespaces = [
       'sb-',             // Supabase Auth/Session
-      'flaito-',         // Core App State
+      'flaito',          // Core App State (handles flaito- and flaito_)
       'nija-',           // Legal Module
       'medical-',        // Medical Module
       'active_',         // Current resources (active_client_id, etc)

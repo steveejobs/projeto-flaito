@@ -88,38 +88,48 @@ const TranscricaoPage = () => {
             return;
         }
 
+        const inputContent = inputMode === 'manual' ? transcricaoManual : null;
+        const hasAudio = audioFile !== null;
+
+        if (!inputContent && !hasAudio) {
+            toast({ title: "Erro", description: "Nenhum conteúdo para processar.", variant: "destructive" });
+            return;
+        }
+
         setStatus('processing');
 
-        // Simular chamada via delay (Aqui entraria a integração de IA)
-        await new Promise(r => setTimeout(r, 3000));
-
-        const generatedResult = {
-            queixa: 'Cefaleia tensional persistente há 3 semanas, com piora no período vespertino. Dor holocraniana, intensidade 6/10, sem aura.',
-            sintomas: 'Cefaleia tensional, tensão muscular cervical, fadiga vespertina, dificuldade de concentração, bruxismo noturno relatado.',
-            historico: 'Paciente jovem adulta. Sem antecedentes neurológicos aparentes. Uso prévio de ibuprofeno.',
-            conduta: 'Solicitação de exames, orientação ergonômica, retorno em 15 dias.',
-        };
-        setResultado(generatedResult);
-
-        // Salvar no BD
         try {
-            const { error } = await supabase.from('transcricoes').insert([{
-                office_id: officeId,
-                paciente_id: selectedPacienteId || null,
-                transcricao_bruta: inputMode === 'manual' ? transcricaoManual : 'Áudio capturado em anexo.',
-                queixa_extraida: generatedResult.queixa,
-                sintomas_extraidos: generatedResult.sintomas,
-                historico_extraido: generatedResult.historico,
-                conduta_extraida: generatedResult.conduta,
-                status: 'concluida'
-            }]);
+            const { data, error } = await supabase.functions.invoke('medical-transcription', {
+                body: {
+                    office_id: officeId,
+                    paciente_id: selectedPacienteId || null,
+                    input_mode: inputMode,
+                    transcricao_manual: inputContent,
+                    has_audio: hasAudio,
+                }
+            });
 
             if (error) throw error;
-            toast({ title: "Sucesso", description: "Transcrição salva com sucesso no banco de dados." });
-            setStatus('done');
-        } catch (error) {
-            console.error("Erro ao salvar transcrição:", error);
-            toast({ title: "Erro", description: "Falha ao salvar a transcrição.", variant: "destructive" });
+
+            if (data?.result) {
+                setResultado(data.result);
+                setStatus('done');
+                toast({ title: "Sucesso", description: "Transcrição processada com sucesso." });
+            } else {
+                throw new Error("Resposta inválida do servidor.");
+            }
+        } catch (error: any) {
+            console.error("Erro ao processar transcrição:", error);
+            // If edge function doesn't exist yet, show honest message
+            if (error.message?.includes('not found') || error.message?.includes('404') || error.status === 404) {
+                toast({
+                    title: "Funcionalidade em Implantação",
+                    description: "O processamento de IA para transcrição clínica está sendo implantado. Disponível em breve.",
+                    variant: "destructive"
+                });
+            } else {
+                toast({ title: "Erro", description: "Falha ao processar transcrição: " + (error.message || 'erro desconhecido'), variant: "destructive" });
+            }
             setStatus('idle');
         }
     };

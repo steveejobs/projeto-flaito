@@ -355,6 +355,9 @@ export function ClientFormDialog({
     try {
       const res = await supabase.functions.invoke('cep-proxy', {
         body: { cep: digits },
+        headers: {
+          'x-frontend-client': 'flaito-app',
+        },
       });
 
       if (res.error) {

@@ -1,20 +1,13 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
     LayoutDashboard,
     Calendar,
     Users,
     Mic,
-    Brain,
     ClipboardList,
     Bot,
-    FolderTree,
     Settings,
-    Sparkles,
-    Eye,
-    FileText,
-    BarChart3,
-    Shield,
     MessageSquare,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
@@ -45,18 +38,14 @@ interface MenuItem {
 const MEDICAL_MENU: MenuItem[] = [
     { title: 'Dashboard Clínico', url: '/medical/dashboard', icon: LayoutDashboard },
     { title: 'Agenda Médica', url: '/medical/agenda', icon: Calendar },
-    { title: 'Iridologia', url: '/medical/iridologia', icon: Eye },
     { title: 'Decifrador IA', url: '/medical/ia', icon: Bot },
+    { title: 'Studio de Agentes', url: '/medical/agent-studio', icon: Bot },
     { title: 'Pacientes', url: '/medical/patients', icon: Users },
-    { title: 'Central de Atendimento', url: '/inbox', icon: MessageSquare },
-    { title: 'Consultas Inteligentes', url: '/medical/transcricao', icon: Mic }, 
+    { title: 'Central de Atendimento', url: '/medical/inbox', icon: MessageSquare },
+    { title: 'Consultas Inteligentes', url: '/medical/transcricao', icon: Mic },
     { title: 'Protocolos Clínicos', url: '/medical/protocolos', icon: ClipboardList },
 ];
 
-const STUDIO_MENU: MenuItem[] = [
-    { title: 'Studio de Agentes', url: '/agent-studio', icon: Bot },
-    { title: 'Builder de Fluxos', url: '/flow-manager', icon: FolderTree },
-];
 
 export function MedicalSidebar() {
     const { state, setOpenMobile, isMobile } = useSidebar();
@@ -143,13 +132,13 @@ export function MedicalSidebar() {
             <SidebarFooter className="border-t border-sidebar-border p-2">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild tooltip="Configurações">
+                        <SidebarMenuButton asChild tooltip="Perfil">
                             <NavLink
-                                to="/medical/settings"
+                                to="/settings/profile"
                                 className="flex items-center gap-3 rounded-xl hover:bg-sidebar-accent px-3 py-2.5 transition-colors"
                             >
                                 <Settings className="h-4 w-4 shrink-0" />
-                                {!collapsed && <span>Configurações</span>}
+                                {!collapsed && <span>Perfil</span>}
                             </NavLink>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

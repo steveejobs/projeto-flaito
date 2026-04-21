@@ -26,6 +26,7 @@ import { buildAnalysisKey, computeDocumentsHash } from "@/nija/utils/analysisKey
 import type { EnrichedDoc } from "@/nija/connectors/tjto/dictionary";
 import { runNijaFullAnalysisQuick } from "@/services/nijaFullAnalysis";
 import { createNijaTimer, logNijaStart, logNijaError, logNijaSuccess } from "@/lib/nijaLogger";
+import { getCurrentOfficeId } from "@/nija/extraction/cache";
 
 
 export interface UseNijaAnalysisOptions {
@@ -159,6 +160,27 @@ export function useNijaAnalysis(opts: UseNijaAnalysisOptions) {
         currentAnalysisKeyRef.current = analysisKey;
 
         // PASSO 2: Determinar case_id ou session_id
+        // Busca prioritária no process_dossiers se tivermos um caseId
+        const targetCaseId = providedCaseId || autoCaseId;
+        if (targetCaseId) {
+          const { data: dossier } = await supabase
+            .from("process_dossiers")
+            .select("*")
+            .eq("case_id", targetCaseId)
+            .order("version", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (dossier?.full_analysis) {
+             setAnalysisResult(dossier.full_analysis as any);
+             setAutoCaseId(targetCaseId);
+             toast({ title: "Dossiê recuperado", description: "Carregando inteligência persistente do caso." });
+             analysisLockRef.current = false;
+             setAnalysisLoading(false);
+             return;
+          }
+        }
+
         // Regra anti-duplicação: se já existe uma análise com o mesmo documents_hash + analysis_key
         // associada a um case_id, reutilizar esse case para evitar criar "Casos" duplicados.
         if (!providedCaseId && !autoCaseId) {
@@ -180,33 +202,16 @@ export function useNijaAnalysis(opts: UseNijaAnalysisOptions) {
               title: "Análise já existente",
               description: `Reutilizando o caso existente (${defectsFound} vício(s)).`,
             });
+            analysisLockRef.current = false;
+            setAnalysisLoading(false);
             return;
           }
         }
 
         const caseId = providedCaseId || autoCaseId;
         
-        // PASSO 3: Buscar snapshot existente
-        if (caseId) {
-          // Busca por case_id + analysis_key
-          const { data: cached } = await supabase
-            .from("nija_case_analysis")
-            .select("analysis")
-            .eq("case_id", caseId)
-            .eq("analysis_key", analysisKey)
-            .maybeSingle();
-
-          if (cached?.analysis) {
-            setAnalysisResult(cached.analysis);
-            setAutoCaseId(caseId);
-            const defectsFound = (cached.analysis as any)?.recommendation?.findings?.length ?? 0;
-            toast({
-              title: "Análise recuperada do cache",
-              description: `${defectsFound} vício(s) identificado(s). Polo: ${poloForAnalysis}.`,
-            });
-            return;
-          }
-        } else {
+        // PASSO 3: Buscar snapshot existente (Cache de Sessão)
+        if (!caseId) {
           // Modo solto: usar session_id
           if (!sessionIdRef.current) {
             sessionIdRef.current = crypto.randomUUID();
@@ -227,6 +232,8 @@ export function useNijaAnalysis(opts: UseNijaAnalysisOptions) {
               title: "Análise recuperada da sessão",
               description: `${defectsFound} vício(s) identificado(s). Polo: ${poloForAnalysis}.`,
             });
+            analysisLockRef.current = false;
+            setAnalysisLoading(false);
             return;
           }
         }
@@ -390,13 +397,13 @@ export function useNijaAnalysis(opts: UseNijaAnalysisOptions) {
             ? `${aiResumo}\n\n[Motor NIJA - ${poloForAnalysis}]: ${motorResumo}`
             : aiResumo;
 
-          // Resultado híbrido
-          const hybridResult = {
+          // Resultado híbrido unificado
+          const hybridResult: any = {
             mode: opts.mode,
             ramoFinal: (quickResult.meta?.ramo as NijaRamo) || engineResult.ramoFinal,
             poloFinal: poloForAnalysis,
             coreOverview: {
-              version: "3.0-hybrid",
+              version: "4.0-dossier-aligned",
               defectsCount: combinedFindings.length,
               strategiesCount: finalMainStrategies.length + finalSecondaryStrategies.length,
               mappedVicios: mapped,
@@ -422,7 +429,11 @@ export function useNijaAnalysis(opts: UseNijaAnalysisOptions) {
             prescricao: quickResult.prescricao,
             partes: quickResult.partes,
             processo: quickResult.processo,
-            linhaDoTempo: quickResult.linhaDoTempo,
+            // Mapeamento explícito para colunas do Dossiê V2
+            timeline_factual: quickResult.linhaDoTempo || [],
+            timeline_processual: quickResult.processo?.eventos || [],
+            fato_prova_map: quickResult.processo?.fato_prova_map || [],
+            lacunas_detectadas: quickResult.processo?.lacunas || [],
             sugestaoPeca: quickResult.sugestaoPeca,
             engineRecommendation: engineResult,
           };
@@ -432,18 +443,38 @@ export function useNijaAnalysis(opts: UseNijaAnalysisOptions) {
           const ignoredMsg = ignored > 0 ? ` ${ignored} ignorado(s) por contexto negado.` : "";
           toast({
             title: "Análise híbrida concluída",
-            description: `${combinedFindings.length} vício(s) identificado(s). Polo: ${poloForAnalysis}. ${mapped} mapeados, ${unmapped} não mapeados.${ignoredMsg}`,
+            description: `${combinedFindings.length} vício(s) identificado(s). Polo: ${poloForAnalysis}.${ignoredMsg}`,
           });
 
-          // PASSO 5: Salvar snapshot com analysis_key via RPC
-          // LOG: Antes de chamar RPC
-          logNijaStart("useNijaAnalysis", "DB_RPC_INSERT_ANALYSIS", {
-            caseId: createdCaseId,
-            sessionId: sessionIdRef.current,
-            payload: { docsHash, analysisKey },
-          });
+          // PASSO 5: Persistência no Dossiê Oficial (process_dossiers)
+          if (createdCaseId) {
+            const officeId = await getCurrentOfficeId();
+            const { error: dossierErr } = await supabase
+              .from("process_dossiers")
+              .upsert({
+                case_id: createdCaseId,
+                office_id: officeId,
+                ramo: hybridResult.ramoFinal,
+                polo: poloForAnalysis,
+                resumo_tatico: combinedResumo,
+                full_analysis: hybridResult,
+                vicios: combinedFindings,
+                estrategias: { principais: finalMainStrategies, secundarias: finalSecondaryStrategies },
+                timeline_factual: hybridResult.timeline_factual,
+                timeline_processual: hybridResult.timeline_processual,
+                fato_prova_map: hybridResult.fato_prova_map,
+                lacunas_detectadas: hybridResult.lacunas_detectadas,
+                sugestao_peca: quickResult.sugestaoPeca || {}
+              }, { onConflict: "case_id" });
 
-          // Usar RPC para bypass RLS em modo sessão
+            if (dossierErr) {
+              console.warn("[NIJA] Erro ao persistir no process_dossiers:", dossierErr);
+            } else {
+              console.log("[NIJA] Dossiê oficial persistido com sucesso.");
+            }
+          }
+
+          // PASSO 6: Salvar snapshot cache (Retrocompatibilidade)
           const { error: rpcError } = await supabase.rpc("lexos_nija_insert_analysis", {
             p_documents_hash: docsHash,
             p_analysis_key: analysisKey,

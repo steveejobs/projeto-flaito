@@ -59,7 +59,9 @@ import AdminCaptureQr from "./pages/AdminCaptureQr";
 import OfficeSettings from "./pages/OfficeSettings";
 import OfficeMembers from "./pages/OfficeMembers";
 import MemberProfile from "./pages/MemberProfile";
+import VoiceAgentConfig from "./pages/VoiceAgentConfig";
 import PublicClientCapture from "./pages/PublicClientCapture";
+import PublicSignaturePage from "./pages/PublicSignaturePage";
 import AcceptInvite from "./pages/AcceptInvite";
 import WhatsAppChannels from "./pages/system/WhatsAppChannels";
 
@@ -139,6 +141,7 @@ const App = () => {
                       <Route path="/login" element={<Login />} />
                       <Route path="/signup" element={<Signup />} />
                       <Route path="/captacao/:officeSlug" element={<PublicClientCapture />} />
+                      <Route path="/assinatura/:token" element={<PublicSignaturePage />} />
                       <Route path="/convite/:token" element={<AcceptInvite />} />
 
                       {/* ====== ONBOARDING (PROTECTED, SEM LAYOUT) ====== */}
@@ -194,119 +197,13 @@ const App = () => {
                             </RoleProtectedRoute>
                           }
                         />
-                        <Route
-                          path="/flow-manager"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <FlowManager />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/flow-builder/:id"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <FlowBuilder />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                      </Route>
-
-                      {/* ====== MÓDULO MÉDICO ====== */}
-                      <Route element={<MedicalShell />}>
-                        <Route
-                          path="/medical/dashboard"
-                          element={
-                            <RoleProtectedRoute minRole="MEMBER">
-                              <ModuleProtectedRoute module="MEDICAL">
-                                <MedicalDashboard />
-                              </ModuleProtectedRoute>
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/medical/ia"
-                          element={
-                            <RoleProtectedRoute minRole="MEMBER">
-                              <ModuleProtectedRoute module="MEDICAL">
-                                <DecifradorCasosPage />
-                              </ModuleProtectedRoute>
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/medical/agenda"
-                          element={
-                            <RoleProtectedRoute minRole="MEMBER">
-                              <ModuleProtectedRoute module="MEDICAL">
-                                <AgendaMedicaPage />
-                              </ModuleProtectedRoute>
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/medical/patients"
-                          element={
-                            <RoleProtectedRoute minRole="MEMBER">
-                              <ModuleProtectedRoute module="MEDICAL">
-                                <PacientesPage />
-                              </ModuleProtectedRoute>
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/medical/patients/:id"
-                          element={
-                            <RoleProtectedRoute minRole="MEMBER">
-                              <ModuleProtectedRoute module="MEDICAL">
-                                <PacienteDetalhe />
-                              </ModuleProtectedRoute>
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/medical/atendimento/:id"
-                          element={
-                            <RoleProtectedRoute minRole="MEMBER">
-                              <ModuleProtectedRoute module="MEDICAL">
-                                <AtendimentoMedicoPage />
-                              </ModuleProtectedRoute>
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/medical/transcricao"
-                          element={
-                            <RoleProtectedRoute minRole="MEMBER">
-                              <ModuleProtectedRoute module="MEDICAL">
-                                <TranscricaoPage />
-                              </ModuleProtectedRoute>
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/medical/analise"
-                          element={
-                            <RoleProtectedRoute minRole="MEMBER">
-                              <ModuleProtectedRoute module="MEDICAL">
-                                <AnaliseClinicaPage />
-                              </ModuleProtectedRoute>
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/medical/protocolos"
-                          element={
-                            <RoleProtectedRoute minRole="MEMBER">
-                              <ModuleProtectedRoute module="MEDICAL">
-                                <ProtocolosPage />
-                              </ModuleProtectedRoute>
-                            </RoleProtectedRoute>
-                          }
-                        />
-                      </Route>
-
-                      <Route element={<LegalShell />}>
+                        {/* Flow Builder/Manager — DEV-only until execution engine is implemented */}
+                        {import.meta.env.DEV && (
+                          <>
+                            <Route path="/flow-manager" element={<RoleProtectedRoute minRole="ADMIN"><FlowManager /></RoleProtectedRoute>} />
+                            <Route path="/flow-builder/:id" element={<RoleProtectedRoute minRole="ADMIN"><FlowBuilder /></RoleProtectedRoute>} />
+                          </>
+                        )}
                         <Route
                           path="/alerts"
                           element={
@@ -522,6 +419,14 @@ const App = () => {
                           }
                         />
                         <Route
+                          path="/settings/voice-agent"
+                          element={
+                            <RoleProtectedRoute minRole="ADMIN">
+                              <VoiceAgentConfig />
+                            </RoleProtectedRoute>
+                          }
+                        />
+                        <Route
                           path="/sistema/aparencia"
                           element={
                             <RoleProtectedRoute minRole="ADMIN">
@@ -546,39 +451,38 @@ const App = () => {
                           }
                         />
 
-                        {/* SISTEMA LEXOS */}
-                        <Route
-                          path="/system"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <SystemOverviewPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/explore"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <LexosProjectExplorer />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/architecture"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <LexosProjectArchitecture />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/integrations"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <Integrations />
-                            </RoleProtectedRoute>
-                          }
-                        />
+                        {/* SISTEMA LEXOS — DEV-only: hidden from production users */}
+                        {import.meta.env.DEV && (
+                          <>
+                            <Route path="/system" element={<RoleProtectedRoute minRole="ADMIN"><SystemOverviewPage /></RoleProtectedRoute>} />
+                            <Route path="/system/explore" element={<RoleProtectedRoute minRole="ADMIN"><LexosProjectExplorer /></RoleProtectedRoute>} />
+                            <Route path="/system/architecture" element={<RoleProtectedRoute minRole="ADMIN"><LexosProjectArchitecture /></RoleProtectedRoute>} />
+                            <Route path="/system/integrations" element={<RoleProtectedRoute minRole="ADMIN"><Integrations /></RoleProtectedRoute>} />
+                            <Route path="/system/integrations/payments" element={<RoleProtectedRoute minRole="ADMIN"><IntegrationsPaymentsPage /></RoleProtectedRoute>} />
+                            <Route path="/system/integrations/whatsapp" element={<RoleProtectedRoute minRole="ADMIN"><IntegrationsWhatsappPage /></RoleProtectedRoute>} />
+                            <Route path="/system/integrations/email" element={<RoleProtectedRoute minRole="ADMIN"><IntegrationsEmailPage /></RoleProtectedRoute>} />
+                            <Route path="/system/integrations/n8n" element={<RoleProtectedRoute minRole="ADMIN"><IntegrationsN8nPage /></RoleProtectedRoute>} />
+                            <Route path="/system/integrations/apis" element={<RoleProtectedRoute minRole="ADMIN"><IntegrationsApisPage /></RoleProtectedRoute>} />
+                            <Route path="/system/maintenance" element={<RoleProtectedRoute minRole="OWNER"><AdminMaintenance /></RoleProtectedRoute>} />
+                            <Route path="/system/storage-maintenance" element={<RoleProtectedRoute minRole="OWNER"><StorageMaintenance /></RoleProtectedRoute>} />
+                            <Route path="/lexos-overview" element={<RoleProtectedRoute minRole="ADMIN"><LexosOverview /></RoleProtectedRoute>} />
+                            <Route path="/system-audit" element={<RoleProtectedRoute minRole="ADMIN"><SystemAudit /></RoleProtectedRoute>} />
+                            <Route path="/system/auditoria-tecnica" element={<RoleProtectedRoute minRole="ADMIN"><AuditoriaTecnicaPage /></RoleProtectedRoute>} />
+                            <Route path="/audit" element={<RoleProtectedRoute minRole="OWNER"><Audit /></RoleProtectedRoute>} />
+                            <Route path="/system/governanca" element={<RoleProtectedRoute minRole="ADMIN"><Governanca /></RoleProtectedRoute>} />
+                            <Route path="/system/auditoria" element={<RoleProtectedRoute minRole="ADMIN"><AuditoriaPage /></RoleProtectedRoute>} />
+                            <Route path="/system/diagramas" element={<RoleProtectedRoute minRole="ADMIN"><DiagramasPage /></RoleProtectedRoute>} />
+                            <Route path="/system/matriz-acesso" element={<RoleProtectedRoute minRole="ADMIN"><MatrizAcessoPage /></RoleProtectedRoute>} />
+                            <Route path="/system/integracoes" element={<RoleProtectedRoute minRole="ADMIN"><IntegracoesPage /></RoleProtectedRoute>} />
+                            <Route path="/system/rebuild" element={<RoleProtectedRoute minRole="ADMIN"><RebuildPage /></RoleProtectedRoute>} />
+                            <Route path="/system/saude" element={<RoleProtectedRoute minRole="ADMIN"><SaudePage /></RoleProtectedRoute>} />
+                            <Route path="/system/policy-simulator" element={<RoleProtectedRoute minRole="ADMIN"><PolicySimulatorPage /></RoleProtectedRoute>} />
+                            <Route path="/system/environments" element={<RoleProtectedRoute minRole="OWNER"><EnvironmentsPage /></RoleProtectedRoute>} />
+                            <Route path="/system/governance-report" element={<RoleProtectedRoute minRole="ADMIN"><GovernanceReport /></RoleProtectedRoute>} />
+                          </>
+                        )}
+
+                        {/* Integrations — kept for production (operational) */}
                         <Route
                           path="/integrations"
                           element={
@@ -588,180 +492,10 @@ const App = () => {
                           }
                         />
                         <Route
-                          path="/system/maintenance"
-                          element={
-                            <RoleProtectedRoute minRole="OWNER">
-                              <AdminMaintenance />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/storage-maintenance"
-                          element={
-                            <RoleProtectedRoute minRole="OWNER">
-                              <StorageMaintenance />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/integrations/payments"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <IntegrationsPaymentsPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/integrations/whatsapp"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <IntegrationsWhatsappPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/integrations/email"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <IntegrationsEmailPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/integrations/n8n"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <IntegrationsN8nPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/integrations/apis"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <IntegrationsApisPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/lexos-overview"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <LexosOverview />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system-audit"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <SystemAudit />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/auditoria-tecnica"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <AuditoriaTecnicaPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/audit"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <Audit />
-                            </RoleProtectedRoute>
-                          }
-                        />
-
-                        {/* GOVERNANÇA */}
-                        <Route
-                          path="/system/governanca"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <Governanca />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/auditoria"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <AuditoriaPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/diagramas"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <DiagramasPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/matriz-acesso"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <MatrizAcessoPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/integracoes"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <IntegracoesPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/rebuild"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <RebuildPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/saude"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <SaudePage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/policy-simulator"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <PolicySimulatorPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/environments"
-                          element={
-                            <RoleProtectedRoute minRole="OWNER">
-                              <EnvironmentsPage />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
                           path="/plaud-inbox"
                           element={
                             <RoleProtectedRoute minRole="MEMBER">
                               <PlaudInbox />
-                            </RoleProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/system/governance-report"
-                          element={
-                            <RoleProtectedRoute minRole="ADMIN">
-                              <GovernanceReport />
                             </RoleProtectedRoute>
                           }
                         />
@@ -833,21 +567,123 @@ const App = () => {
                         />
 
                         {/* ====== REDIRECTS (aliases para rotas canônicas) ====== */}
-                        <Route path="/lexos-project" element={<Navigate to="/system/explore" replace />} />
-                        <Route path="/lexos-project-architecture" element={<Navigate to="/system/architecture" replace />} />
-                        <Route path="/admin/maintenance" element={<Navigate to="/system/maintenance" replace />} />
                         <Route path="/office/settings" element={<Navigate to="/settings/office" replace />} />
                         <Route path="/office/members" element={<Navigate to="/settings/members" replace />} />
-                        <Route path="/system/overview" element={<Navigate to="/system" replace />} />
-                        <Route path="/integrations/apis" element={<Navigate to="/system/integrations/apis" replace />} />
-                        <Route path="/integrations/email" element={<Navigate to="/system/integrations/email" replace />} />
-                        <Route path="/integrations/n8n" element={<Navigate to="/system/integrations/n8n" replace />} />
-                        <Route path="/integrations/payments" element={<Navigate to="/system/integrations/payments" replace />} />
-                        <Route path="/integrations/whatsapp" element={<Navigate to="/system/integrations/whatsapp" replace />} />
                         <Route path="/history/agenda" element={<Navigate to="/agenda/history" replace />} />
                         <Route path="/history/cases" element={<Navigate to="/cases/history" replace />} />
                         <Route path="/payments/agenda" element={<Navigate to="/agenda/payments" replace />} />
                         <Route path="/payments/cases" element={<Navigate to="/cases/payments" replace />} />
+                      </Route>
+
+                      {/* ====== MÓDULO MÉDICO ====== */}
+                      <Route element={<MedicalShell />}>
+                        {/* Shared routes duplicated inside MedicalShell to avoid cross-shell navigation */}
+                        <Route
+                          path="/medical/agent-studio"
+                          element={
+                            <RoleProtectedRoute minRole="ADMIN">
+                              <AgentStudio />
+                            </RoleProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/medical/inbox"
+                          element={
+                            <RoleProtectedRoute minRole="MEMBER">
+                              <OperationsInbox />
+                            </RoleProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/medical/dashboard"
+                          element={
+                            <RoleProtectedRoute minRole="MEMBER">
+                              <ModuleProtectedRoute module="MEDICAL">
+                                <MedicalDashboard />
+                              </ModuleProtectedRoute>
+                            </RoleProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/medical/ia"
+                          element={
+                            <RoleProtectedRoute minRole="MEMBER">
+                              <ModuleProtectedRoute module="MEDICAL">
+                                <DecifradorCasosPage />
+                              </ModuleProtectedRoute>
+                            </RoleProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/medical/agenda"
+                          element={
+                            <RoleProtectedRoute minRole="MEMBER">
+                              <ModuleProtectedRoute module="MEDICAL">
+                                <AgendaMedicaPage />
+                              </ModuleProtectedRoute>
+                            </RoleProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/medical/patients"
+                          element={
+                            <RoleProtectedRoute minRole="MEMBER">
+                              <ModuleProtectedRoute module="MEDICAL">
+                                <PacientesPage />
+                              </ModuleProtectedRoute>
+                            </RoleProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/medical/patients/:id"
+                          element={
+                            <RoleProtectedRoute minRole="MEMBER">
+                              <ModuleProtectedRoute module="MEDICAL">
+                                <PacienteDetalhe />
+                              </ModuleProtectedRoute>
+                            </RoleProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/medical/atendimento/:id"
+                          element={
+                            <RoleProtectedRoute minRole="MEMBER">
+                              <ModuleProtectedRoute module="MEDICAL">
+                                <AtendimentoMedicoPage />
+                              </ModuleProtectedRoute>
+                            </RoleProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/medical/transcricao"
+                          element={
+                            <RoleProtectedRoute minRole="MEMBER">
+                              <ModuleProtectedRoute module="MEDICAL">
+                                <TranscricaoPage />
+                              </ModuleProtectedRoute>
+                            </RoleProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/medical/analise"
+                          element={
+                            <RoleProtectedRoute minRole="MEMBER">
+                              <ModuleProtectedRoute module="MEDICAL">
+                                <AnaliseClinicaPage />
+                              </ModuleProtectedRoute>
+                            </RoleProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/medical/protocolos"
+                          element={
+                            <RoleProtectedRoute minRole="MEMBER">
+                              <ModuleProtectedRoute module="MEDICAL">
+                                <ProtocolosPage />
+                              </ModuleProtectedRoute>
+                            </RoleProtectedRoute>
+                          }
+                        />
                       </Route>
 
                       {/* Catch-all */}

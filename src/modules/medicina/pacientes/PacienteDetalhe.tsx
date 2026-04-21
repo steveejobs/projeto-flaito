@@ -32,7 +32,7 @@ import { GlobalTimeline } from '@/components/GlobalTimeline';
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveClient } from '@/contexts/ActiveClientContext';
 import { identityService } from '@/services/identityService';
-import { Gavel, MessageSquare as WhatsAppIcon } from "lucide-react";
+import { Gavel, MessageSquare as WhatsAppIcon, ShieldCheck } from "lucide-react";
 import { WhatsAppTab } from './components/WhatsAppTab';
 
 const PacienteDetalhe = () => {
@@ -71,15 +71,17 @@ const PacienteDetalhe = () => {
     // 1. Resolve Identity and Set Active Client
     useEffect(() => {
         if (!id) return;
-        
+
         async function resolveIdentity() {
-            // Se o ID for de um paciente, buscamos o perfil completo via service
+            // The URL param `id` is a pacientes.id — resolve to client_id via service
             const profile = await identityService.getProfileByPatientId(id);
             if (profile) {
                 setActiveClientId(profile.id);
+            } else {
+                console.error("[PacienteDetalhe] Could not resolve identity for id:", id);
             }
         }
-        
+
         resolveIdentity();
     }, [id, setActiveClientId]);
 

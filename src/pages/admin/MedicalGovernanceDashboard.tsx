@@ -922,19 +922,6 @@ const MedicalGovernanceDashboard: React.FC = () => {
 
             {/* STYLES */}
             <style dangerouslySetInnerHTML={{ __html: `
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(45, 212, 191, 0.1);
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(45, 212, 191, 0.3);
-                }
                 @keyframes progress-dash {
                     from { background-position: 0 0; }
                     to { background-position: 40px 0; }

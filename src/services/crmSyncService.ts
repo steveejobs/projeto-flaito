@@ -40,50 +40,69 @@ export const crmSyncService = {
    * Cria leads para clientes que ainda não existem no CRM
    */
   async syncNewClients(officeId: string) {
-    // Busca clientes sem leads associados
-    const { data: clients, error } = await supabase
+    // 1. Busca clientes ativos no escritório
+    const { data: clients, error: clientsError } = await supabase
       .from('clients')
       .select('id, full_name, email, phone')
+      .eq('office_id', officeId)
+      .is('deleted_at', null);
+
+    if (clientsError) throw clientsError;
+    if (!clients || clients.length === 0) return;
+
+    // 2. Busca leads já existentes para evitar duplicação (Source of Truth)
+    const { data: existingLeads, error: leadsError } = await supabase
+      .from('crm_leads')
+      .select('client_id')
       .eq('office_id', officeId);
 
-    if (error) throw error;
+    if (leadsError) throw leadsError;
 
-    for (const client of (clients || [])) {
-      // Verifica se já existe lead
-      const { data: existingLead } = await supabase
-        .from('crm_leads')
-        .select('id')
-        .eq('client_id', client.id)
-        .maybeSingle();
+    const existingClientIds = new Set(existingLeads?.map(l => l.client_id).filter(Boolean));
 
-      if (!existingLead) {
-        console.log(`[CRM] Criando lead para cliente: ${client.full_name}`);
-        
-        const { data: newLead, error: insertError } = await supabase
-          .from('crm_leads')
-          .insert({
-            office_id: officeId,
-            client_id: client.id,
-            full_name: client.full_name,
-            email: client.email,
-            phone: client.phone,
-            pipeline_stage: STAGES.NOVO_CONTATO,
-            source: 'Sistema'
-          })
-          .select()
-          .single();
+    // 3. Filtra apenas clientes que NÃO possuem lead
+    const newClients = clients.filter(c => !existingClientIds.has(c.id));
 
-        if (insertError) {
-           console.error(`[CRM] Erro ao inserir lead:`, insertError);
-           continue;
-        }
+    if (newClients.length === 0) {
+      console.log(`[CRM] Nenhum novo lead para sincronizar.`);
+      return;
+    }
 
-        await this.logActivity(newLead.id, officeId, {
-          type: 'automation_move',
-          description: 'Lead criado automaticamente via sincronização de cliente.',
-          current_stage: STAGES.NOVO_CONTATO
-        });
-      }
+    console.log(`[CRM] Sincronizando ${newClients.length} novos leads.`);
+
+    // 4. Inserção em massa (Bulk Insert)
+    const leadsToInsert = newClients.map(client => ({
+      office_id: officeId,
+      client_id: client.id,
+      full_name: client.full_name,
+      email: client.email,
+      phone: client.phone,
+      source: 'Sistema',
+      pipeline_stage: STAGES.NOVO_CONTATO
+    }));
+
+    const { data: insertedLeads, error: insertError } = await supabase
+      .from('crm_leads')
+      .insert(leadsToInsert)
+      .select();
+
+    if (insertError) {
+      console.error(`[CRM] Erro no bulk insert de leads:`, insertError);
+      return;
+    }
+
+    // 5. Logar atividade inicial para os novos leads
+    if (insertedLeads && insertedLeads.length > 0) {
+      const activitiesToInsert = insertedLeads.map(lead => ({
+        lead_id: lead.id,
+        office_id: officeId,
+        activity_type: 'automation_move',
+        description: 'Lead criado automaticamente via sincronização de cliente.',
+        current_stage: STAGES.NOVO_CONTATO,
+        metadata: { bulk_sync: true }
+      }));
+
+      await supabase.from('crm_activities').insert(activitiesToInsert);
     }
   },
 
@@ -99,32 +118,36 @@ export const crmSyncService = {
       .in('pipeline_stage', [STAGES.NOVO_CONTATO, STAGES.QUALIFICACAO]);
 
     for (const lead of (leads || [])) {
-      if (!lead.client_id) continue;
+      try {
+        if (!lead.client_id) continue;
 
-      // Verifica se tem agendamento
-      const { data: appointments } = await supabase
-          .from('agenda_medica')
-          .select('id')
-          .eq('paciente_id', lead.client_id)
-          .limit(1);
+        // Verifica se tem agendamento
+        const { data: appointments } = await supabase
+            .from('agenda_medica')
+            .select('id')
+            .eq('paciente_id', lead.client_id)
+            .limit(1);
 
-      if (appointments && appointments.length > 0) {
-        console.log(`[CRM] Movendo lead ${lead.id} para Briefing Agendado.`);
-        
-        await supabase
-          .from('crm_leads')
-          .update({ 
-            pipeline_stage: STAGES.BRIEFING_AGENDADO,
-            ai_summary: 'IA moveu lead: Agendamento detectado na agenda operacional.'
-          })
-          .eq('id', lead.id);
+        if (appointments && appointments.length > 0) {
+          console.log(`[CRM] Movendo lead ${lead.id} para Briefing Agendado.`);
+          
+          await supabase
+            .from('crm_leads')
+            .update({ 
+              pipeline_stage: STAGES.BRIEFING_AGENDADO,
+              ai_summary: 'IA moveu lead: Agendamento detectado na agenda operacional.'
+            })
+            .eq('id', lead.id);
 
-        await this.logActivity(lead.id, officeId, {
-          type: 'automation_move',
-          description: 'Movido automaticamente devido a registro de agendamento.',
-          previous_stage: lead.pipeline_stage,
-          current_stage: STAGES.BRIEFING_AGENDADO
-        });
+          await this.logActivity(lead.id, officeId, {
+            type: 'automation_move',
+            description: 'Movido automaticamente devido a registro de agendamento.',
+            previous_stage: lead.pipeline_stage,
+            current_stage: STAGES.BRIEFING_AGENDADO
+          });
+        }
+      } catch (err) {
+        console.error(`[CRM Automation] Erro ao processar agendamento para lead ${lead.id}:`, err);
       }
     }
   },
@@ -140,29 +163,33 @@ export const crmSyncService = {
       .eq('pipeline_stage', STAGES.NOVO_CONTATO);
 
     for (const lead of (leads || [])) {
-      if (!lead.client_id) continue;
+      try {
+        if (!lead.client_id) continue;
 
-      const { data: sessions } = await supabase
-          .from('nija_sessions')
-          .select('id')
-          .eq('case_id', lead.client_id) // No sistema, nija_sessions muitas vezes vincula via case ou client_name
-          .limit(1);
+        const { data: sessions } = await supabase
+            .from('nija_sessions')
+            .select('id')
+            .eq('case_id', lead.client_id) // No sistema, nija_sessions muitas vezes vincula via case ou client_name
+            .limit(1);
 
-      if (sessions && sessions.length > 0) {
-        await supabase
-          .from('crm_leads')
-          .update({ 
-            pipeline_stage: STAGES.QUALIFICACAO,
-            ai_summary: 'IA moveu lead: Analise de inteligência iniciada.'
-          })
-          .eq('id', lead.id);
+        if (sessions && sessions.length > 0) {
+          await supabase
+            .from('crm_leads')
+            .update({ 
+              pipeline_stage: STAGES.QUALIFICACAO,
+              ai_summary: 'IA moveu lead: Analise de inteligência iniciada.'
+            })
+            .eq('id', lead.id);
 
-        await this.logActivity(lead.id, officeId, {
-          type: 'automation_move',
-          description: 'Movido automaticamente devido a atividade de Inteligência NIJA.',
-          previous_stage: lead.pipeline_stage,
-          current_stage: STAGES.QUALIFICACAO
-        });
+          await this.logActivity(lead.id, officeId, {
+            type: 'automation_move',
+            description: 'Movido automaticamente devido a atividade de Inteligência NIJA.',
+            previous_stage: lead.pipeline_stage,
+            current_stage: STAGES.QUALIFICACAO
+          });
+        }
+      } catch (err) {
+        console.error(`[CRM Automation] Erro ao processar sessão NIJA para lead ${lead.id}:`, err);
       }
     }
   },

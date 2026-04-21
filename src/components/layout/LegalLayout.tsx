@@ -160,7 +160,7 @@ export function LegalLayout({ children }: AppLayoutProps) {
           <LegalSidebar />
           <div className="flex-1 flex flex-col">
             {/* Header */}
-            <header className="h-16 border-b border-white/5 bg-background/60 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50 transition-all duration-300">
+            <header className="h-16 border-b border-white/5 bg-background/60 backdrop-blur-xl flex items-center justify-between px-3 sm:px-6 sticky top-0 z-50 transition-all duration-300">
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="text-foreground/80 hover:text-primary transition-colors" />
                 <div className="h-6 w-px bg-border/50" />
@@ -169,10 +169,10 @@ export function LegalLayout({ children }: AppLayoutProps) {
                 </div>
 
                 {activeProfile && (
-                  <div className="ml-4 items-center pl-4 border-l border-white/10 hidden lg:flex animate-in fade-in slide-in-from-left-4 duration-500">
+                  <div className="ml-4 items-center pl-4 border-l border-white/10 hidden md:flex animate-in fade-in slide-in-from-left-4 duration-500">
                     <div className="flex flex-col mr-3 text-left">
                       <span className="text-[10px] uppercase font-bold text-primary tracking-wider">Cliente em Foco</span>
-                      <span className="text-sm font-semibold text-foreground leading-tight">{activeProfile.full_name}</span>
+                      <span className="text-sm font-semibold text-foreground leading-tight max-w-[150px] md:max-w-[250px] lg:max-w-[400px] truncate">{activeProfile.full_name}</span>
                     </div>
                     <Button 
                       size="sm" 
@@ -186,7 +186,7 @@ export function LegalLayout({ children }: AppLayoutProps) {
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4 flex-shrink-0">
                 <HeaderNotifications officeId={officeSession.officeId} />
 
                 <DropdownMenu>

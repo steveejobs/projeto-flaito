@@ -58,8 +58,119 @@ VALUES
 ('QUICK', 'Respostas Rápidas', 'Frases curtas.')
 ON CONFLICT (id) DO NOTHING;
 
--- message_templates
-INSERT INTO public.message_templates (office_id, context_type, name, content, category_id, is_active)
+-- ============================================================
+-- 5. DOCUMENTOS E MODELOS INSTITUCIONAIS (Motor V3)
+-- ============================================================
+
+-- document_variables
+INSERT INTO public.document_variables (key, label, type, source_type, vertical, category, required)
 VALUES 
-('ff000000-0000-0000-0000-000000000000', 'MEDICAL', 'Boas-vindas (Clínica)', 'Olá {{client_name}}! Bem-vindo(a) à nossa clínica.', 'ONBOARDING', true),
-('ff000000-0000-0000-0000-000000000000', 'LEGAL', 'Boas-vindas (Jurídico)', 'Olá {{client_name}}! Somos o escritório Flaito.', 'ONBOARDING', true);
+    ('client.full_name', 'Nome Completo', 'text', 'system', 'BOTH', 'Geral', true),
+    ('client.cpf', 'CPF', 'text', 'system', 'BOTH', 'Geral', false),
+    ('case.cnj_number', 'Processo', 'text', 'system', 'LEGAL', 'Processo', false),
+    ('office.name', 'Escritório', 'text', 'system', 'BOTH', 'Geral', true),
+    ('custom.data_extenso', 'Data Extenso', 'text', 'manual', 'BOTH', 'Geral', true)
+ON CONFLICT (office_id, key) DO NOTHING;
+
+-- document_templates
+INSERT INTO public.document_templates (id, name, category, code, vertical, is_system, content)
+VALUES 
+(
+    '50000000-0000-0000-0000-000000000001',
+    'Procuração Ad Judicia (Sistema)',
+    'PROCURAÇÃO',
+    'PROC_SYS_001',
+    'LEGAL',
+    true,
+    '<h1>PROCURAÇÃO</h1><p>OUTORGANTE: {{client.full_name}}, CPF: {{client.cpf}}.</p><p>OUTORGADO: {{office.name}}.</p>'
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- document_template_versions (v1)
+INSERT INTO public.document_template_versions (template_id, version_number, content_html, status, published_at)
+VALUES 
+('50000000-0000-0000-0000-000000000001', 1, '<h1>PROCURAÇÃO</h1><p>OUTORGANTE: {{client.full_name}}, CPF: {{client.cpf}}.</p><p>OUTORGADO: {{office.name}}.</p>', 'published', now())
+ON CONFLICT (template_id, version_number) DO NOTHING;
+
+-- Update template active version
+UPDATE public.document_templates SET active_version_id = (SELECT id FROM public.document_template_versions WHERE template_id = '50000000-0000-0000-0000-000000000001' LIMIT 1)
+WHERE id = '50000000-0000-0000-0000-000000000001';
+
+-- Additional system templates for operational document generation
+
+-- Declaração de Hipossuficiência
+INSERT INTO public.document_templates (id, name, category, code, vertical, is_system, content)
+VALUES
+(
+    '50000000-0000-0000-0000-000000000002',
+    'Declaração de Hipossuficiência (Sistema)',
+    'DECLARAÇÃO',
+    'DECL_SYS_001',
+    'LEGAL',
+    true,
+    '<h1>DECLARAÇÃO DE HIPOSSUFICIÊNCIA</h1><p>Eu, <strong>{{client.full_name}}</strong>, portador(a) do CPF nº {{client.cpf}}, residente e domiciliado(a) em {{client.address_line}}, {{client.city}} - {{client.state}}, CEP {{client.cep}}, <strong>DECLARO</strong>, para os devidos fins de direito, sob as penas da lei, que não possuo condições financeiras de arcar com as custas processuais e honorários advocatícios sem prejuízo do sustento próprio e de minha família, nos termos do art. 98 e seguintes do Código de Processo Civil.</p><p>Por ser expressão da verdade, firmo a presente declaração.</p><p>{{custom.data_extenso}}</p><p>_____________________________<br/>{{client.full_name}}</p>'
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.document_template_versions (template_id, version_number, content_html, status, published_at)
+VALUES
+('50000000-0000-0000-0000-000000000002', 1, '<h1>DECLARAÇÃO DE HIPOSSUFICIÊNCIA</h1><p>Eu, <strong>{{client.full_name}}</strong>, portador(a) do CPF nº {{client.cpf}}, residente e domiciliado(a) em {{client.address_line}}, {{client.city}} - {{client.state}}, CEP {{client.cep}}, <strong>DECLARO</strong>, para os devidos fins de direito, sob as penas da lei, que não possuo condições financeiras de arcar com as custas processuais e honorários advocatícios sem prejuízo do sustento próprio e de minha família, nos termos do art. 98 e seguintes do Código de Processo Civil.</p><p>Por ser expressão da verdade, firmo a presente declaração.</p><p>{{custom.data_extenso}}</p><p>_____________________________<br/>{{client.full_name}}</p>', 'published', now())
+ON CONFLICT (template_id, version_number) DO NOTHING;
+
+UPDATE public.document_templates SET active_version_id = (SELECT id FROM public.document_template_versions WHERE template_id = '50000000-0000-0000-0000-000000000002' LIMIT 1)
+WHERE id = '50000000-0000-0000-0000-000000000002';
+
+-- Contrato de Honorários Advocatícios
+INSERT INTO public.document_templates (id, name, category, code, vertical, is_system, content)
+VALUES
+(
+    '50000000-0000-0000-0000-000000000003',
+    'Contrato de Honorários Advocatícios (Sistema)',
+    'CONTRATO',
+    'CONTR_SYS_001',
+    'LEGAL',
+    true,
+    '<h1>CONTRATO DE PRESTAÇÃO DE SERVIÇOS ADVOCATÍCIOS</h1><p>Pelo presente instrumento particular, de um lado <strong>{{client.full_name}}</strong>, CPF nº {{client.cpf}}, doravante denominado(a) CONTRATANTE, e de outro lado <strong>{{office.name}}</strong>, doravante denominado CONTRATADO, têm entre si justo e contratado o seguinte:</p><h2>CLÁUSULA PRIMEIRA — DO OBJETO</h2><p>O presente contrato tem por objeto a prestação de serviços advocatícios pelo CONTRATADO ao CONTRATANTE, referentes ao processo nº {{case.cnj_number}}.</p><h2>CLÁUSULA SEGUNDA — DOS HONORÁRIOS</h2><p>Pelos serviços prestados, o CONTRATANTE pagará ao CONTRATADO o valor de R$ {{custom.valor_honorarios}}, a ser pago conforme condições acordadas entre as partes.</p><h2>CLÁUSULA TERCEIRA — DA VIGÊNCIA</h2><p>O presente contrato vigorará até a conclusão dos serviços contratados ou até rescisão por qualquer das partes mediante comunicação prévia por escrito.</p><p>{{custom.data_extenso}}</p><p>_____________________________<br/>{{client.full_name}}<br/>CONTRATANTE</p><p>_____________________________<br/>{{office.name}}<br/>CONTRATADO</p>'
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.document_template_versions (template_id, version_number, content_html, status, published_at)
+VALUES
+('50000000-0000-0000-0000-000000000003', 1, '<h1>CONTRATO DE PRESTAÇÃO DE SERVIÇOS ADVOCATÍCIOS</h1><p>Pelo presente instrumento particular, de um lado <strong>{{client.full_name}}</strong>, CPF nº {{client.cpf}}, doravante denominado(a) CONTRATANTE, e de outro lado <strong>{{office.name}}</strong>, doravante denominado CONTRATADO, têm entre si justo e contratado o seguinte:</p><h2>CLÁUSULA PRIMEIRA — DO OBJETO</h2><p>O presente contrato tem por objeto a prestação de serviços advocatícios pelo CONTRATADO ao CONTRATANTE, referentes ao processo nº {{case.cnj_number}}.</p><h2>CLÁUSULA SEGUNDA — DOS HONORÁRIOS</h2><p>Pelos serviços prestados, o CONTRATANTE pagará ao CONTRATADO o valor de R$ {{custom.valor_honorarios}}, a ser pago conforme condições acordadas entre as partes.</p><h2>CLÁUSULA TERCEIRA — DA VIGÊNCIA</h2><p>O presente contrato vigorará até a conclusão dos serviços contratados ou até rescisão por qualquer das partes mediante comunicação prévia por escrito.</p><p>{{custom.data_extenso}}</p><p>_____________________________<br/>{{client.full_name}}<br/>CONTRATANTE</p><p>_____________________________<br/>{{office.name}}<br/>CONTRATADO</p>', 'published', now())
+ON CONFLICT (template_id, version_number) DO NOTHING;
+
+UPDATE public.document_templates SET active_version_id = (SELECT id FROM public.document_template_versions WHERE template_id = '50000000-0000-0000-0000-000000000003' LIMIT 1)
+WHERE id = '50000000-0000-0000-0000-000000000003';
+
+-- Declaração de Residência
+INSERT INTO public.document_templates (id, name, category, code, vertical, is_system, content)
+VALUES
+(
+    '50000000-0000-0000-0000-000000000004',
+    'Declaração de Residência (Sistema)',
+    'DECLARAÇÃO',
+    'DECL_SYS_002',
+    'LEGAL',
+    true,
+    '<h1>DECLARAÇÃO DE RESIDÊNCIA</h1><p>Eu, <strong>{{client.full_name}}</strong>, portador(a) do CPF nº {{client.cpf}}, <strong>DECLARO</strong> para os devidos fins que resido no endereço: {{client.address_line}}, {{client.city}} - {{client.state}}, CEP {{client.cep}}.</p><p>{{custom.data_extenso}}</p><p>_____________________________<br/>{{client.full_name}}</p>'
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.document_template_versions (template_id, version_number, content_html, status, published_at)
+VALUES
+('50000000-0000-0000-0000-000000000004', 1, '<h1>DECLARAÇÃO DE RESIDÊNCIA</h1><p>Eu, <strong>{{client.full_name}}</strong>, portador(a) do CPF nº {{client.cpf}}, <strong>DECLARO</strong> para os devidos fins que resido no endereço: {{client.address_line}}, {{client.city}} - {{client.state}}, CEP {{client.cep}}.</p><p>{{custom.data_extenso}}</p><p>_____________________________<br/>{{client.full_name}}</p>', 'published', now())
+ON CONFLICT (template_id, version_number) DO NOTHING;
+
+UPDATE public.document_templates SET active_version_id = (SELECT id FROM public.document_template_versions WHERE template_id = '50000000-0000-0000-0000-000000000004' LIMIT 1)
+WHERE id = '50000000-0000-0000-0000-000000000004';
+
+-- Additional document variables for new templates
+INSERT INTO public.document_variables (key, label, type, source_type, vertical, category, required)
+VALUES
+    ('client.address_line', 'Endereço', 'text', 'system', 'BOTH', 'Endereço', false),
+    ('client.city', 'Cidade', 'text', 'system', 'BOTH', 'Endereço', false),
+    ('client.state', 'Estado', 'text', 'system', 'BOTH', 'Endereço', false),
+    ('client.cep', 'CEP', 'text', 'system', 'BOTH', 'Endereço', false),
+    ('custom.valor_honorarios', 'Valor dos Honorários', 'text', 'manual', 'LEGAL', 'Financeiro', false)
+ON CONFLICT (office_id, key) DO NOTHING;
+

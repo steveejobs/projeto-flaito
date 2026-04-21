@@ -24,7 +24,7 @@ export function KpiGrid({ kpis, loading }: KpiGridProps) {
   const hasHighRisk = (kpis?.highRiskCases ?? 0) > 0;
 
   return (
-    <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+    <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
       {/* Alertas Críticos */}
       <Link to="/alerts" className="block transform transition-transform duration-300 hover:scale-[1.02]">
         <Card className="bento-card cursor-pointer h-full group">

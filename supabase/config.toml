@@ -4,100 +4,109 @@ project_id = "ccvbosbjtlxewqybvwqj"
 verify_jwt = false
 
 [functions.create-client-kit]
-verify_jwt = false
+verify_jwt = true
 
 [functions.createSignedUploadUrl]
-verify_jwt = false
+verify_jwt = true
 
 [functions.createSignedDownloadUrl]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nija-extract-image]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nija-prescricao]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nija-strategy-compare]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nija-generate-petition]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nija-generate-piece]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nija-full-analysis]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nija-auto-petition]
-verify_jwt = false
+verify_jwt = true
 
 [functions.lexos-chat-assistant]
-verify_jwt = false
+verify_jwt = true
 
 [functions.lexos-generate-document]
-verify_jwt = false
+verify_jwt = true
 
 [functions.lexos-render-document]
-verify_jwt = false
+verify_jwt = true
 
 [functions.lexos-nija-timebar]
-verify_jwt = false
+verify_jwt = true
 
 [functions.lexos-extract-text]
-verify_jwt = false
+verify_jwt = true
 
 [functions.cep-proxy]
 verify_jwt = false
 
 [functions.lexos-extract-document-data]
-verify_jwt = false
+verify_jwt = true
 
 [functions.delete-case-hard]
-verify_jwt = false
+verify_jwt = true
 
 [functions.knowledge-ai-suggest]
-verify_jwt = false
+verify_jwt = true
 
 [functions.precedents-worker]
-verify_jwt = false
+verify_jwt = true
 
 [functions.asaas-create-payment]
 verify_jwt = true
 
 [functions.lexos-rebuild-engine]
-verify_jwt = false
+verify_jwt = true
 
 [functions.lexos-governance-run]
-verify_jwt = false
+verify_jwt = true
 
 [functions.purge-kit-storage]
-verify_jwt = false
+verify_jwt = true
 
 [functions.zapsign-webhook]
 verify_jwt = false
 
-[functions.zapsign-send-document]
+[functions.whatsapp-webhook]
 verify_jwt = false
+
+[functions.asaas-webhook]
+verify_jwt = false
+
+[functions.escavador-webhook]
+verify_jwt = false
+
+[functions.zapsign-send-document]
+verify_jwt = true
 
 [functions.nija-pipeline-orchestrator]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nija-consolidate-dossier]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nija-legal-strategy]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nija-gen-motor]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nija-review-piece]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nija-judge-simulation]
-verify_jwt = false
+verify_jwt = true
 
 [functions.billing-generate]
 verify_jwt = true

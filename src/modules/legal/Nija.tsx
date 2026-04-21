@@ -838,27 +838,41 @@ export default function NijaPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal para formato não reconhecido como EPROC */}
+      {/* Modal para formato não reconhecido como EPROC - Transformado em Assistente Genérico */}
       <Dialog open={orchestrator.showNonEprocPrompt} onOpenChange={orchestrator.setShowNonEprocPrompt}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Formato não reconhecido como EPROC</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Documento fora do padrão eProc
+            </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-3 text-sm">
-            <p>
-              O padrão do sistema é EPROC. Este arquivo não bateu com a assinatura esperada.
-              Como deseja continuar?
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Não detectamos a estrutura oficial do <strong>eProc</strong> neste arquivo, mas não se preocupe: 
+              o NIJA pode analisar qualquer documento jurídico (PJE, Projudi ou PDFs escaneados) usando Inteligência Artificial avançada.
             </p>
 
-            <div className="flex flex-col gap-2">
-              <Button onClick={orchestrator.handleForceEprocExtraction}>
-                Tratar como EPROC (extração pura)
+            <div className="flex flex-col gap-3">
+              <Button 
+                onClick={orchestrator.handleSkipExtraction} 
+                className="w-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+              >
+                Analisar como Documento Genérico (IA)
               </Button>
 
-              <Button variant="outline" onClick={orchestrator.handleSkipExtraction}>
-                Continuar sem extração (vou usar análise depois)
+              <Button 
+                variant="outline" 
+                onClick={orchestrator.handleForceEprocExtraction}
+                className="w-full"
+              >
+                Forçar extração como eProc
               </Button>
+
+              <p className="text-[10px] text-center text-muted-foreground">
+                Recomendado para petições, sentenças ou documentos de outros tribunais.
+              </p>
             </div>
           </div>
         </DialogContent>

@@ -147,7 +147,7 @@ export async function authenticateAndAuthorize(
     }
   }
 
-  const adminClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const adminClient = createClient(supabaseUrl, Deno.env.get("SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
   return {
     ok: true,

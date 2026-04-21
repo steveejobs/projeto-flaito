@@ -28,10 +28,21 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { supabase } from "@/integrations/supabase/client";
 import { crmSyncService, STAGES, PipelineStage } from "@/services/crmSyncService";
 import { WhatsAppTimeline } from "@/components/crm/WhatsAppTimeline";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 // --- Types ---
 interface Lead {
@@ -41,6 +52,7 @@ interface Lead {
   source: string;
   last_interaction_at: string;
   phone?: string;
+  email?: string;
   ai_summary?: string;
   value?: string;
 }
@@ -68,11 +80,18 @@ export default function CRMPage() {
   const [syncing, setSyncing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newLead, setNewLead] = useState({ full_name: '', phone: '', email: '' });
+  const [isCreating, setIsCreating] = useState(false);
+
   // Detalhes do Lead
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [selectedLeadActivities, setSelectedLeadActivities] = useState<ActivityLog[]>([]);
   const [whatsappMessages, setWhatsappMessages] = useState<any[]>([]);
   const [whatsappConv, setWhatsappConv] = useState<any>(null);
   
+  const navigate = useNavigate();
   const officeId = sessionStorage.getItem('lexos_office_id');
 
   const fetchData = async () => {
@@ -93,7 +112,7 @@ export default function CRMPage() {
         .select(`id, activity_type, description, created_at, crm_leads (full_name)`)
         .eq('office_id', officeId)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(50);
 
       setActivities(actsData?.map((a: any) => ({
         ...a,
@@ -107,8 +126,55 @@ export default function CRMPage() {
     }
   };
 
+  const handleCreateLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!officeId || !newLead.full_name) return;
+
+    try {
+      setIsCreating(true);
+      const { data, error } = await supabase
+        .from('crm_leads' as any)
+        .insert({
+          office_id: officeId,
+          full_name: newLead.full_name,
+          phone: newLead.phone,
+          email: newLead.email,
+          source: 'Manual',
+          pipeline_stage: STAGES.NOVO_CONTATO
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await crmSyncService.logActivity(data.id, officeId, {
+        type: 'manual_entry',
+        description: 'Lead cadastrado manualmente no CRM.',
+        current_stage: STAGES.NOVO_CONTATO
+      });
+
+      toast.success("Lead criado com sucesso!");
+      setIsModalOpen(false);
+      setNewLead({ full_name: '', phone: '', email: '' });
+      fetchData();
+    } catch (err: any) {
+      toast.error("Erro ao criar lead: " + err.message);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const fetchLeadDetails = async (lead: Lead) => {
     setSelectedLead(lead);
+    
+    // Buscar atividades específicas do lead
+    const { data: leadActs } = await supabase
+      .from('crm_activities' as any)
+      .select(`id, activity_type, description, created_at`)
+      .eq('lead_id', lead.id)
+      .order('created_at', { ascending: false });
+
+    setSelectedLeadActivities(leadActs || []);
     
     // Buscar conversa de WhatsApp
     const { data: conv } = await supabase
@@ -142,9 +208,72 @@ export default function CRMPage() {
     toast.success("CRM Sincronizado!");
   };
 
+  const handleConvertToClient = async (lead: Lead) => {
+    if (!officeId) return;
+    try {
+      // Check if client already exists by phone or email
+      let existingClient = null;
+      if (lead.phone) {
+        const { data } = await supabase
+          .from('clients')
+          .select('id')
+          .eq('office_id', officeId)
+          .eq('phone', lead.phone)
+          .maybeSingle();
+        existingClient = data;
+      }
+      if (!existingClient && lead.email) {
+        const { data } = await supabase
+          .from('clients')
+          .select('id')
+          .eq('office_id', officeId)
+          .eq('email', lead.email)
+          .maybeSingle();
+        existingClient = data;
+      }
+
+      let clientId: string;
+
+      if (existingClient) {
+        clientId = existingClient.id;
+        toast.info("Cliente já existe — vinculando ao lead.");
+      } else {
+        const { data: newClient, error } = await supabase
+          .from('clients')
+          .insert({
+            office_id: officeId,
+            full_name: lead.full_name,
+            phone: lead.phone || null,
+            email: lead.email || null,
+          })
+          .select('id')
+          .single();
+
+        if (error) throw error;
+        clientId = newClient.id;
+      }
+
+      // Update lead to mark as converted
+      await supabase
+        .from('crm_leads' as any)
+        .update({ pipeline_stage: 'fechado', converted_client_id: clientId })
+        .eq('id', lead.id);
+
+      await crmSyncService.logActivity(lead.id, officeId, {
+        type: 'conversion',
+        description: `Lead convertido em cliente (ID: ${clientId.slice(0, 8)}...)`,
+        current_stage: 'fechado'
+      });
+
+      toast.success("Lead convertido em cliente com sucesso!");
+      navigate(`/clientes?highlight=${clientId}`);
+    } catch (err: any) {
+      toast.error("Erro ao converter lead: " + err.message);
+    }
+  };
+
   useEffect(() => {
     fetchData();
-    handleSync();
   }, [officeId]);
 
   const filteredLeads = leads.filter(l => 
@@ -154,7 +283,7 @@ export default function CRMPage() {
 
   return (
     <div className="flex h-full bg-background/50 overflow-hidden relative">
-      <div className={`flex flex-col flex-1 transition-all duration-500 ${selectedLead ? 'lg:mr-[400px]' : ''}`}>
+      <div className={`flex flex-col flex-1 transition-all duration-500 ${selectedLead ? 'lg:mr-[450px]' : ''}`}>
         {/* Header Premium */}
         <div className="p-6 pb-2 border-b bg-background/30 backdrop-blur-xl sticky top-0 z-10 transition-all">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -171,16 +300,60 @@ export default function CRMPage() {
               <Button variant="outline" className="gap-2 bg-background/50" onClick={handleSync} disabled={syncing}>
                 <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} /> Sincronizar IA
               </Button>
-              <Button className="gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all font-bold">
-                <Plus className="h-4 w-4" /> Novo Lead
-              </Button>
+              
+              <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all font-bold">
+                    <Plus className="h-4 w-4" /> Novo Lead
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Cadastrar Novo Lead</DialogTitle>
+                    <DialogDescription>Insira os dados básicos para iniciar o acompanhamento.</DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleCreateLead} className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nome Completo</Label>
+                      <Input 
+                        id="name" 
+                        required 
+                        value={newLead.full_name} 
+                        onChange={e => setNewLead({...newLead, full_name: e.target.value})} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">WhatsApp / Telefone</Label>
+                      <Input 
+                        id="phone" 
+                        value={newLead.phone} 
+                        onChange={e => setNewLead({...newLead, phone: e.target.value})} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">E-mail</Label>
+                      <Input 
+                        id="email" 
+                        type="email" 
+                        value={newLead.email} 
+                        onChange={e => setNewLead({...newLead, email: e.target.value})} 
+                      />
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit" disabled={isCreating}>
+                        {isCreating ? "Criando..." : "Salvar Lead"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <MetricCard title="Leads Ativos" value={leads.length.toString()} subValue="Base auditada" icon={Users} color="primary" />
             <MetricCard title="Aguardando Agenda" value={leads.filter(l => l.pipeline_stage === 'qualificacao').length.toString()} subValue="Potencial conversão" icon={Calendar} color="orange" />
-            <MetricCard title="Conversas IA" value={activities.length.toString()} subValue="Interações registradas" icon={MessageSquare} color="purple" />
+            <MetricCard title="Atividades Recentes" value={activities.length.toString()} subValue="Interações registradas" icon={MessageSquare} color="purple" />
             <MetricCard title="Conversão" value="--" subValue="Processando BI..." icon={TrendingUp} color="green" />
           </div>
 
@@ -194,12 +367,6 @@ export default function CRMPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Tabs defaultValue="pipeline" className="w-auto">
-              <TabsList className="bg-muted/30 border border-primary/5 p-1">
-                <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
-                <TabsTrigger value="history">Atividades IA</TabsTrigger>
-              </TabsList>
-            </Tabs>
           </div>
         </div>
 
@@ -210,72 +377,101 @@ export default function CRMPage() {
               <p className="text-sm font-medium animate-pulse">Invocando agentes de orquestração...</p>
             </div>
           ) : (
-            <Tabs defaultValue="pipeline" className="h-full flex flex-col">
-              <TabsContent value="pipeline" className="flex-1 mt-0 outline-none">
-                <ScrollArea className="w-full h-full pb-8" orientation="horizontal">
-                  <div className="flex gap-6 h-full min-h-[500px]">
-                    {STAGE_CONFIG.map((stage) => (
-                      <CRMColumn 
-                        key={stage.id} 
-                        stage={stage} 
-                        leads={filteredLeads.filter(l => l.pipeline_stage === stage.id)}
-                        onLeadClick={fetchLeadDetails}
-                        selectedId={selectedLead?.id}
-                      />
-                    ))}
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-              <TabsContent value="history" className="mt-0 outline-none">
-                 <div className="max-w-4xl mx-auto space-y-4">
-                    {activities.map((activity) => <ActivityItem key={activity.id} activity={activity} />)}
-                 </div>
-              </TabsContent>
-            </Tabs>
+            <div className="w-full h-full overflow-x-auto overflow-y-hidden pb-6 custom-scrollbar scroll-smooth">
+              <div className="flex gap-6 h-full min-w-max pr-10">
+                {STAGE_CONFIG.map((stage) => (
+                  <CRMColumn 
+                    key={stage.id} 
+                    stage={stage} 
+                    leads={filteredLeads.filter(l => l.pipeline_stage === stage.id)}
+                    onLeadClick={fetchLeadDetails}
+                    selectedId={selectedLead?.id}
+                  />
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>
 
       {/* Side Panel: Detalhes e WhatsApp */}
-      <div className={`fixed right-0 top-0 h-full w-full sm:w-[400px] border-l bg-background/95 lg:bg-background/80 backdrop-blur-xl shadow-2xl z-[60] transition-transform duration-500 transform ${selectedLead ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed right-0 top-0 h-full w-full sm:w-[450px] border-l bg-background/95 lg:bg-background/80 backdrop-blur-3xl shadow-2xl z-[60] transition-transform duration-500 transform ${selectedLead ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex flex-col h-full">
           <div className="p-4 border-b flex items-center justify-between bg-muted/20">
-            <h3 className="font-black text-sm uppercase tracking-widest">Detalhes do Lead</h3>
+            <h3 className="font-black text-xs uppercase tracking-widest">Painel do Lead</h3>
             <Button variant="ghost" size="icon" onClick={() => setSelectedLead(null)}>
               <X className="h-4 w-4" />
             </Button>
           </div>
           
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {selectedLead && (
-              <>
-                <div className="p-6 pb-0">
-                  <h2 className="text-xl font-black tracking-tight">{selectedLead.full_name}</h2>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="secondary" className="text-[10px] uppercase font-bold">{selectedLead.source}</Badge>
-                    <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary">{selectedLead.pipeline_stage.replace('_', ' ')}</Badge>
-                  </div>
-                  {selectedLead.ai_summary && (
-                    <div className="mt-4 p-3 bg-primary/5 rounded-2xl border border-primary/10 flex gap-2">
-                       <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                       <p className="text-[11px] font-medium leading-relaxed italic">{selectedLead.ai_summary}</p>
+          <ScrollArea className="flex-1">
+            <div className="p-6">
+              {selectedLead && (
+                <div className="space-y-8">
+                  <section>
+                    <h2 className="text-2xl font-black tracking-tight leading-tight">{selectedLead.full_name}</h2>
+                    <div className="flex gap-2 mt-3">
+                      <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider">{selectedLead.source}</Badge>
+                      <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary tracking-wider">{selectedLead.pipeline_stage.replace('_', ' ')}</Badge>
                     </div>
-                  )}
-                </div>
+                    {selectedLead.ai_summary && (
+                      <div className="mt-6 p-4 bg-primary/5 rounded-3xl border border-primary/10 flex gap-3">
+                         <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                         <p className="text-xs font-medium leading-relaxed italic text-primary/80">{selectedLead.ai_summary}</p>
+                      </div>
+                    )}
+                  </section>
 
-                <div className="flex-1 p-4 mt-4 overflow-hidden flex flex-col">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mb-4 px-2">Timeline WhatsApp Inteligente</h4>
-                  <div className="flex-1 overflow-hidden">
-                    <WhatsAppTimeline 
-                       messages={whatsappMessages} 
-                       status={whatsappConv?.status || 'active'} 
-                       leadName={selectedLead.full_name} 
-                    />
-                  </div>
+                  {/* CRM → Client Conversion Action */}
+                  <section className="pt-2">
+                    <Button
+                      className="w-full gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500 shadow-lg shadow-emerald-500/20 font-bold"
+                      onClick={() => handleConvertToClient(selectedLead)}
+                    >
+                      <ArrowRight className="h-4 w-4" /> Converter em Cliente
+                    </Button>
+                    <p className="text-[10px] text-muted-foreground text-center mt-2">
+                      Cria um registro de cliente e move o lead para "Fechado".
+                    </p>
+                  </section>
+
+                  <Tabs defaultValue="activities" className="w-full">
+                    <TabsList className="w-full grid grid-cols-2 bg-muted/30 p-1 rounded-2xl">
+                      <TabsTrigger value="activities" className="rounded-xl gap-2 text-xs font-bold uppercase tracking-widest">
+                        <Activity className="h-3.5 w-3.5" /> Eventos
+                      </TabsTrigger>
+                      <TabsTrigger value="whatsapp" className="rounded-xl gap-2 text-xs font-bold uppercase tracking-widest">
+                        <MessageSquare className="h-3.5 w-3.5" /> Chat
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="activities" className="mt-6 space-y-4">
+                      {selectedLeadActivities.map((activity) => (
+                        <div key={activity.id} className="p-4 rounded-2xl border border-primary/5 bg-primary/5/30 space-y-2">
+                          <div className="flex justify-between items-start">
+                             <Badge variant="ghost" className="p-0 text-[10px] font-black uppercase text-primary/60">{activity.activity_type.replace('_', ' ')}</Badge>
+                             <span className="text-[9px] font-bold text-muted-foreground/40">{new Date(activity.created_at).toLocaleString('pt-BR')}</span>
+                          </div>
+                          <p className="text-xs font-medium leading-relaxed">{activity.description}</p>
+                        </div>
+                      ))}
+                      {selectedLeadActivities.length === 0 && (
+                        <div className="text-center py-10 opacity-30 italic text-xs">Sem atividades recentes.</div>
+                      )}
+                    </TabsContent>
+
+                    <TabsContent value="whatsapp" className="mt-6 h-[400px]">
+                      <WhatsAppTimeline 
+                         messages={whatsappMessages} 
+                         status={whatsappConv?.status || 'active'} 
+                         leadName={selectedLead.full_name} 
+                      />
+                    </TabsContent>
+                  </Tabs>
                 </div>
-              </>
-            )}
-          </div>
+              )}
+            </div>
+          </ScrollArea>
         </div>
       </div>
     </div>
@@ -310,7 +506,7 @@ function MetricCard({ title, value, subValue, icon: Icon, color }: any) {
 
 function CRMColumn({ stage, leads, onLeadClick, selectedId }: { stage: any, leads: Lead[], onLeadClick: (l: Lead) => void, selectedId?: string }) {
   return (
-    <div className="flex flex-col w-[300px] shrink-0 h-full group/column">
+    <div className="flex flex-col w-full md:w-[300px] md:shrink-0 h-full group/column">
       <div className="flex items-center justify-between mb-4 px-2">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className={`px-2 py-0.5 font-bold uppercase text-[10px] shadow-sm border ${stage.color}`}>
@@ -318,9 +514,6 @@ function CRMColumn({ stage, leads, onLeadClick, selectedId }: { stage: any, lead
           </Badge>
           <span className="text-xs font-black text-muted-foreground/40 leading-none">{leads.length}</span>
         </div>
-        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover/column:opacity-100 transition-opacity">
-          <Plus className="h-4 w-4" />
-        </Button>
       </div>
       
       <ScrollArea className="flex-1 bg-muted/10 border border-primary/5 rounded-3xl p-2 pb-10">
@@ -380,24 +573,5 @@ function CRMCard({ lead, color, onClick, isSelected }: { lead: Lead, color: stri
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function ActivityItem({ activity }: { activity: ActivityLog }) {
-  return (
-    <div className="flex gap-4 p-5 rounded-3xl border border-primary/5 bg-card/40 hover:bg-card hover:shadow-xl transition-all duration-500 group">
-       <div className={`mt-1 p-3 rounded-2xl h-fit ${activity.activity_type.includes('whatsapp') ? 'bg-emerald-500/10 text-emerald-500' : 'bg-primary/10 text-primary'}`}>
-         {activity.activity_type.includes('whatsapp') ? <MessageSquare className="h-5 w-5" /> : <Activity className="h-5 w-5" />}
-       </div>
-       <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <h4 className="font-black text-sm tracking-tight">{activity.lead_name}</h4>
-            <span className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">
-              {new Date(activity.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1 leading-relaxed font-medium">{activity.description}</p>
-       </div>
-    </div>
   );
 }

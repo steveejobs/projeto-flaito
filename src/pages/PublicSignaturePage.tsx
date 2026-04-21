@@ -66,44 +66,54 @@ export default function PublicSignaturePage() {
     }, [token]);
 
     const handleSave = async () => {
-        if (!signatureApi || !consent || !clientId || !officeId || !linkId) return;
+        if (!signatureApi || !consent || !linkId) return;
         if (signatureApi.isEmpty()) return;
 
         setSaving(true);
         try {
             const dataUrl = signatureApi.getDataUrl();
-            const signedHash = btoa(Date.now().toString() + clientId).slice(0, 32);
+            const signedHash = btoa(Date.now().toString() + (clientId || "remote")).slice(0, 32);
 
-            // Save signature
-            const { error: sigError } = await supabase.from("e_signatures").insert({
-                office_id: officeId,
-                client_id: clientId,
-                case_id: null,
-                generated_document_id: null,
-                signer_type: "cliente",
-                signer_name: clientName,
-                signer_doc: null,
-                signer_email: null,
-                signer_phone: null,
-                signature_base64: dataUrl,
-                signed_hash: signedHash,
-                signed_at: new Date().toISOString(),
-                ip: null,
-                user_agent: navigator.userAgent || null,
-                metadata: { via: "signature_link" },
-            });
-
-            if (sigError) throw sigError;
-
-            // Mark link as used
-            await supabase
+            // 1. Mark link as used and store signature (especially if clientId is missing)
+            const { error: updateError } = await supabase
                 .from("signature_links")
-                .update({ status: "completed", used_at: new Date().toISOString() })
+                .update({ 
+                    status: "completed", 
+                    used_at: new Date().toISOString(),
+                    signature_base64: dataUrl,
+                    signed_at: new Date().toISOString()
+                })
                 .eq("id", linkId);
+
+            if (updateError) throw updateError;
+
+            // 2. If we have a clientId, also save to e_signatures for persistence
+            if (clientId && officeId) {
+                const { error: sigError } = await supabase.from("e_signatures").insert({
+                    office_id: officeId,
+                    client_id: clientId,
+                    case_id: null,
+                    generated_document_id: null,
+                    signer_type: "cliente",
+                    signer_name: clientName,
+                    signer_doc: null,
+                    signer_email: null,
+                    signer_phone: null,
+                    signature_base64: dataUrl,
+                    signed_hash: signedHash,
+                    signed_at: new Date().toISOString(),
+                    ip: null,
+                    user_agent: navigator.userAgent || null,
+                    metadata: { via: "signature_link" },
+                });
+
+                if (sigError) console.error("Erro ao salvar cópia em e_signatures:", sigError);
+            }
 
             setStatus("success");
         } catch (err) {
             console.error("[Lexos] Erro ao salvar assinatura remota:", err);
+            toast.error("Erro ao salvar assinatura. Tente novamente.");
         } finally {
             setSaving(false);
         }

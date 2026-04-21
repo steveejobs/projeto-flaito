@@ -169,7 +169,7 @@ export default function Login() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-4 md:p-8 bg-muted/20 lg:bg-background relative">
         {/* Mobile Background Deco */}
         <div className="lg:hidden absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute top-[-10%] right-[-10%] w-[80%] h-[40%] bg-primary/10 blur-[100px] rounded-full" />
+          <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[30%] bg-primary/10 blur-[80px] rounded-full" />
         </div>
 
         <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

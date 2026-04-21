@@ -65,6 +65,7 @@ type CaseSide = Database['public']['Enums']['case_side'];
 
 type SideFilter = 'all' | 'ATAQUE' | 'DEFESA';
 type ScopeFilter = 'all' | 'mine';
+type SourceFilter = 'all' | 'manual' | 'escavador';
 
 const PAGE_SIZE = 20;
 const CASES_FILTERS_KEY = 'lexos_cases_filters_v1';
@@ -165,6 +166,7 @@ export default function Cases() {
 
   // Selection state
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
+  const [selectedCaseDossier, setSelectedCaseDossier] = useState<any | null>(null);
 
   // Filters and pagination
   const [searchQuery, setSearchQuery] = useState('');
@@ -173,8 +175,35 @@ export default function Cases() {
   const [knowledgeSubject, setKnowledgeSubject] = useState('');
   const [sideFilter, setSideFilter] = useState<SideFilter>('all');
   const [stateFilter, setStateFilter] = useState<string>('all');
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [filtersInitialized, setFiltersInitialized] = useState(false);
+
+  // Fetch dossier for selected case
+  useEffect(() => {
+    const fetchDossier = async () => {
+      if (!selectedCase) {
+        setSelectedCaseDossier(null);
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('process_dossiers')
+        .select('*')
+        .eq('case_id', selectedCase.id)
+        .order('version', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+        
+      if (!error && data) {
+        setSelectedCaseDossier(data);
+      } else {
+        setSelectedCaseDossier(null);
+      }
+    };
+    
+    fetchDossier();
+  }, [selectedCase]);
 
   // Scope filter from URL
   const scopeFilter: ScopeFilter = (searchParams.get('scope') as ScopeFilter) || 'all';
@@ -377,6 +406,11 @@ export default function Cases() {
       result = result.filter((c) => c.side === sideFilter);
     }
 
+    // Source filter
+    if (sourceFilter !== 'all') {
+      result = result.filter((c) => (c as any).source === sourceFilter);
+    }
+
     // FSM State filter
     if (stateFilter !== 'all') {
       result = result.filter((c) => {
@@ -398,7 +432,7 @@ export default function Cases() {
     }
 
     return result;
-  }, [cases, searchQuery, sideFilter, stateFilter, scopeFilter, user?.id, clientsMap, caseStatesMap]);
+  }, [cases, searchQuery, sideFilter, stateFilter, sourceFilter, scopeFilter, user?.id, clientsMap, caseStatesMap]);
 
   // Pagination
   const totalPages = Math.ceil(filteredCases.length / PAGE_SIZE);
@@ -410,7 +444,7 @@ export default function Cases() {
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, sideFilter, stateFilter, scopeFilter]);
+  }, [searchQuery, sideFilter, stateFilter, sourceFilter, scopeFilter]);
 
   // Handlers for scope toggle
   const handleScopeChange = (scope: ScopeFilter) => {
@@ -551,6 +585,17 @@ export default function Cases() {
                     ))}
                   </SelectContent>
                 </Select>
+
+                <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as SourceFilter)}>
+                  <SelectTrigger className="h-8 text-xs flex-1">
+                    <SelectValue placeholder="Origem" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as origens</SelectItem>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="escavador">Escavador</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -656,6 +701,11 @@ export default function Cases() {
                         {getSideBadge(caseItem.side)}
                         {getStatusBadge(caseItem.status)}
                         {getStageBadge(caseItem.stage)}
+                        {(caseItem as any).source === 'escavador' || (caseItem as any).source === 'ESCAVADOR' ? (
+                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-indigo-50 text-indigo-700 border-indigo-200">
+                            Escavador
+                          </Badge>
+                        ) : null}
                       </div>
                     </div>
                   </div>

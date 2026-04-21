@@ -51,24 +51,7 @@ interface AuditReport {
 }
 
 // Capture console errors
-const capturedLogs: FrontendLog[] = [];
 const MAX_LOGS = 50;
-
-function captureLog(log: FrontendLog) {
-  capturedLogs.unshift(log);
-  if (capturedLogs.length > MAX_LOGS) capturedLogs.pop();
-}
-
-// Override console.error to capture errors
-const originalConsoleError = console.error;
-console.error = (...args) => {
-  captureLog({
-    timestamp: new Date().toISOString(),
-    type: "error",
-    message: args.map(a => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" "),
-  });
-  originalConsoleError.apply(console, args);
-};
 
 export default function Audit() {
   const { user } = useAuth();
@@ -79,6 +62,37 @@ export default function Audit() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [cleaningOrphans, setCleaningOrphans] = useState(false);
   const [softDeletingDocs, setSoftDeletingDocs] = useState(false);
+
+  // Use a ref to store logs to persist across renders while component is mounted
+  const capturedLogsRef = useRef<FrontendLog[]>([]);
+
+  // Helper to capture internal audit logs (non-console errors)
+  const captureInternalLog = useCallback((log: FrontendLog) => {
+    capturedLogsRef.current.unshift(log);
+    if (capturedLogsRef.current.length > MAX_LOGS) {
+      capturedLogsRef.current.pop();
+    }
+    setFrontendLogs([...capturedLogsRef.current]);
+  }, []);
+
+  useEffect(() => {
+    const originalConsoleError = console.error;
+    
+    console.error = (...args) => {
+      const newLog: FrontendLog = {
+        timestamp: new Date().toISOString(),
+        type: "error",
+        message: args.map(a => typeof a === "object" ? (a instanceof Error ? a.message : JSON.stringify(a)) : String(a)).join(" "),
+      };
+      
+      captureInternalLog(newLog);
+      originalConsoleError.apply(console, args);
+    };
+
+    return () => {
+      console.error = originalConsoleError;
+    };
+  }, [captureInternalLog]);
 
   const fetchUserContext = useCallback(async () => {
     if (!user?.id) {
@@ -94,7 +108,7 @@ export default function Audit() {
       .maybeSingle();
 
     if (error) {
-      captureLog({ timestamp: new Date().toISOString(), type: "supabase", message: error.message, details: error.details });
+      captureInternalLog({ timestamp: new Date().toISOString(), type: "supabase", message: error.message, details: error.details });
     }
 
     const ctx: UserContext = {

@@ -83,7 +83,7 @@ export default function OperatorFeedbackButton({ incidentId, module }: OperatorF
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-2xl bg-primary hover:bg-primary/90 border-2 border-white/20 z-50 group transition-all hover:scale-110"
+        className="fixed bottom-6 right-24 h-12 w-12 rounded-full shadow-2xl bg-primary hover:bg-primary/90 border-2 border-white/20 z-50 group transition-all hover:scale-110"
         size="icon"
       >
         <MessageSquare className="h-6 w-6 text-white group-hover:rotate-12 transition-transform" />

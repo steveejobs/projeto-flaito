@@ -1,6 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 
+export interface MedicalData {
+  alergias?: string | null;
+  medicamentos_em_uso?: string | null;
+  historico_medico?: string | null;
+  status?: string | null;
+}
+
 export interface UnifiedProfile {
   id: string;
   office_id: string | null;
@@ -12,6 +19,8 @@ export interface UnifiedProfile {
   cep: string | null;
   city: string | null;
   state: string | null;
+  data_nascimento?: string | null;
+  medical_data?: MedicalData | null;
 }
 
 export const identityService = {
@@ -27,6 +36,25 @@ export const identityService = {
       return null;
     }
 
+    // Attempt to fetch medical extension data
+    let medicalData: MedicalData | null = null;
+    let dataNascimento: string | null = null;
+    const { data: paciente } = await (supabase
+      .from('pacientes' as any)
+      .select('alergias, medicamentos_em_uso, historico_medico, birth_date, status')
+      .eq('client_id', clientId)
+      .maybeSingle() as any);
+
+    if (paciente) {
+      medicalData = {
+        alergias: paciente.alergias,
+        medicamentos_em_uso: paciente.medicamentos_em_uso,
+        historico_medico: paciente.historico_medico,
+        status: paciente.status,
+      };
+      dataNascimento = paciente.birth_date;
+    }
+
     return {
       id: client.id,
       office_id: client.office_id,
@@ -38,12 +66,25 @@ export const identityService = {
       cep: client.cep,
       city: client.city,
       state: client.state,
+      data_nascimento: dataNascimento,
+      medical_data: medicalData,
     };
   },
 
-  async getProfileByPatientId(_pacienteId: string): Promise<UnifiedProfile | null> {
-    console.warn("getProfileByPatientId is deprecated: pacientes table no longer exists in schema");
-    return null;
+  async getProfileByPatientId(pacienteId: string): Promise<UnifiedProfile | null> {
+    // Look up the pacientes table to find the linked client_id
+    const { data: paciente, error } = await (supabase
+      .from('pacientes' as any)
+      .select('client_id')
+      .eq('id', pacienteId)
+      .maybeSingle() as any);
+
+    if (error || !paciente?.client_id) {
+      // Fallback: try treating the ID as a client_id directly
+      return this.getFullProfile(pacienteId);
+    }
+
+    return this.getFullProfile(paciente.client_id);
   },
 
   async updateProfile(clientId: string, data: Partial<UnifiedProfile>): Promise<boolean> {

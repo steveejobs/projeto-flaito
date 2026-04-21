@@ -233,7 +233,46 @@ All colors MUST be HSL.
   }
 }
 
-/* Utility to hide scrollbar */
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL PREMIUM SCROLLBAR SYSTEM
+   Applies to ALL scrollable elements across the app
+   ═══════════════════════════════════════════════════════════════ */
+
+/* --- Global Scrollbar (Webkit: Chrome, Edge, Safari) --- */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.15);
+  border-radius: 100px;
+  transition: background 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.35);
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* --- Global Scrollbar (Firefox) --- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.15) transparent;
+}
+
+/* --- Utility: Hide scrollbar completely --- */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -242,6 +281,165 @@ All colors MUST be HSL.
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* --- Utility: Minimal scrollbar (even thinner) --- */
+.minimal-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.minimal-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.minimal-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.12);
+  border-radius: 100px;
+}
+
+.minimal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.3);
+}
+
+/* --- Utility: Custom scrollbar (used in some pages) --- */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.15);
+  border-radius: 100px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.35);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM FLOATING PANELS (Select, Dropdown, Popover, Command)
+   Glassmorphism + Refined borders + Subtle glow
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Radix Select Content */
+[data-radix-popper-content-wrapper] [role="listbox"],
+[data-radix-select-content] {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: hsl(var(--popover) / 0.92) !important;
+  border: 1px solid hsl(var(--border) / 0.6) !important;
+  box-shadow:
+    0 8px 32px -4px rgba(0, 0, 0, 0.5),
+    0 0 0 1px hsl(var(--border) / 0.15),
+    inset 0 1px 0 hsl(0 0% 100% / 0.04) !important;
+}
+
+/* Radix Dropdown / Context Menu Content */
+[data-radix-menu-content] {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: hsl(var(--popover) / 0.92) !important;
+  border: 1px solid hsl(var(--border) / 0.6) !important;
+  box-shadow:
+    0 8px 32px -4px rgba(0, 0, 0, 0.5),
+    0 0 0 1px hsl(var(--border) / 0.15),
+    inset 0 1px 0 hsl(0 0% 100% / 0.04) !important;
+}
+
+/* Popover content panels */
+[data-radix-popper-content-wrapper] > [data-side] {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM SELECT ITEMS & DROPDOWN ITEMS
+   Smooth hover transitions with accent glow
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Select items */
+[role="option"] {
+  transition: background-color 0.15s ease, color 0.15s ease !important;
+  border-radius: 6px !important;
+  margin: 1px 4px !important;
+  padding: 8px 12px 8px 32px !important;
+}
+
+[role="option"]:hover,
+[role="option"][data-highlighted] {
+  background: hsl(var(--accent) / 0.12) !important;
+}
+
+[role="option"][data-state="checked"] {
+  background: hsl(var(--accent) / 0.1) !important;
+  color: hsl(var(--accent)) !important;
+  font-weight: 500;
+}
+
+/* Dropdown/Menu items */
+[role="menuitem"],
+[role="menuitemcheckbox"],
+[role="menuitemradio"] {
+  transition: background-color 0.15s ease, color 0.15s ease !important;
+  border-radius: 6px !important;
+  margin: 1px 4px !important;
+}
+
+[role="menuitem"]:hover,
+[role="menuitem"][data-highlighted],
+[role="menuitemcheckbox"]:hover,
+[role="menuitemcheckbox"][data-highlighted],
+[role="menuitemradio"]:hover,
+[role="menuitemradio"][data-highlighted] {
+  background: hsl(var(--accent) / 0.12) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM CHECKBOX STYLING
+   Rounded with smooth check animation
+   ═══════════════════════════════════════════════════════════════ */
+
+[role="checkbox"] {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: 5px !important;
+}
+
+[role="checkbox"]:hover {
+  border-color: hsl(var(--accent) / 0.6) !important;
+  box-shadow: 0 0 0 3px hsl(var(--accent) / 0.1);
+}
+
+[role="checkbox"][data-state="checked"] {
+  background: hsl(var(--primary)) !important;
+  border-color: hsl(var(--primary)) !important;
+  box-shadow: 0 0 8px hsl(var(--primary) / 0.3);
+}
+
+[role="checkbox"][data-state="checked"]:hover {
+  box-shadow: 0 0 12px hsl(var(--primary) / 0.4);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM TABS — Horizontal scroll with hidden scrollbar
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Hide scrollbar on TabsList containers that scroll horizontally */
+[role="tablist"] {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+[role="tablist"]::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════ */
 
 /* Capture page animations - Premium Institucional */
 @keyframes scale-in {
@@ -271,24 +469,10 @@ All colors MUST be HSL.
 .capture-animate-in {
   animation: fade-up 300ms ease-out;
 }
-/* Minimalist Scrollbar Utility */
-.minimal-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
 
-.minimal-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.minimal-scrollbar::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.2);
-  border-radius: 10px;
-}
-
-.minimal-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.4);
-}
+/* ═══════════════════════════════════════════════════════════════
+   LAYOUT UTILITIES
+   ═══════════════════════════════════════════════════════════════ */
 
 /* Glass Footer for Dialogs */
 .glass-footer {

@@ -112,7 +112,7 @@ interface MenuGroup {
   defaultOpen?: boolean;
 }
 
-// MENU_TREE com 7 grupos conforme especificação + keywords para busca
+// MENU_TREE com grupos funcionais (Placeholders removidos para auditoria de stress)
 const MENU_TREE: MenuGroup[] = [
   {
     key: 'painel',
@@ -128,38 +128,26 @@ const MENU_TREE: MenuGroup[] = [
   },
   {
     key: 'casos',
-    label: 'Casos',
+    label: 'Operações',
     icon: Briefcase,
     minRole: 'MEMBER',
     defaultOpen: true,
     module: 'LEGAL',
     items: [
-      { title: 'Casos', url: '/cases', icon: Briefcase, minRole: 'MEMBER', keywords: ['processos', 'acoes', 'demandas', 'clientes'] },
+      { title: 'Casos e Processos', url: '/cases', icon: Briefcase, minRole: 'MEMBER', keywords: ['processos', 'acoes', 'demandas', 'clientes'] },
       { title: 'Documentos', url: '/documents', icon: FileText, minRole: 'MEMBER', keywords: ['arquivos', 'pecas', 'anexos', 'pdf'] },
-      { title: 'Reuniões Inteligentes', url: '/legal/meetings', icon: Mic, minRole: 'MEMBER', keywords: ['audio', 'gravacao', 'transcricao', 'reuniao', 'ao vivo', 'nija'] },
       { title: 'Plaud Inbox', url: '/plaud-inbox', icon: History, minRole: 'MEMBER', keywords: ['audio', 'gravacao', 'transcricao', 'reuniao'] },
     ],
   },
-
-
   {
     key: 'clientes',
-    label: 'Clientes',
+    label: 'Contatos',
     icon: Users,
     minRole: 'MEMBER',
     defaultOpen: true,
     items: [
-      { title: 'Cadastro de Clientes', url: '/clientes', icon: Users, minRole: 'MEMBER', keywords: ['pessoas', 'contatos', 'partes', 'cpf', 'cnpj'] },
-    ],
-  },
-  {
-    key: 'agenda',
-    label: 'Agenda',
-    icon: Calendar,
-    minRole: 'MEMBER',
-    defaultOpen: true,
-    items: [
-      { title: 'Compromissos', url: '/agenda', icon: Calendar, minRole: 'MEMBER', keywords: ['reunioes', 'audiencias', 'eventos', 'horarios'] },
+      { title: 'Clientes', url: '/clientes', icon: Users, minRole: 'MEMBER', keywords: ['pessoas', 'contatos', 'partes', 'cpf', 'cnpj'] },
+      { title: 'Agenda', url: '/agenda', icon: Calendar, minRole: 'MEMBER', keywords: ['reunioes', 'audiencias', 'eventos', 'horarios'] },
     ],
   },
   {
@@ -173,25 +161,24 @@ const MENU_TREE: MenuGroup[] = [
     ],
   },
   {
-    key: 'studio',
-    label: 'Studio',
-    icon: Bot,
-    minRole: 'ADMIN',
-    defaultOpen: true,
-    items: [
-      { title: 'Studio de Agentes', url: '/agent-studio', icon: Bot, minRole: 'ADMIN', keywords: ['ia', 'agentes', 'configuracao', 'studio', 'personalizacao'] },
-      { title: 'Builder de Fluxos', url: '/flow-manager', icon: FolderTree, minRole: 'ADMIN', keywords: ['fluxos', 'automacao', 'manychat', 'editor', 'builder'] },
-    ],
-  },
-  {
     key: 'nija',
-    label: 'NIJA',
+    label: 'Inteligência NIJA',
     icon: Brain,
     minRole: 'MEMBER',
     defaultOpen: true,
     items: [
       { title: 'Análise Jurídica', url: '/nija', icon: Brain, minRole: 'MEMBER', keywords: ['ia', 'inteligencia', 'artificial', 'analise', 'parecer'] },
-      { title: 'Uso do NIJA', url: '/nija-usage', icon: BarChart3, minRole: 'ADMIN', keywords: ['consumo', 'tokens', 'creditos', 'uso'] },
+      { title: 'Métricas de Uso', url: '/nija-usage', icon: BarChart3, minRole: 'ADMIN', keywords: ['consumo', 'tokens', 'creditos', 'uso'] },
+    ],
+  },
+  {
+    key: 'studio',
+    label: 'Configuração IA',
+    icon: Bot,
+    minRole: 'ADMIN',
+    defaultOpen: false,
+    items: [
+      { title: 'Studio de Agentes', url: '/agent-studio', icon: Bot, minRole: 'ADMIN', keywords: ['ia', 'agentes', 'configuracao', 'studio', 'personalizacao'] },
     ],
   },
   {
@@ -201,14 +188,8 @@ const MENU_TREE: MenuGroup[] = [
     minRole: 'MEMBER',
     defaultOpen: false,
     items: [
-      { title: 'Banco Jurídico', url: '/banco-juridico', icon: Scale, minRole: 'MEMBER', keywords: ['peticoes', 'teses', 'doutrinas', 'sumulas', 'banco', 'conhecimento'] },
-      { title: 'Contatos Judiciário', url: '/contatos-judiciario', icon: Building2, minRole: 'MEMBER', keywords: ['varas', 'tribunais', 'telefones', 'emails', 'judiciario'] },
       { title: 'Tipos de Documentos', url: '/document-types', icon: FileText, minRole: 'ADMIN', keywords: ['categorias', 'modelos', 'templates'] },
-      { title: 'Inteligência de Caso', url: '/knowledge', icon: Brain, minRole: 'ADMIN', keywords: ['artigos', 'tutoriais', 'ajuda'] },
-      { title: 'Base de Conhecimento', url: '/office-knowledge', icon: BookOpen, minRole: 'MEMBER', keywords: ['conhecimento', 'peças', 'teses'] },
-      { title: 'Modelos do Kit Inicial', url: '/admin/modelos', icon: FileText, minRole: 'ADMIN', keywords: ['templates', 'padrao', 'kit'] },
-      { title: 'Dicionário TJTO', url: '/admin/tjto-dictionary', icon: FileText, minRole: 'ADMIN', keywords: ['eventos', 'movimentacoes', 'tribunal'] },
-      { title: 'Precedentes', url: '/admin/precedents', icon: ClipboardList, minRole: 'OWNER', keywords: ['jurisprudencia', 'decisoes', 'admin'] },
+      { title: 'Base de Conhecimento', url: '/knowledge', icon: Brain, minRole: 'ADMIN', keywords: ['artigos', 'tutoriais', 'ajuda'] },
     ],
   },
   {
@@ -217,16 +198,10 @@ const MENU_TREE: MenuGroup[] = [
     icon: Settings,
     minRole: 'MEMBER',
     defaultOpen: false,
-    subMenus: [
-      {
-        key: 'canais',
-        label: 'Canais',
-        icon: Link2,
-        minRole: 'ADMIN',
-        items: [
-          { title: 'WhatsApp (Z-API)', url: '/settings/whatsapp', icon: MessageSquare, minRole: 'ADMIN', keywords: ['whatsapp', 'zapi', 'conexao', 'instancia'] },
-        ]
-      }
+    items: [
+      { title: 'Meu Perfil', url: '/settings/profile', icon: Settings, minRole: 'MEMBER', keywords: ['perfil', 'conta', 'usuario'] },
+      { title: 'Escritório', url: '/settings/office', icon: Building2, minRole: 'ADMIN', keywords: ['configuracao', 'escritorio', 'dados'] },
+      { title: 'Membros', url: '/settings/members', icon: Users, minRole: 'ADMIN', keywords: ['equipe', 'usuarios', 'convites'] },
     ]
   },
 ];

@@ -649,7 +649,8 @@ export default function NijaUsage() {
                   </div>
                 ) : (
                   <>
-                    <Table>
+                    <div className="overflow-x-auto">
+                    <Table className="min-w-[700px]">
                       <TableHeader>
                         <TableRow>
                           <TableHead className="w-[50px]">Nível</TableHead>
@@ -704,6 +705,7 @@ export default function NijaUsage() {
                         ))}
                       </TableBody>
                     </Table>
+                    </div>
 
                     {/* Pagination */}
                     {totalLogsPages > 1 && (

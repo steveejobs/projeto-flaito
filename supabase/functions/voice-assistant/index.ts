@@ -78,6 +78,15 @@ const getCorsHeaders = (origin: string | null) => {
 // Tool Definitions & Categorization
 // ============================================================
 
+const TOOLS: any[] = [
+    { type: "function", function: { name: "getAppointments", description: "Busca agendamentos na agenda médica.", parameters: { type: "object", properties: { date: { type: "string" } } } } },
+    { type: "function", function: { name: "getCases", description: "Busca processos jurídicos ativos.", parameters: { type: "object", properties: { client_id: { type: "string" } } } } },
+    { type: "function", function: { name: "getClient", description: "Busca dados detalhados de um cliente ou paciente.", parameters: { type: "object", properties: { id: { type: "string" } }, required: ["id"] } } },
+    { type: "function", function: { name: "updateResource", description: "Edita ou atualiza dados de um recurso (cliente, paciente ou caso). Use para mudar status, nomes ou observações.", parameters: { type: "object", properties: { resource_type: { type: "string", enum: ["client", "case", "paciente"] }, resource_id: { type: "string" }, data: { type: "object", description: "Campos e valores a serem atualizados" } }, required: ["resource_type", "resource_id", "data"] } } },
+    { type: "function", function: { name: "triggerNijaAnalysis", description: "Dispara uma análise estratégica profunda do NIJA para um processo jurídico.", parameters: { type: "object", properties: { case_id: { type: "string" } }, required: ["case_id"] } } },
+    { type: "function", function: { name: "sendMessage", description: "Envia uma mensagem via WhatsApp.", parameters: { type: "object", properties: { client_id: { type: "string" }, content: { type: "string" } }, required: ["client_id", "content"] } } },
+    { type: "function", function: { name: "createAppointment", description: "Cria um novo agendamento na agenda.", parameters: { type: "object", properties: { patient_id: { type: "string" }, date: { type: "string" }, time: { type: "string" } }, required: ["patient_id", "date", "time"] } } },
+    { type: "function", function: { name: "generateDocument", description: "Gera um novo documento (petição, laudo ou contrato).", parameters: { type: "object", properties: { client_id: { type: "string" }, template_id: { type: "string" } }, required: ["client_id", "template_id"] } } },
     { type: "function", function: { name: "sign_document", description: "Assina digitalmente um documento. Ação CRÍTICA.", parameters: { type: "object", properties: { document_id: { type: "string" } }, required: ["document_id"] } } },
     { type: "function", function: { name: "searchEscavador", description: "Busca processos no Escavador por nome de cliente ou CNJ.", parameters: { type: "object", properties: { query: { type: "string" }, client_id: { type: "string" } }, required: ["query"] } } },
     { type: "function", function: { name: "linkEscavadorProcess", description: "Vincula um processo encontrado ao cadastro do cliente no CRM.", parameters: { type: "object", properties: { cnj: { type: "string" }, client_id: { type: "string" } }, required: ["cnj", "client_id"] } } },
@@ -86,8 +95,8 @@ const getCorsHeaders = (origin: string | null) => {
 ];
 
 const CONSULTATION_TOOLS = ["getAppointments", "getCases", "getClient", "searchEscavador", "getEscavadorSuggestions", "summarizeProcess"];
-const LIGHT_CRITICAL_TOOLS = ["create_draft"];
-const STRONG_CRITICAL_TOOLS = ["sendMessage", "createAppointment", "generateDocument", "sign_document", "linkEscavadorProcess"];
+const LIGHT_CRITICAL_TOOLS = ["updateResource", "create_draft"];
+const STRONG_CRITICAL_TOOLS = ["sendMessage", "createAppointment", "generateDocument", "sign_document", "linkEscavadorProcess", "triggerNijaAnalysis"];
 
 type ToolCategory = "consultation" | "light" | "strong";
 
@@ -274,9 +283,14 @@ Deno.serve(async (req: Request) => {
             actionResult = { action: "speak", response: reply };
         }
     } else {
-        const systemPrompt = `Você é o Assistente Inteligente da Flaito (não use um nome específico agora). Fale em Português do Brasil.
+        const agentName = voiceSettings?.agent_name || 'Flaito';
+        const agentPersonality = voiceSettings?.agent_personality || 'Você é o Assistente Inteligente da Flaito. Fale em Português do Brasil.';
+
+        const systemPrompt = `Você é ${agentName}. ${agentPersonality}
     Modo: ${effectiveMode}. Confiança: ${confidence}.
-    REGRA PROATIVA: Se houver processos sugeridos pelo Escavador com confiança acima de 85% para o cliente em questão, sugira ativamente o vínculo ao usuário.`;
+    REGRA DE OURO: Use Markdown para qualquer informação estruturada (tabelas, listas, negrito).
+    ECONOMIA DE TOKENS: O sistema enviará dados do Escavador já formatados em Markdown. NÃO tente reformatar; apenas apresente os dados ou responda perguntas baseadas neles.
+    REGRA PROATIVA: Se houver processos sugeridos com confiança acima de 85%, sugira o vínculo imediatamente.`;
 
         const aiRes = await callOpenAI([
           { role: "system", content: systemPrompt },
@@ -328,8 +342,8 @@ Deno.serve(async (req: Request) => {
 
     const ttsConfig = resolveTTSConfig({
       voiceId: voiceSettings?.voice_id || '21m00Tcm4TlvDq8ikWAM',
-      stability: voiceSettings?.tts_stability || 0.5,
-      similarity_boost: voiceSettings?.tts_similarity_boost || 0.75
+      stability: voiceSettings?.stability || 0.5,
+      similarity_boost: voiceSettings?.similarity_boost || 0.75
     });
     const ttsResult = await synthesizeSpeech(reply, ttsConfig);
 

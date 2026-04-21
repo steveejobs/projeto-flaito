@@ -130,7 +130,7 @@ const OperationsInbox = () => {
   const selectedConv = conversations.find(c => c.id === selectedId);
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-background/50 backdrop-blur-xl border border-white/10 rounded-2xl md:m-4 shadow-2xl animate-in fade-in zoom-in duration-500">
+    <div className="flex h-[calc(100dvh-4rem)] overflow-hidden bg-background/50 backdrop-blur-xl border border-white/10 rounded-2xl md:m-4 shadow-2xl animate-in fade-in zoom-in duration-500">
       
       {/* SIDEBAR: Lista de Conversas */}
       <div className={`${selectedId ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-r border-white/10 flex-col bg-black/5`}>

@@ -204,33 +204,33 @@ const MedicalDashboard = () => {
                         </div>
                     </Card>
 
-                    <Card className="p-4 flex items-center gap-3 bg-white rounded-2xl border border-slate-200/60 shadow-sm transition-all hover:shadow-md hover:border-teal-200 group">
-                        <div className="p-2.5 bg-teal-50 rounded-xl group-hover:scale-110 group-hover:bg-teal-100 transition-all">
+                    <Card className="p-4 flex items-center gap-3 bg-card rounded-2xl border border-border/60 shadow-sm transition-all hover:shadow-md hover:border-teal-200 group">
+                        <div className="p-2.5 bg-teal-50/50 rounded-xl group-hover:scale-110 group-hover:bg-teal-100/50 transition-all">
                             <Stethoscope className="w-5 h-5 text-teal-500" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Consultas Mês</p>
-                            <h3 className="text-xl font-black text-slate-700 tracking-tight">-</h3>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Consultas Mês</p>
+                            <h3 className="text-xl font-black text-foreground tracking-tight">-</h3>
                         </div>
                     </Card>
 
-                    <Card className="p-4 flex items-center gap-3 bg-white rounded-2xl border border-slate-200/60 shadow-sm transition-all hover:shadow-md hover:border-violet-200 group">
-                        <div className="p-2.5 bg-violet-50 rounded-xl group-hover:scale-110 group-hover:bg-violet-100 transition-all">
+                    <Card className="p-4 flex items-center gap-3 bg-card rounded-2xl border border-border/60 shadow-sm transition-all hover:shadow-md hover:border-violet-200 group">
+                        <div className="p-2.5 bg-violet-50/50 rounded-xl group-hover:scale-110 group-hover:bg-violet-100/50 transition-all">
                             <Mic className="w-5 h-5 text-violet-500" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Transcrições</p>
-                            <h3 className="text-xl font-black text-slate-700 tracking-tight">-</h3>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Transcrições</p>
+                            <h3 className="text-xl font-black text-foreground tracking-tight">-</h3>
                         </div>
                     </Card>
 
-                    <Card className="p-4 flex items-center gap-3 bg-white rounded-2xl border border-slate-200/60 shadow-sm transition-all hover:shadow-md hover:border-emerald-200 group">
-                        <div className="p-2.5 bg-emerald-50 rounded-xl group-hover:scale-110 group-hover:bg-emerald-100 transition-all">
+                    <Card className="p-4 flex items-center gap-3 bg-card rounded-2xl border border-border/60 shadow-sm transition-all hover:shadow-md hover:border-emerald-200 group">
+                        <div className="p-2.5 bg-emerald-50/50 rounded-xl group-hover:scale-110 group-hover:bg-emerald-100/50 transition-all">
                             <Leaf className="w-5 h-5 text-emerald-500" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Bio-Saúde / Íris</p>
-                            <h3 className="text-xl font-black text-slate-700 tracking-tight">{bioStats.totalAnalises}</h3>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Bio-Saúde / Íris</p>
+                            <h3 className="text-xl font-black text-foreground tracking-tight">{bioStats.totalAnalises}</h3>
                         </div>
                     </Card>
                 </div>

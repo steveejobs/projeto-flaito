@@ -15,7 +15,7 @@ interface ModuleProtectedRouteProps {
 export const ModuleProtectedRoute = ({ children, module: requiredModule }: ModuleProtectedRouteProps) => {
     const { module: currentModule, loading } = useOfficeRole();
 
-    if (loading) {
+    if (loading || currentModule === null) {
         // Spinner minimalista mas visível (substituindo o ponto minúsculo que sumia no preto)
         return (
             <div className="min-h-[50vh] flex items-center justify-center bg-transparent transition-all duration-500">

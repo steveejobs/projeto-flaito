@@ -158,13 +158,13 @@ export default function EscavadorDashboard() {
                             {new Date(req.created_at).toLocaleString()}
                           </td>
                           <td className="px-4 py-3 text-right space-x-2">
-                             <Button variant="outline" size="sm" title="Criar Caso">
+                             <Button variant="outline" size="sm" title="Criar Caso" onClick={() => toast({ title: "Em desenvolvimento", description: "Use o Scanner no painel do cliente para criar casos a partir de processos." })}>
                                <Plus className="w-4 h-4" />
                              </Button>
-                             <Button variant="outline" size="sm" title="Vincular Cliente">
+                             <Button variant="outline" size="sm" title="Vincular Cliente" onClick={() => toast({ title: "Em desenvolvimento", description: "Use o Scanner no painel do cliente para vincular processos." })}>
                                <Link className="w-4 h-4" />
                              </Button>
-                             <Button variant="outline" size="sm" className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100" title="Enviar para NIJA">
+                             <Button variant="outline" size="sm" className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100" title="Enviar para NIJA" onClick={() => toast({ title: "Em desenvolvimento", description: "Envio direto para NIJA será disponibilizado em breve." })}>
                                <RefreshCw className="w-4 h-4" />
                              </Button>
                           </td>
@@ -178,7 +178,7 @@ export default function EscavadorDashboard() {
 
             <TabsContent value="monitoring" className="space-y-4 pt-4">
                <div className="flex justify-end">
-                 <Button size="sm">
+                 <Button size="sm" onClick={() => toast({ title: "Em desenvolvimento", description: "Criação de monitoramento via painel será disponibilizada em breve." })}>
                    <Plus className="w-4 h-4 mr-1" /> Novo Monitoramento
                  </Button>
                </div>
@@ -217,13 +217,13 @@ export default function EscavadorDashboard() {
                </CardDescription>
              </CardHeader>
              <CardContent className="space-y-4">
-               <Button className="w-full bg-white text-blue-600 hover:bg-blue-50 justify-start h-auto py-3">
+               <Button className="w-full bg-white text-blue-600 hover:bg-blue-50 justify-start h-auto py-3" onClick={() => toast({ title: "Em desenvolvimento", description: "Auditoria NIJA integrada será disponibilizada em breve." })}>
                  <div className="text-left">
                    <p className="font-bold flex items-center"><RefreshCw className="mr-2 w-4 h-4" /> Auditoria NIJA</p>
                    <p className="text-xs font-normal opacity-80">Gera relatório forense do processo buscado.</p>
                  </div>
                </Button>
-               <Button className="w-full bg-blue-700 hover:bg-blue-800 border-none justify-start h-auto py-3">
+               <Button className="w-full bg-blue-700 hover:bg-blue-800 border-none justify-start h-auto py-3" onClick={() => toast({ title: "Em desenvolvimento", description: "Montagem automática de dossiê será disponibilizada em breve." })}>
                  <div className="text-left">
                    <p className="font-bold flex items-center"><Plus className="mr-2 w-4 h-4" /> Novo Dossier</p>
                    <p className="text-xs font-normal opacity-80">Inicia montagem automática do dossiê do processo.</p>
@@ -232,25 +232,6 @@ export default function EscavadorDashboard() {
              </CardContent>
            </Card>
 
-           <Card>
-             <CardHeader>
-                <CardTitle className="text-sm uppercase font-bold text-muted-foreground tracking-widest">Status SRE</CardTitle>
-             </CardHeader>
-             <CardContent className="space-y-4 text-sm">
-                <div className="flex justify-between">
-                  <span>Latency Avg</span>
-                  <span className="font-mono text-green-600 font-bold">~420ms</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Success Rate</span>
-                  <span className="font-mono text-green-600 font-bold">99.8%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Webhooks Processed</span>
-                  <span className="font-mono font-bold">1,240</span>
-                </div>
-             </CardContent>
-           </Card>
         </div>
       </div>
     </div>

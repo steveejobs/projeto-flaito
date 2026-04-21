@@ -27,7 +27,7 @@ export const VoiceAgentWidget = () => {
     const handleManualSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!manualText.trim()) return;
-        // processCommand is internal but we use manuallyTriggerListening or equivalent
+        processCommand(manualText.trim());
         setManualText('');
     };
 

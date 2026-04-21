@@ -97,7 +97,7 @@ export async function generateCaseDocumentHtml(
       },
       office,
       case: caseRes,
-      custom_fields: customVariables,
+      custom: customVariables,
       institutional: institutionalContext, // Novo: Disponível para o template engine
     };
 

@@ -138,10 +138,10 @@ function MedicalLayoutInner({ children }: MedicalLayoutProps) {
                             </div>
                             
                             {activeProfile && (
-                                <div className="ml-4 flex items-center pl-4 border-l border-teal-100 hidden lg:flex animate-in fade-in slide-in-from-left-4 duration-500">
+                                <div className="ml-4 items-center pl-4 border-l border-teal-100 hidden md:flex animate-in fade-in slide-in-from-left-4 duration-500">
                                     <div className="flex flex-col mr-3">
                                         <span className="text-[10px] uppercase font-bold text-teal-600 tracking-wider">Cliente Ativo</span>
-                                        <span className="text-sm font-semibold text-foreground leading-tight">{activeProfile.full_name}</span>
+                                        <span className="text-sm font-semibold text-foreground leading-tight max-w-[150px] md:max-w-[250px] lg:max-w-[400px] truncate">{activeProfile.full_name}</span>
                                     </div>
                                     <Button size="sm" variant="ghost" className="h-8 px-2 text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-50" onClick={() => {
                                         setActiveClientId(null);
@@ -155,7 +155,7 @@ function MedicalLayoutInner({ children }: MedicalLayoutProps) {
                             )}
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4 flex-shrink-0">
                             <HeaderNotifications officeId={officeSession.officeId} />
 
                             <DropdownMenu>

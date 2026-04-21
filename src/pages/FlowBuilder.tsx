@@ -317,7 +317,7 @@ export default function FlowBuilder() {
 
         {/* Inspector Sheet */}
         <Sheet open={isInspectorOpen} onOpenChange={setIsInspectorOpen}>
-          <SheetContent side="right" className="w-[400px]">
+          <SheetContent side="right" className="w-full sm:w-[400px]">
             <SheetHeader className="pb-6 border-b">
               <SheetTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5 text-primary" />

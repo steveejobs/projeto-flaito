@@ -34,8 +34,7 @@ serve(async (req) => {
 
     const officeId = inst.office_id
 
-    // 2. Persistir Inbound (A trigger ou o Processor cuidará do restante)
-    // Usamos a lógica de 'upsert' ou verificação de duplicidade por external_id
+    // 2. Persistir Inbound
     const { data: existing } = await supabase
       .from('whatsapp_messages')
       .select('id')
@@ -62,6 +61,16 @@ serve(async (req) => {
         .select().single()
       conv = newConv
     }
+
+    // Inserir mensagem com os campos REAIS do banco
+    await supabase.from('whatsapp_messages').insert({
+        office_id: officeId,
+        conversation_id: conv.id,
+        content: messageContent,
+        direction: 'inbound',
+        external_id: messageId,
+        sender_phone: normalizedPhone
+    });
 
     // 3. Processar via Motor de Fluxo (Internal Orchestration)
     try {

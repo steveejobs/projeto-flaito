@@ -332,7 +332,7 @@ const AIAgentsManager = () => {
                         />
                     </div>
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-[200px] h-12 bg-white/[0.02] border-white/10 rounded-xl font-semibold">
+                        <SelectTrigger className="w-full sm:w-[200px] h-12 bg-white/[0.02] border-white/10 rounded-xl font-semibold">
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent className="bg-background border-white/10">
@@ -422,11 +422,11 @@ const AIAgentsManager = () => {
             {/* Config View & Edit Sheet */}
             <Sheet open={!!editingConfig} onOpenChange={(open) => !open && setEditingConfig(null)}>
                 <SheetContent className="w-full sm:max-w-2xl bg-background border-l border-white/5 p-0 overflow-hidden flex flex-col shadow-2xl shadow-black/80">
-                    <div className="relative p-8 border-b border-white/5 bg-card/40 backdrop-blur-3xl overflow-hidden">
+                    <div className="relative p-4 sm:p-8 border-b border-white/5 bg-card/40 backdrop-blur-3xl overflow-hidden">
                         <div className="flex items-start justify-between gap-6 mb-8">
                             <div className="space-y-2">
                                 <SheetHeader className="text-left space-y-2">
-                                    <SheetTitle className="flex items-center gap-3 text-2xl font-black tracking-tight leading-none text-white">
+                                    <SheetTitle className="flex items-center gap-3 text-xl sm:text-2xl font-black tracking-tight leading-none text-white">
                                         <div className="p-2 rounded-xl bg-violet-600/10 text-violet-400 border border-violet-600/20">
                                             <Bot className="h-6 w-6" />
                                         </div>
@@ -434,7 +434,7 @@ const AIAgentsManager = () => {
                                     </SheetTitle>
                                     <div className="flex flex-col gap-2">
                                         <div className="flex items-center gap-2">
-                                            <SheetDescription className="font-mono text-[10px] font-black text-violet-400 bg-violet-400/5 w-fit px-2 py-0.5 rounded border border-violet-400/10 tracking-widest uppercase truncate max-w-[300px]">
+                                            <SheetDescription className="font-mono text-[10px] font-black text-violet-400 bg-violet-400/5 w-fit px-2 py-0.5 rounded border border-violet-400/10 tracking-widest uppercase truncate max-w-[200px] sm:max-w-[300px]">
                                                 {editForm.slug}
                                             </SheetDescription>
                                             {editingConfig && getOriginBadge(editingConfig)}

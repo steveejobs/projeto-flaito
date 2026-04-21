@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +12,32 @@ serve(async (req) => {
   }
 
   try {
+    // Validação de auth manual (compatível com publishable keys ES256 e anon keys HS256)
+    const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Token de autenticação não fornecido" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const jwt = authHeader.replace("Bearer ", "");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+    });
+
+    const { data: authData, error: authError } = await authClient.auth.getUser();
+    if (authError || !authData?.user) {
+      console.warn("[lexos-extract-document-data] Auth falhou:", authError?.message);
+      return new Response(
+        JSON.stringify({ error: "Sessão expirada. Faça login novamente." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { imageBase64, imageUrl, focusOn } = await req.json();
 
     if (!imageBase64 && !imageUrl) {
@@ -40,6 +67,7 @@ serve(async (req) => {
     const apiKey = useOpenAI ? OPENAI_API_KEY : LOVABLE_API_KEY;
 
     console.log("[lexos-extract-document-data] Iniciando extração, usando:", useOpenAI ? "OpenAI" : "Lovable Gateway");
+    console.log("[lexos-extract-document-data] Usuário autenticado:", authData.user.id);
 
     // Preparar a imagem para a API
     let imageContent: { type: "image_url"; image_url: { url: string } };
@@ -70,18 +98,20 @@ Analise a imagem do comprovante e extraia os dados de ENDEREÇO quando disponív
 
 Retorne APENAS um JSON válido com os campos encontrados. Use null para campos não encontrados.
 Não inclua explicações, apenas o JSON.`
-      : `Você é um assistente especializado em extrair dados de documentos brasileiros (RG, CNH, CPF, comprovante de endereço).
+      : `Você é um assistente especializado em extrair dados de documentos brasileiros (RG, CNH, CPF, CNPJ, contrato social, comprovante de endereço).
 
 Analise a imagem do documento e extraia os seguintes dados quando disponíveis:
-- Nome completo
-- CPF
-- RG e órgão emissor
+- Nome completo (ou Razão Social se for pessoa jurídica)
+- CPF (pessoa física) OU CNPJ (pessoa jurídica — 14 dígitos)
+- Se for pessoa jurídica: razão social e nome fantasia
+- RG e órgão emissor (pessoa física)
 - Data de nascimento
 - Nacionalidade
 - Estado civil (se visível)
 - Endereço completo (logradouro, número, bairro, cidade, estado, CEP)
 - Profissão (se visível)
 
+IMPORTANTE: Se identificar um CNPJ (14 dígitos), preencha o campo cnpj. Se for CPF (11 dígitos), preencha o campo cpf.
 Retorne APENAS um JSON válido com os campos encontrados. Use null para campos não encontrados.
 Não inclua explicações, apenas o JSON.`;
 
@@ -112,12 +142,15 @@ Não inclua explicações, apenas o JSON.`;
             type: "function",
             function: {
               name: "extract_document_data",
-              description: "Extrai dados estruturados de um documento brasileiro",
+              description: "Extrai dados estruturados de um documento brasileiro (pessoa física ou jurídica)",
               parameters: {
                 type: "object",
                 properties: {
-                  full_name: { type: "string", description: "Nome completo" },
-                  cpf: { type: "string", description: "CPF no formato 000.000.000-00" },
+                  full_name: { type: "string", description: "Nome completo (pessoa física) ou nome do representante" },
+                  cpf: { type: "string", description: "CPF no formato 000.000.000-00 (apenas pessoa física)" },
+                  cnpj: { type: "string", description: "CNPJ no formato 00.000.000/0000-00 (apenas pessoa jurídica)" },
+                  razao_social: { type: "string", description: "Razão Social da empresa (apenas pessoa jurídica)" },
+                  nome_fantasia: { type: "string", description: "Nome Fantasia da empresa (apenas pessoa jurídica, se disponível)" },
                   rg: { type: "string", description: "Número do RG" },
                   rg_issuer: { type: "string", description: "Órgão emissor do RG (ex: SSP/SP)" },
                   birth_date: { type: "string", description: "Data de nascimento no formato DD/MM/AAAA" },

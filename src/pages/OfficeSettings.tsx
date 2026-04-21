@@ -515,8 +515,8 @@ export default function OfficeSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pb-20">
-      <div className="container max-w-6xl py-8 space-y-8">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pb-28 md:pb-20">
+      <div className="container max-w-6xl py-4 sm:py-8 px-4 sm:px-6 space-y-6 sm:space-y-8">
         
         {/* ═══════════════════════════════════════════════════════════════
             HERO SECTION - Premium SaaS Header
@@ -587,15 +587,16 @@ export default function OfficeSettings() {
         ═══════════════════════════════════════════════════════════════ */}
         <Tabs defaultValue={window.location.hash === '#whatsapp-config' ? 'whatsapp' : 'identidade'} className="space-y-6">
           <TabsList className="bg-background/40 backdrop-blur border border-border/60 p-1 h-14 w-full md:w-auto overflow-x-auto justify-start">
-            <TabsTrigger value="identidade" className="gap-2 px-6 h-full data-[state=active]:bg-card data-[state=active]:shadow-sm">
+            <TabsTrigger value="identidade" className="gap-2 px-3 sm:px-6 h-full data-[state=active]:bg-card data-[state=active]:shadow-sm text-xs sm:text-sm">
               <Building2 className="h-4 w-4" />
-              Institucional
+              <span className="hidden sm:inline">Institucional</span>
+              <span className="sm:hidden">Instit.</span>
             </TabsTrigger>
-            <TabsTrigger value="branding" className="gap-2 px-6 h-full data-[state=active]:bg-card data-[state=active]:shadow-sm">
+            <TabsTrigger value="branding" className="gap-2 px-3 sm:px-6 h-full data-[state=active]:bg-card data-[state=active]:shadow-sm text-xs sm:text-sm">
               <Palette className="h-4 w-4" />
               Branding
             </TabsTrigger>
-            <TabsTrigger value="whatsapp" className="gap-2 px-6 h-full border-2 border-emerald-500/0 data-[state=active]:border-emerald-500/20 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-500 text-emerald-500/70">
+            <TabsTrigger value="whatsapp" className="gap-2 px-3 sm:px-6 h-full border-2 border-emerald-500/0 data-[state=active]:border-emerald-500/20 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-500 text-emerald-500/70 text-xs sm:text-sm">
               <Phone className="h-4 w-4" />
               Configurar WhatsApp
             </TabsTrigger>
@@ -816,21 +817,21 @@ export default function OfficeSettings() {
 
                <div className="px-8 pt-6 border-b border-emerald-500/10">
                   <Tabs value={activeWhatsappContext} onValueChange={(v) => setActiveWhatsappContext(v as MessagingContextType)} className="w-full">
-                    <TabsList className="bg-emerald-500/5 p-1 h-12">
-                      <TabsTrigger value="MEDICAL" className="gap-2 px-8 h-full data-[state=active]:bg-white data-[state=active]:text-emerald-600">
+                    <TabsList className="bg-emerald-500/5 p-1 h-12 w-full overflow-x-auto">
+                      <TabsTrigger value="MEDICAL" className="gap-2 px-3 sm:px-8 h-full data-[state=active]:bg-white data-[state=active]:text-emerald-600 text-xs sm:text-sm">
                         MÉDICO
                       </TabsTrigger>
-                      <TabsTrigger value="LEGAL" className="gap-2 px-8 h-full data-[state=active]:bg-white data-[state=active]:text-emerald-600">
+                      <TabsTrigger value="LEGAL" className="gap-2 px-3 sm:px-8 h-full data-[state=active]:bg-white data-[state=active]:text-emerald-600 text-xs sm:text-sm">
                         JURÍDICO
                       </TabsTrigger>
-                      <TabsTrigger value="GLOBAL" className="gap-2 px-8 h-full data-[state=active]:bg-white data-[state=active]:text-emerald-600">
-                        GLOBAL (Fallback)
+                      <TabsTrigger value="GLOBAL" className="gap-2 px-3 sm:px-8 h-full data-[state=active]:bg-white data-[state=active]:text-emerald-600 text-xs sm:text-sm">
+                        GLOBAL
                       </TabsTrigger>
                     </TabsList>
                   </Tabs>
                </div>
 
-               <CardContent className="p-8">
+               <CardContent className="p-4 sm:p-8">
                  <div className="grid md:grid-cols-2 gap-8 items-start">
                    <div className="space-y-6">
                      <div className="space-y-3">

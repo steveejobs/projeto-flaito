@@ -1,1 +1,5 @@
-export default function Placeholder() { return <div>Em desenvolvimento</div>; }
+import { ComingSoonPlaceholder } from "@/components/shared/ComingSoonPlaceholder";
+
+export default function Placeholder() {
+  return <ComingSoonPlaceholder title="Pagamentos da Agenda" />;
+}

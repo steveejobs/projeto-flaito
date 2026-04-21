@@ -47,18 +47,43 @@ export default function PublicClientCapture() {
 
   const [clientType, setClientType] = useState<ClientType>("PF");
   const [personalData, setPersonalData] = useState<PersonalData>({
-    nome: "", cpf: "", rg: "", rg_emissor: "", nacionalidade: "Brasileiro(a)", estado_civil: "", profissao: "", telefone: "", email: "",
+    nome: "",
+    cpf: "",
+    rg: "",
+    rg_emissor: "",
+    data_nascimento: "",
+    nacionalidade: "Brasileiro(a)",
+    estado_civil: "",
+    profissao: "",
+    telefone: "",
+    email: "",
   });
   const [pjData, setPJData] = useState<PJData>({
-    cnpj: "", razao_social: "", nome_fantasia: "", telefone: "", email: "",
-    representante_nome: "", representante_cpf: "", representante_rg: "", representante_rg_emissor: "",
-    representante_nacionalidade: "Brasileiro(a)", representante_estado_civil: "", representante_profissao: "",
+    cnpj: "",
+    razao_social: "",
+    nome_fantasia: "",
+    telefone: "",
+    email: "",
+    representante_nome: "",
+    representante_cpf: "",
+    representante_rg: "",
+    representante_rg_emissor: "",
+    representante_data_nascimento: "",
+    representante_nacionalidade: "Brasileiro(a)",
+    representante_estado_civil: "",
+    representante_profissao: "",
   });
   const [addressData, setAddressData] = useState<AddressData>({
-    cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "",
+    cep: "",
+    logradouro: "",
+    numero: "",
+    complemento: "",
+    bairro: "",
+    cidade: "",
+    uf: "",
   });
-
   const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
+  const [signatureToken, setSignatureToken] = useState<string | null>(null);
   const [lgpdAccepted, setLgpdAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -81,6 +106,7 @@ export default function PublicClientCapture() {
             method: "GET",
             headers: {
               apikey: SUPABASE_ANON_KEY,
+              "x-frontend-client": "flaito-app",
             },
           }
         );
@@ -121,13 +147,39 @@ export default function PublicClientCapture() {
   const handleExtractedData = (data: ExtractedDocumentData) => {
     // Mark as AI extracted
     setAiExtracted(true);
-    
+
+    // Detectar se é documento PJ (tem CNPJ)
+    const hasCnpj = !!(data.cnpj && data.cnpj.replace(/\D/g, "").length >= 14);
+
+    if (hasCnpj) {
+      // Mudar automaticamente para aba Pessoa Jurídica
+      setClientType("PJ");
+      setPJData((prev) => ({
+        ...prev,
+        cnpj: prev.cnpj || data.cnpj || "",
+        razao_social: prev.razao_social || data.razao_social || data.full_name || "",
+        nome_fantasia: prev.nome_fantasia || data.nome_fantasia || "",
+      }));
+      toast.info("📋 CNPJ identificado — formulário alterado para Pessoa Jurídica");
+    } else {
+      // Preencher dados de Pessoa Física
+      setPersonalData((prev) => ({
+        ...prev,
+        nome: prev.nome || data.full_name || "",
+        cpf: prev.cpf || data.cpf || "",
+        rg: prev.rg || data.rg || "",
+        rg_emissor: prev.rg_emissor || data.rg_issuer || "",
+        nacionalidade: prev.nacionalidade || data.nationality || "Brasileiro(a)",
+        estado_civil: prev.estado_civil || data.marital_status || "",
+        profissao: prev.profissao || data.profession || "",
+      }));
+    }
+
     // Parse address_line to extract street and number
     let logradouro = data.address_line || "";
     let numero = "";
-    
+
     if (logradouro) {
-      // Try to extract number from end of address line (e.g., "Rua ABC, 123" or "Rua ABC 123")
       const match = logradouro.match(/[,\s]+(\d+[A-Za-z]?)$/);
       if (match) {
         numero = match[1];
@@ -135,19 +187,7 @@ export default function PublicClientCapture() {
       }
     }
 
-    // Update personal data (only fill empty fields)
-    setPersonalData((prev) => ({
-      ...prev,
-      nome: prev.nome || data.full_name || "",
-      cpf: prev.cpf || data.cpf || "",
-      rg: prev.rg || data.rg || "",
-      rg_emissor: prev.rg_emissor || data.rg_issuer || "",
-      nacionalidade: prev.nacionalidade || data.nationality || "Brasileiro(a)",
-      estado_civil: prev.estado_civil || data.marital_status || "",
-      profissao: prev.profissao || data.profession || "",
-    }));
-
-    // Update address data (only fill empty fields)
+    // Update address data (only fill empty fields — applies to both PF and PJ)
     setAddressData((prev) => ({
       ...prev,
       cep: prev.cep || data.cep || "",
@@ -165,7 +205,8 @@ export default function PublicClientCapture() {
   };
 
   const handleSubmit = async () => {
-    if (!office || !signatureDataUrl || !lgpdAccepted) return;
+    // Permite submissão com assinatura local OU token de assinatura remota
+    if (!office || (!signatureDataUrl && !signatureToken) || !lgpdAccepted) return;
 
     setSubmitting(true);
 
@@ -178,7 +219,7 @@ export default function PublicClientCapture() {
           clientType === "PF"
             ? personalData
             : {
-                nome: pjData.razao_social,
+                nome: pjData.razao_social || pjData.nome_fantasia,
                 cpf: "",
                 rg: "",
                 rg_emissor: "",
@@ -195,17 +236,19 @@ export default function PublicClientCapture() {
           telefone: pjData.telefone,
           email: pjData.email,
           representative: {
-            nome: pjData.representante_nome,
-            cpf: pjData.representante_cpf,
-            rg: pjData.representante_rg,
-            rg_emissor: pjData.representante_rg_emissor,
-            nacionalidade: pjData.representante_nacionalidade,
-            estado_civil: pjData.representante_estado_civil,
-            profissao: pjData.representante_profissao,
+            nome: pjData.representante_nome || "",
+            cpf: pjData.representante_cpf || "",
+            rg: pjData.representante_rg || "",
+            rg_emissor: pjData.representante_rg_emissor || "",
+            nacionalidade: pjData.representante_nacionalidade || "",
+            estado_civil: pjData.representante_estado_civil || "",
+            profissao: pjData.representante_profissao || "",
           },
         } : undefined,
         address: addressData,
-        signature: { dataUrlPng: signatureDataUrl },
+        // Envia assinatura local se disponível, senão o backend busca pelo token
+        signature: signatureDataUrl ? { dataUrlPng: signatureDataUrl } : undefined,
+        signatureToken: signatureToken || undefined,
         files: files.length > 0 ? files : undefined,
         lgpdAccepted: true,
         hp: "",
@@ -217,6 +260,7 @@ export default function PublicClientCapture() {
         headers: {
           "Content-Type": "application/json",
           apikey: SUPABASE_ANON_KEY,
+          "x-frontend-client": "flaito-app",
         },
         body: JSON.stringify(payload),
       });
@@ -244,14 +288,16 @@ export default function PublicClientCapture() {
     setShowScan(false);
     setFiles([]);
     setClientType("PF");
-    setPersonalData({ nome: "", cpf: "", rg: "", rg_emissor: "", nacionalidade: "Brasileiro(a)", estado_civil: "", profissao: "", telefone: "", email: "" });
+    setPersonalData({ nome: "", cpf: "", rg: "", rg_emissor: "", data_nascimento: "", nacionalidade: "Brasileiro(a)", estado_civil: "", profissao: "", telefone: "", email: "" });
     setPJData({ 
       cnpj: "", razao_social: "", nome_fantasia: "", telefone: "", email: "",
       representante_nome: "", representante_cpf: "", representante_rg: "", representante_rg_emissor: "",
-      representante_nacionalidade: "Brasileiro(a)", representante_estado_civil: "", representante_profissao: "",
+      representante_data_nascimento: "", representante_nacionalidade: "Brasileiro(a)",
+      representante_estado_civil: "", representante_profissao: "",
     });
     setAddressData({ cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "" });
     setSignatureDataUrl(null);
+    setSignatureToken(null);
     setLgpdAccepted(false);
     setSuccess(false);
     setDisplayId("");
@@ -337,6 +383,9 @@ export default function PublicClientCapture() {
                 onSubmit={handleSubmit}
                 onBack={() => setStep(2)}
                 submitting={submitting}
+                clientName={clientType === "PF" ? personalData.nome : (pjData.razao_social || pjData.nome_fantasia)}
+                officeSlug={officeSlug}
+                onTokenChange={setSignatureToken}
               />
             </StepTransition>
           </div>

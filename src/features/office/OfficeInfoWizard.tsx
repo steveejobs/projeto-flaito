@@ -225,7 +225,7 @@ export const OfficeInfoWizard: React.FC<OfficeInfoWizardProps> = ({ officeId, on
 
       <div className="flex justify-end gap-3 pt-4">
         <Button 
-          onClick={handleSave} 
+          onClick={() => handleSave()} 
           disabled={saving}
           className="bg-blue-600 hover:bg-blue-700 text-white min-w-[140px]"
         >

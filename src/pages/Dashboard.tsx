@@ -46,7 +46,7 @@ const Dashboard = () => {
                     <button
                         onClick={() => setActiveTab('LEGAL')}
                         className={`
-                            relative flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold tracking-[0.15em]
+                            relative flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 rounded-lg text-xs font-bold tracking-[0.15em]
                             transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] overflow-hidden
                             ${activeTab === 'LEGAL'
                                 ? 'text-primary'
@@ -67,7 +67,7 @@ const Dashboard = () => {
                     <button
                         onClick={() => setActiveTab('MEDICAL')}
                         className={`
-                            relative flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold tracking-[0.15em]
+                            relative flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 rounded-lg text-xs font-bold tracking-[0.15em]
                             transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] overflow-hidden
                             ${activeTab === 'MEDICAL'
                                 ? 'text-blue-400'

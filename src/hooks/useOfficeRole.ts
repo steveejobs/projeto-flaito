@@ -7,7 +7,7 @@ import { withTimeout } from '@/lib/utils';
 interface UseOfficeRoleResult {
   role: OfficeRole;
   officeId: string | null;
-  module: OfficeModule;
+  module: OfficeModule | null;
   loading: boolean;
   refresh: () => Promise<void>;
 }
@@ -22,7 +22,7 @@ interface UseOfficeRoleResult {
 export function useOfficeRole(): UseOfficeRoleResult {
   const { user, loading: authLoading } = useAuth();
   const [role, setRole] = useState<OfficeRole>(null);
-  const [module, setModule] = useState<OfficeModule>('LEGAL');
+  const [module, setModule] = useState<OfficeModule | null>(null);
   const [officeId, setOfficeId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -70,12 +70,19 @@ export function useOfficeRole(): UseOfficeRoleResult {
           .eq('id', health.office_id)
           .maybeSingle();
 
-        setModule(normalizeModule(officeData?.office_type));
+        const resolvedModule = normalizeModule(officeData?.office_type);
+        setModule(resolvedModule);
       } else {
-        // Sem escritório vinculado: Estado Estrito NULL
+        // Fallback para metadados do usuário se não houver escritório vinculado ou falha na query
+        const userMetadataModule = user?.user_metadata?.main_module;
+        if (userMetadataModule) {
+            setModule(normalizeModule(userMetadataModule));
+        } else {
+            setModule('LEGAL');
+        }
+        
         setRole(null);
         setOfficeId(null);
-        setModule('LEGAL');
       }
 
     } catch (err) {

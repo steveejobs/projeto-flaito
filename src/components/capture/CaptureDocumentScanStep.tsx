@@ -35,6 +35,10 @@ export interface ExtractedDocumentData {
   city?: string;
   state?: string;
   cep?: string;
+  // Pessoa Jurídica
+  cnpj?: string;
+  razao_social?: string;
+  nome_fantasia?: string;
 }
 
 interface CaptureDocumentScanStepProps {
@@ -204,7 +208,9 @@ export function CaptureDocumentScanStep({
 
   const getFileForKind = (kind: string) => files.find((f) => f.kind === kind);
 
-  const compressImage = async (dataUrl: string, maxWidth = 1600, quality = 0.8): Promise<string> => {
+  // Compressão mais agressiva: largura até 1200px e qualidade 0.65
+  // Reduz ~40% o tamanho da imagem sem perder legibilidade para OCR
+  const compressImage = async (dataUrl: string, maxWidth = 1200, quality = 0.65): Promise<string> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
@@ -293,48 +299,55 @@ export function CaptureDocumentScanStep({
       const extractedData: ExtractedDocumentData = {};
       let totalFieldsFound = 0;
 
-      // Extract from identity document
-      if (identityFile) {
-        console.log("Processing Identity document...");
-        const imageBase64 = await getDocumentImage(identityFile);
-        if (imageBase64) {
-          const { data, error } = await supabase.functions.invoke("lexos-extract-document-data", {
-            body: { imageBase64, focusOn: "identity" }
-          });
+      // Timeout helper: rejeita após 25s com mensagem amigável
+      const withTimeout = <T,>(promise: Promise<T>, ms = 25000): Promise<T> => {
+        const timeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("timeout")), ms)
+        );
+        return Promise.race([promise, timeout]);
+      };
 
-          console.log("Identity Function result:", { data, error });
+      // Prepara as imagens em paralelo antes de enviar
+      const [identityImage, addressImage] = await Promise.all([
+        identityFile ? getDocumentImage(identityFile) : Promise.resolve(null),
+        addressFile ? getDocumentImage(addressFile) : Promise.resolve(null),
+      ]);
 
-          if (error) throw error;
-          
-          if (data?.success && data?.data) {
-            Object.assign(extractedData, data.data);
-            totalFieldsFound += data.fieldsFound?.length || 0;
-          }
-        }
+      // Chama a IA para os dois documentos em paralelo
+      const [identityResult, addressResult] = await Promise.all([
+        identityImage
+          ? withTimeout(supabase.functions.invoke("lexos-extract-document-data", {
+              body: { imageBase64: identityImage, focusOn: "identity" }
+            }))
+          : Promise.resolve({ data: null, error: null }),
+        addressImage
+          ? withTimeout(supabase.functions.invoke("lexos-extract-document-data", {
+              body: { imageBase64: addressImage, focusOn: "address" }
+            }))
+          : Promise.resolve({ data: null, error: null }),
+      ]);
+
+      console.log("Identity result:", identityResult);
+      console.log("Address result:", addressResult);
+
+      if (identityResult.error) throw identityResult.error;
+      if (addressResult.error) throw addressResult.error;
+
+      // Mescla dados de identidade
+      if (identityResult.data?.success && identityResult.data?.data) {
+        Object.assign(extractedData, identityResult.data.data);
+        totalFieldsFound += identityResult.data.fieldsFound?.length || 0;
       }
 
-      // Extract from address document
-      if (addressFile) {
-        console.log("Processing Address document...");
-        const imageBase64 = await getDocumentImage(addressFile);
-        if (imageBase64) {
-          const { data, error } = await supabase.functions.invoke("lexos-extract-document-data", {
-            body: { imageBase64, focusOn: "address" }
-          });
-
-          console.log("Address Function result:", { data, error });
-
-          if (error) throw error;
-
-          if (data?.success && data?.data) {
-            if (data.data.address_line) extractedData.address_line = data.data.address_line;
-            if (data.data.neighborhood) extractedData.neighborhood = data.data.neighborhood;
-            if (data.data.city) extractedData.city = data.data.city;
-            if (data.data.state) extractedData.state = data.data.state;
-            if (data.data.cep) extractedData.cep = data.data.cep;
-            totalFieldsFound += data.fieldsFound?.length || 0;
-          }
-        }
+      // Mescla apenas campos de endereço do comprovante
+      if (addressResult.data?.success && addressResult.data?.data) {
+        const addr = addressResult.data.data;
+        if (addr.address_line) extractedData.address_line = addr.address_line;
+        if (addr.neighborhood) extractedData.neighborhood = addr.neighborhood;
+        if (addr.city) extractedData.city = addr.city;
+        if (addr.state) extractedData.state = addr.state;
+        if (addr.cep) extractedData.cep = addr.cep;
+        totalFieldsFound += addressResult.data.fieldsFound?.length || 0;
       }
 
       if (totalFieldsFound > 0) {
@@ -348,7 +361,11 @@ export function CaptureDocumentScanStep({
       
       let errorMessage = "Erro de conexão com o servidor";
       
-      // Attempt to extract message from Supabase Functions error
+      if (err.message === "timeout") {
+        toast.error("A análise demorou muito. Tente com uma imagem mais leve ou preencha manualmente.");
+        return;
+      }
+
       if (err.context) {
         try {
           const body = await err.context.json();
@@ -368,10 +385,7 @@ export function CaptureDocumentScanStep({
         toast.error("Sua sessão pode ter expirado ou permissão negada. Tente fazer login novamente.");
       } else if (status === 429) {
         toast.error("Muitas tentativas simultâneas. Aguarde um momento.");
-      } else if (err.name === "AbortError" || errorMessage.includes("timeout")) {
-        toast.error("A conexão demorou muito. Tente enviar uma imagem mais leve.");
       } else {
-        // Detailed error for the user to report back
         toast.error(`Falha no preenchimento: ${errorMessage}`);
         console.warn("Dica: Verifique se a OPENAI_API_KEY está configurada no Supabase Secrets.");
       }

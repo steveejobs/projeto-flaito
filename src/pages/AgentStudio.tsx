@@ -8,7 +8,6 @@ import {
   Search, 
   Settings2, 
   MessageSquare, 
-  Clock, 
   ShieldAlert, 
   ChevronRight,
   MoreHorizontal,
@@ -43,49 +42,124 @@ import {
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-interface AgentProfile {
+interface UnifiedAgent {
   id: string;
+  slug?: string;
   name: string;
   role: string;
   goal: string;
-  channel: string;
   is_active: boolean;
   system_prompt: string;
+  extra_instructions?: string;
   tone: string;
   fallback_message: string;
-  business_hours_json: any;
-  created_at: string;
+  vertical: string;
+  origin: 'system' | 'custom';
+  provider?: string;
+  model?: string;
+  temperature?: number;
+  channel?: string;
 }
 
 export default function AgentStudio() {
-  const { officeId } = useOfficeRole();
+  const { officeId, module } = useOfficeRole();
   const { toast } = useToast();
-  const [agents, setAgents] = useState<AgentProfile[]>([]);
+  const [agents, setAgents] = useState<UnifiedAgent[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [selectedAgent, setSelectedAgent] = useState<AgentProfile | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<UnifiedAgent | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
     if (officeId) {
       fetchAgents();
     }
-  }, [officeId]);
+  }, [officeId, module]);
 
   const fetchAgents = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      const { data: profiles, error: pErr } = await supabase
         .from("agent_profiles")
         .select("*")
         .eq("office_id", officeId)
-        .order("created_at", { ascending: false });
+        .eq("vertical", module);
 
-      if (error) throw error;
-      setAgents(data || []);
+      if (pErr) throw pErr;
+
+      const { data: configs, error: cErr } = await supabase
+        .from("ai_agent_configs" as any)
+        .select("*")
+        .or(`office_id.is.null,office_id.eq.${officeId}`);
+
+      if (cErr) throw cErr;
+
+      const systemMap = new Map<string, any>();
+      
+      configs?.filter(c => !c.office_id).forEach(c => {
+        systemMap.set(c.slug, { ...c, is_override: false });
+      });
+
+      configs?.filter(c => c.office_id === officeId).forEach(c => {
+        const global = systemMap.get(c.slug);
+        systemMap.set(c.slug, { ...global, ...c, is_override: true });
+      });
+
+      const unifiedSystemAgents: UnifiedAgent[] = Array.from(systemMap.values())
+        .map(c => ({
+          id: `system:${c.slug}`,
+          slug: c.slug,
+          name: c.friendly_name || c.slug,
+          role: "Agente de Sistema",
+          goal: c.description || "",
+          is_active: c.is_active ?? true,
+          system_prompt: c.system_prompt || "",
+          extra_instructions: c.extra_instructions || "",
+          tone: "Profissional",
+          fallback_message: "",
+          vertical: "BOTH",
+          origin: 'system' as const,
+          provider: c.provider,
+          model: c.model,
+          temperature: c.temperature,
+          channel: 'chat'
+        }));
+
+      const unifiedCustomAgents: UnifiedAgent[] = (profiles || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        role: p.role || "",
+        goal: p.goal || "",
+        is_active: p.is_active ?? true,
+        system_prompt: p.system_prompt || "",
+        tone: p.tone || "Profissional",
+        fallback_message: p.fallback_message || "",
+        vertical: p.vertical,
+        origin: 'custom' as const,
+        channel: p.channel || 'whatsapp'
+      }));
+
+      const finalAgents = [
+        ...unifiedSystemAgents.filter(a => {
+          if (module === 'MEDICAL') {
+            return a.slug === 'voice-assistant';
+          }
+          return true;
+        }),
+        ...unifiedCustomAgents
+      ];
+
+      setAgents(finalAgents);
+
+      // Auto-seeding: Se não houver agentes customizados na vertical, semeia automaticamente
+      if (unifiedCustomAgents.length === 0 && module && !loading) {
+        console.log(`[AgentStudio] Vertical ${module} sem agentes customizados. Iniciando auto-seed...`);
+        handleSeedAgents(true); 
+      }
+
     } catch (error: any) {
       toast({
         title: "Erro ao carregar agentes",
@@ -97,16 +171,105 @@ export default function AgentStudio() {
     }
   };
 
-  const handleToggleActive = async (agent: AgentProfile) => {
+  const handleSeedAgents = async (silent = false) => {
     try {
-      const { error } = await supabase
-        .from("agent_profiles")
-        .update({ is_active: !agent.is_active })
-        .eq("id", agent.id);
-
-      if (error) throw error;
+      if (!silent) setLoading(true);
       
-      setAgents(prev => prev.map(a => a.id === agent.id ? { ...a, is_active: !a.is_active } : a));
+      const seeds = module === 'MEDICAL' 
+        ? [
+          {
+            name: 'Recepcionista Clínica',
+            role: 'Atendente de Triagem',
+            goal: 'Identificar a especialidade necessária e coletar dados do convênio.',
+            system_prompt: 'Você é a recepcionista virtual da Flaito Health. Sua missão é: 1. Confirmar se o paciente já é cadastrado. 2. Identificar se o motivo do contato é consulta eletiva ou urgência. 3. Se for urgência, instruir o paciente sobre o tempo médio de espera e coletar sintomas principais para o médico. 4. Se for eletiva, oferecer horários disponíveis. Seja acolhedora, mas eficiente na coleta de dados estruturados.',
+            tone: 'Acolhedor e Profissional',
+            fallback_message: 'Vou transferir para nossa recepção humana para finalizar seu agendamento.',
+            vertical: 'MEDICAL'
+          },
+          {
+            name: 'Triagem Pré-Consulta',
+            role: 'Assistente Clínico IA',
+            goal: 'Coletar anamnese básica (alergias, medicamentos, sintomas) antes da consulta.',
+            system_prompt: 'Você é um assistente clínico que prepara o atendimento para o médico. Sua missão é: 1. Perguntar sobre alergias conhecidas. 2. Listar medicamentos em uso contínuo. 3. Descrever os sintomas atuais com duração e intensidade (0-10). 4. Organizar esses dados em um resumo para o prontuário. Nunca dê diagnósticos, apenas colete informações.',
+            tone: 'Técnico e Empático',
+            fallback_message: 'Aguarde um momento, um profissional de saúde analisará seus sintomas.',
+            vertical: 'MEDICAL'
+          }
+        ]
+        : [
+          {
+            name: 'Protocolo Jurídico',
+            role: 'Assistente de Intake',
+            goal: 'Qualificar a viabilidade jurídica do caso e coletar documentos básicos.',
+            system_prompt: 'Você é o assistente de entrada do escritório. Sua missão é: 1. Identificar o ramo do direito (Trabalhista, Cível, etc). 2. Coletar fatos principais (O que aconteceu? Quando? Onde?). 3. Solicitar documentos essenciais (RG, Comprovante de Residência). 4. Avaliar se o caso tem urgência (prazos correndo). Organize as informações para que o advogado possa decidir pela aceitação do caso em menos de 2 minutos.',
+            tone: 'Formal e Eficiente',
+            fallback_message: 'Vou encaminhar seu relato para um de nossos advogados especialistas.',
+            vertical: 'LEGAL'
+          },
+          {
+            name: 'Qualificação Comercial',
+            role: 'Sales Development Representative (SDR)',
+            goal: 'Identificar o potencial financeiro do lead e urgência da demanda.',
+            system_prompt: 'Você é o responsável por filtrar leads no CRM. Sua missão é: 1. Entender o ticket médio potencial do caso. 2. Identificar a dor emocional do cliente. 3. Agendar uma reunião de briefing se o lead for qualificado. 4. Marcar leads "frios" para régua de nutrição. Seja persuasivo e focado em converter o contato em uma reunião.',
+            tone: 'Direto e Persuasivo',
+            fallback_message: 'Nossa equipe comercial entrará em contato em breve para uma análise personalizada.',
+            vertical: 'LEGAL'
+          }
+        ];
+
+      const fullSeeds = seeds.map(s => ({
+        ...s,
+        office_id: officeId,
+        channel: 'whatsapp',
+        is_active: true,
+        business_hours_json: {}
+      }));
+
+      const { error } = await supabase.from('agent_profiles').insert(fullSeeds);
+      if (error) throw error;
+
+      if (!silent) {
+        toast({
+          title: "Agentes Semeados!",
+          description: `Criamos ${seeds.length} agentes padrão para o módulo ${module}.`,
+        });
+      }
+      
+      fetchAgents();
+
+    } catch (error: any) {
+      if (!silent) {
+        toast({
+          title: "Erro ao semear agentes",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
+
+  const handleToggleActive = async (agent: UnifiedAgent) => {
+    try {
+      if (agent.origin === 'custom') {
+        const { error } = await supabase
+          .from("agent_profiles")
+          .update({ is_active: !agent.is_active })
+          .eq("id", agent.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("ai_agent_configs" as any)
+          .upsert({ 
+            slug: agent.slug, 
+            office_id: officeId,
+            is_active: !agent.is_active 
+          }, { onConflict: 'office_id,slug' });
+        if (error) throw error;
+      }
+      
+      fetchAgents();
       
       toast({
         title: agent.is_active ? "Agente desativado" : "Agente ativado",
@@ -121,29 +284,69 @@ export default function AgentStudio() {
     }
   };
 
-  const handleEditAgent = (agent: AgentProfile) => {
+  const handleEditAgent = (agent: UnifiedAgent) => {
     setSelectedAgent(agent);
     setIsSheetOpen(true);
   };
 
+  const handleCreateAgent = () => {
+    setSelectedAgent({
+      id: '', 
+      name: 'Novo Agente',
+      role: 'Atendente',
+      goal: '',
+      is_active: true,
+      system_prompt: '',
+      tone: 'Profissional',
+      fallback_message: 'Um momento, vou transferir para um especialista.',
+      vertical: module || 'LEGAL',
+      origin: 'custom',
+      channel: 'whatsapp'
+    } as UnifiedAgent);
+    setIsSheetOpen(true);
+  };
+
+
   const handleSaveAgent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedAgent) return;
+    if (!selectedAgent || !officeId) return;
 
     try {
-      const { error } = await supabase
-        .from("agent_profiles")
-        .update({
+      if (selectedAgent.origin === 'custom') {
+        const agentData = {
+          office_id: officeId,
           name: selectedAgent.name,
           role: selectedAgent.role,
           goal: selectedAgent.goal,
           system_prompt: selectedAgent.system_prompt,
           tone: selectedAgent.tone,
-          fallback_message: selectedAgent.fallback_message
-        })
-        .eq("id", selectedAgent.id);
+          fallback_message: selectedAgent.fallback_message,
+          vertical: module || 'LEGAL',
+          channel: selectedAgent.id ? selectedAgent.channel : 'whatsapp',
+          is_active: selectedAgent.id ? selectedAgent.is_active : true
+        };
 
-      if (error) throw error;
+        const { error } = selectedAgent.id 
+          ? await supabase.from("agent_profiles").update(agentData).eq("id", selectedAgent.id)
+          : await supabase.from("agent_profiles").insert(agentData);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("ai_agent_configs" as any)
+          .upsert({
+            slug: selectedAgent.slug,
+            office_id: officeId,
+            model: selectedAgent.model,
+            temperature: selectedAgent.temperature,
+            system_prompt: selectedAgent.system_prompt,
+            extra_instructions: selectedAgent.extra_instructions,
+            friendly_name: selectedAgent.name,
+            is_active: selectedAgent.is_active
+          }, { onConflict: 'office_id,slug' });
+
+        if (error) throw error;
+      }
 
       toast({
         title: "Agente salvo",
@@ -167,7 +370,6 @@ export default function AgentStudio() {
 
   return (
     <div className="container mx-auto py-8 space-y-8 animate-in fade-in duration-500">
-      {/* Header Premium */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-6 border-border/50">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
@@ -177,13 +379,16 @@ export default function AgentStudio() {
             Configure a personalidade e o comportamento dos seus atendentes virtuais.
           </p>
         </div>
-        <Button size="lg" className="rounded-full shadow-lg hover:shadow-primary/20 transition-all gap-2 px-6">
+        <Button 
+          size="lg" 
+          className="rounded-full shadow-lg hover:shadow-primary/20 transition-all gap-2 px-6"
+          onClick={handleCreateAgent}
+        >
           <Plus className="h-5 w-5" />
           Novo Agente
         </Button>
       </div>
 
-      {/* Toolbox */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -203,7 +408,6 @@ export default function AgentStudio() {
         </Tabs>
       </div>
 
-      {/* Grid de Agentes */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-64 w-full rounded-2xl" />)}
@@ -212,9 +416,17 @@ export default function AgentStudio() {
         <div className="text-center py-20 border-2 border-dashed rounded-3xl bg-muted/5 border-muted-foreground/20">
           <Bot className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
           <h3 className="text-xl font-semibold">Nenhum agente encontrado</h3>
-          <p className="text-muted-foreground max-w-sm mx-auto mt-2">
-            Comece criando seu primeiro atendente configurável para automatizar o pré-atendimento.
+          <p className="text-muted-foreground max-w-sm mx-auto mt-2 mb-6">
+            Sua vertical <strong>{module}</strong> está sem agentes ativos. Comece do zero ou use nossos templates recomendados.
           </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-3">
+            <Button onClick={handleCreateAgent} variant="outline" className="rounded-full">
+              <Plus className="h-4 w-4 mr-2" /> Criar do Zero
+            </Button>
+            <Button onClick={handleSeedAgents} className="rounded-full gap-2 shadow-lg shadow-primary/20">
+              <Zap className="h-4 w-4" /> Gerar Agentes Sugeridos ({module})
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -234,9 +446,6 @@ export default function AgentStudio() {
                       <DropdownMenuItem onClick={() => handleEditAgent(agent)} className="gap-2">
                         <Settings2 className="h-4 w-4" /> Editar Perfil
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-2">
-                        <MessageSquare className="h-4 w-4" /> Ver Conversas
-                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
                         onClick={() => handleToggleActive(agent)}
@@ -254,8 +463,11 @@ export default function AgentStudio() {
                   </div>
                   <div>
                     <CardTitle className="text-xl group-hover:text-primary transition-colors">{agent.name}</CardTitle>
-                    <CardDescription className="flex items-center gap-2 mt-1">
+                    <CardDescription className="flex flex-wrap items-center gap-2 mt-1">
                       <Badge variant="outline" className="font-medium bg-muted/50 border-none capitalize">{agent.channel}</Badge>
+                      <Badge variant="secondary" className={agent.origin === 'system' ? 'bg-blue-500/10 text-blue-600 border-none' : 'bg-purple-500/10 text-purple-600 border-none'}>
+                        {agent.origin === 'system' ? 'Sistema' : 'Personalizado'}
+                      </Badge>
                       {agent.is_active ? (
                         <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-none flex gap-1 items-center">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
@@ -278,18 +490,6 @@ export default function AgentStudio() {
                     {agent.goal || "Sem objetivo definido."}
                   </p>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div className="bg-muted/30 p-2 rounded-xl text-center">
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">Conversas</span>
-                    <span className="font-bold text-lg">--</span>
-                  </div>
-                  <div className="bg-muted/30 p-2 rounded-xl text-center">
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">Satisfação</span>
-                    <span className="font-bold text-lg text-emerald-600">--</span>
-                  </div>
-                </div>
-
                 <Button 
                   onClick={() => handleEditAgent(agent)}
                   variant="outline" 
@@ -304,7 +504,6 @@ export default function AgentStudio() {
         </div>
       )}
 
-      {/* Sheet de Edição */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="sm:max-w-xl overflow-y-auto">
           <SheetHeader className="pb-6 border-b">
@@ -337,6 +536,7 @@ export default function AgentStudio() {
                     placeholder="Ex: Concierge Jurídico"
                     value={selectedAgent?.role || ""} 
                     onChange={e => setSelectedAgent(prev => prev ? {...prev, role: e.target.value} : null)}
+                    disabled={selectedAgent?.origin === 'system'}
                   />
                 </div>
                 <div className="space-y-2">
@@ -372,6 +572,19 @@ export default function AgentStudio() {
                   rows={8}
                 />
               </div>
+
+              {selectedAgent?.origin === 'system' && (
+                <div className="space-y-2">
+                  <Label htmlFor="extra">Instruções Adicionais (Office Override)</Label>
+                  <Textarea 
+                    id="extra" 
+                    placeholder="Regras específicas do seu escritório que complementam o prompt..."
+                    value={selectedAgent?.extra_instructions || ""} 
+                    onChange={e => setSelectedAgent(prev => prev ? {...prev, extra_instructions: e.target.value} : null)}
+                    rows={4}
+                  />
+                </div>
+              )}
 
               <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-4">
                 <div className="flex items-center justify-between">
