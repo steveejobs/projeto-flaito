@@ -7,3 +7,4 @@ export { ClientFormDialog } from './ClientFormDialog';
 export { ClientInteractionPanel } from './ClientInteractionPanel';
 export { ClientProtocolDownload } from './ClientProtocolDownload';
 export { ClientSignaturePanel } from './ClientSignaturePanel';
+export { ClientStudyContextPanel } from './ClientStudyContextPanel';

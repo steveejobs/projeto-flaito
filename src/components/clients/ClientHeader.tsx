@@ -17,7 +17,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Pencil, MoreHorizontal, Archive, Trash2, Globe, Sparkles } from "lucide-react";
+import { ArrowLeft, Pencil, MoreHorizontal, Archive, Trash2, Globe, Sparkles, Brain } from "lucide-react";
+import { useActiveClient } from "@/contexts/ActiveClientContext";
 import { ClientTabs, type TabValue } from "./ClientTabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -41,6 +42,7 @@ type Props = {
   docsCount?: number;
   filesCount?: number;
   timelineCount?: number;
+  extraActions?: React.ReactNode;
 };
 
 function onlyDigits(v?: string | null) {
@@ -75,9 +77,11 @@ export function ClientHeader({
   docsCount = 0,
   filesCount = 0,
   timelineCount = 0,
+  extraActions,
 }: Props) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { setActiveClientId, activeClientId } = useActiveClient();
 
   // Dialog states
   const [archiveOpen, setArchiveOpen] = useState(false);
@@ -226,6 +230,29 @@ export function ClientHeader({
 
           {/* Right side: Actions */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Athena — set as active client */}
+            <Button
+              variant={activeClientId === clientId ? "default" : "outline"}
+              size="sm"
+              className={`hidden sm:inline-flex gap-1.5 ${activeClientId === clientId ? "bg-teal-600 hover:bg-teal-700 text-white" : "border-teal-200 text-teal-700 hover:bg-teal-50 dark:border-teal-800 dark:text-teal-400 dark:hover:bg-teal-950/30"}`}
+              onClick={() => {
+                if (activeClientId === clientId) {
+                  setActiveClientId(null);
+                  toast({ title: "Athena", description: "Modo cliente desativado." });
+                } else {
+                  setActiveClientId(clientId);
+                  toast({ title: "Athena", description: `Modo cliente ativado para ${clientName}.` });
+                }
+              }}
+              type="button"
+              title={activeClientId === clientId ? "Desativar modo cliente na Athena" : "Ativar Athena para este cliente"}
+            >
+              <Brain className="h-4 w-4" />
+              {activeClientId === clientId ? "Athena ativa" : "Athena"}
+            </Button>
+
+            {extraActions}
+
             <Button
               variant="outline"
               size="sm"

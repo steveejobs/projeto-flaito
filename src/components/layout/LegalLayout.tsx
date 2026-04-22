@@ -27,6 +27,7 @@ import { LegalClock } from '@/components/LegalClock';
 import { RouteTransitionOverlay } from '@/components/RouteTransitionOverlay';
 import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 import { DevDiagnosticsPanel } from '@/components/DevDiagnosticsPanel';
+import { VoiceAgentLauncher } from '@/components/VoiceAgentLauncher';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -274,6 +275,9 @@ export function LegalLayout({ children }: AppLayoutProps) {
 
           {/* Global Chat Assistant */}
           <LexosChatAssistant caseId={activeCaseId} clientId={chatActiveClientId} />
+
+          {/* Voice Launcher */}
+          <VoiceAgentLauncher />
 
           {/* DEV Diagnostics Panel - toggled via sidebar menu */}
           {import.meta.env.DEV && devPanel.isOpen && (

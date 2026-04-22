@@ -18,6 +18,8 @@ import {
   Scale, MapPin, Mail, Phone, Palette, Image, FileText, Layout
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WhatsAppView } from "@/components/WhatsAppView";
+
 
 interface OfficeData {
   id: string;
@@ -140,6 +142,10 @@ export default function OfficeSettings() {
   const [logoSettings, setLogoSettings] = useState<LogoSettings>(DEFAULT_LOGO_SETTINGS);
   const [signatureSettings, setSignatureSettings] = useState<SignatureSettings>(DEFAULT_SIGNATURE_SETTINGS);
   
+  
+  // WhatsApp Config State
+
+  
   // WhatsApp Config State
   type MessagingContextType = 'MEDICAL' | 'LEGAL' | 'GLOBAL';
   const [activeWhatsappContext, setActiveWhatsappContext] = useState<MessagingContextType>("MEDICAL");
@@ -156,6 +162,7 @@ export default function OfficeSettings() {
       [context]: { ...prev[context], [field]: value }
     }));
   };
+
 
   const logoPreviewRef = useRef<HTMLDivElement>(null);
   const signaturePreviewRef = useRef<HTMLDivElement>(null);
@@ -795,7 +802,7 @@ export default function OfficeSettings() {
                     </div>
                     <div>
                       <CardTitle className="text-xl font-bold text-foreground">Configurar WhatsApp</CardTitle>
-                      <CardDescription className="text-sm font-medium text-emerald-600/70">Integração oficial via Z-API Engine</CardDescription>
+                      <CardDescription className="text-sm font-medium text-emerald-600/70">Integração oficial via WhatsApi Engine</CardDescription>
                     </div>
                   </div>
                   <div className="bg-background/80 backdrop-blur px-6 py-4 rounded-2xl border flex flex-col items-end gap-2 shadow-sm">
@@ -834,14 +841,16 @@ export default function OfficeSettings() {
                <CardContent className="p-4 sm:p-8">
                  <div className="grid md:grid-cols-2 gap-8 items-start">
                    <div className="space-y-6">
+                     {officeId && <WhatsAppView officeId={officeId} />}
+
                      <div className="space-y-3">
-                       <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">Client Token / WABA ID</Label>
+                       <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">Client Token / WABA ID (Opcional - Meta Oficial)</Label>
                        <Input 
                           type="password"
                           placeholder="Token de segurança ou ID do WhatsApp Business Account" 
                           value={whatsappConfigs[activeWhatsappContext].clientToken} 
                           onChange={(e) => updateWhatsappConfig(activeWhatsappContext, 'clientToken', e.target.value)}
-                          className="h-14 bg-background border-border/80 focus:ring-emerald-500/20 focus:border-emerald-500/50 text-base font-medium transition-all"
+                          className="h-12 bg-background border-border/80 focus:ring-emerald-500/20 focus:border-emerald-500/50 text-sm font-medium transition-all"
                        />
                      </div>
 
@@ -868,10 +877,10 @@ export default function OfficeSettings() {
                          </div>
                          <h4 className="font-bold text-emerald-700">Como funciona a Mensageria?</h4>
                          <p className="text-sm text-emerald-600/80 leading-relaxed">
-                           O Flaito suporta tanto <strong>Z-API</strong> (não oficial) quanto <strong>Meta Official API</strong>. Você pode configurar instâncias separadas para cada contexto ou uma configuração <strong>GLOBAL</strong> que servirá como padrão.
+                           O Flaito utiliza a tecnologia <strong>WhatsApi (uazapi)</strong> para garantir máxima estabilidade e velocidade nas suas automações.
                          </p>
                          <ul className="space-y-2.5">
-                           {['Multi-provedor (Z-API/Meta)', 'Contexto GLOBAL de Fallback', 'Fila de Envio Inteligente', 'Variáveis Dinâmicas'].map(item => (
+                           {['Multi-instância Isolada', 'Contexto GLOBAL de Fallback', 'Fila de Envio Inteligente', 'Variáveis Dinâmicas'].map(item => (
                              <li key={item} className="flex items-center gap-2 text-xs font-semibold text-emerald-700/70">
                                <div className="h-1 w-1 rounded-full bg-emerald-500" />
                                {item}

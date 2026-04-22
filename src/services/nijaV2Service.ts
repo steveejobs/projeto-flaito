@@ -91,10 +91,11 @@ export async function runNijaV2Pipeline(params: {
 
 /**
  * Maestro Orchestrator: Runs the FULL NIJA pipeline (Stages 1-9 + Judge IA + Feedback Loop)
+ * Now Async-aware: returns run_id and polls for status
  */
 export async function runNijaMaestro(params: {
   caseId: string;
-  onProgress?: (stage: number, message: string) => void;
+  onProgress?: (stage: string, progress: number, message: string) => void;
   options?: {
     force_piece_type?: string;
     score_threshold?: number;
@@ -102,7 +103,7 @@ export async function runNijaMaestro(params: {
 }): Promise<any> {
   const { caseId, onProgress, options } = params;
 
-  onProgress?.(1, "Iniciando Maetro: Orquestração do Pipeline Completo...");
+  onProgress?.("INICIANDO", 5, "Iniciando Maestro: Orquestração em background...");
   
   const { data, error } = await supabase.functions.invoke("nija-pipeline-orchestrator", {
     body: {
@@ -116,6 +117,33 @@ export async function runNijaMaestro(params: {
     throw error;
   }
 
-  onProgress?.(100, "Pipeline finalizado com sucesso.");
-  return data;
+  const runId = data.run_id;
+  if (!runId) return data;
+
+  // Polling for completion
+  return new Promise((resolve, reject) => {
+    const pollInterval = setInterval(async () => {
+      const { data: run, error: runError } = await supabase
+        .from("nija_pipeline_runs")
+        .select("*")
+        .eq("id", runId)
+        .single();
+
+      if (runError) {
+        clearInterval(pollInterval);
+        reject(runError);
+        return;
+      }
+
+      onProgress?.(run.current_stage, run.progress_percentage || 0, run.logs?.[run.logs.length - 1] || "");
+
+      if (run.status === "COMPLETED") {
+        clearInterval(pollInterval);
+        resolve(run);
+      } else if (run.status === "FAILED") {
+        clearInterval(pollInterval);
+        reject(new Error(run.error_message || "Falha desconhecida no pipeline NIJA"));
+      }
+    }, 3000); // Check every 3 seconds
+  });
 }

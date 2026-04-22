@@ -173,12 +173,13 @@ const MENU_TREE: MenuGroup[] = [
   },
   {
     key: 'studio',
-    label: 'Configuração IA',
+    label: 'Athena / Studio de Agentes',
     icon: Bot,
     minRole: 'ADMIN',
     defaultOpen: false,
     items: [
       { title: 'Studio de Agentes', url: '/agent-studio', icon: Bot, minRole: 'ADMIN', keywords: ['ia', 'agentes', 'configuracao', 'studio', 'personalizacao'] },
+      { title: 'Configurar Agente de Voz', url: '/agent-studio?slug=voice-assistant', icon: Mic, minRole: 'ADMIN', keywords: ['voz', 'athena', 'configuracao', 'voice'] },
     ],
   },
   {

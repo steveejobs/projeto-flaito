@@ -31,6 +31,7 @@ import { WhatsAppTab } from '@/modules/medicina/pacientes/components/WhatsAppTab
 import { ClientAgentPanel } from '@/components/clients/ClientAgentPanel';
 import { DocumentGenerator } from '@/components/documents/DocumentGenerator';
 import { UnifiedTimeline } from '@/components/UnifiedTimeline';
+import { ClientStudyContextPanel } from '@/features/clients/ClientStudyContextPanel';
 
 type Client = Tables<'clients'>;
 
@@ -274,6 +275,13 @@ export default function Clientes() {
                 </TabsContent>
                 <TabsContent value="timeline_360" className="p-4 m-0">
                    <UnifiedTimeline clientId={selectedClient.id} />
+                </TabsContent>
+                <TabsContent value="contexto_ia" className="p-4 m-0">
+                  <ClientStudyContextPanel
+                    clientId={selectedClient.id}
+                    officeId={officeId!}
+                    clientName={selectedClient.full_name || undefined}
+                  />
                 </TabsContent>
                 <TabsContent value="whatsapp" className="p-4 m-0">
                   <WhatsAppTab clientId={selectedClient.id} patientName={selectedClient.full_name || 'Cliente'} patientPhone={selectedClient.phone || ''} resourceType="CLIENTE" />

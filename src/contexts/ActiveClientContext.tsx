@@ -1,12 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { UnifiedProfile, identityService } from '@/services/identityService';
+import { clientStudyContextService } from '@/services/domain/clientStudyContextService';
+import type { ClientStudyContext } from '@/types/clientStudyContext';
 
 interface ActiveClientContextType {
   activeClientId: string | null;
   activeProfile: UnifiedProfile | null;
+  activeStudyContext: ClientStudyContext | null;
   setActiveClientId: (id: string | null) => void;
   refreshProfile: () => Promise<void>;
+  refreshStudyContext: () => Promise<void>;
   isLoading: boolean;
+  isClientMode: boolean;
 }
 
 const ActiveClientContext = createContext<ActiveClientContextType | undefined>(undefined);
@@ -14,6 +19,7 @@ const ActiveClientContext = createContext<ActiveClientContextType | undefined>(u
 export function ActiveClientProvider({ children }: { children: ReactNode }) {
   const [activeClientId, setActiveClientIdState] = useState<string | null>(null);
   const [activeProfile, setActiveProfile] = useState<UnifiedProfile | null>(null);
+  const [activeStudyContext, setActiveStudyContext] = useState<ClientStudyContext | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Load selection from storage on mount
@@ -24,20 +30,25 @@ export function ActiveClientProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Fetch profile whenever activeClientId changes
+  // Fetch profile and study context whenever activeClientId changes
   useEffect(() => {
-    async function fetchProfile() {
+    async function fetchData() {
       if (activeClientId) {
         setIsLoading(true);
-        const profile = await identityService.getFullProfile(activeClientId);
+        const [profile, studyCtx] = await Promise.all([
+          identityService.getFullProfile(activeClientId),
+          clientStudyContextService.getByClientId(activeClientId),
+        ]);
         setActiveProfile(profile);
+        setActiveStudyContext(studyCtx);
         setIsLoading(false);
       } else {
         setActiveProfile(null);
+        setActiveStudyContext(null);
       }
     }
 
-    fetchProfile();
+    fetchData();
   }, [activeClientId]);
 
   const setActiveClientId = (id: string | null) => {
@@ -56,14 +67,24 @@ export function ActiveClientProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshStudyContext = async () => {
+    if (activeClientId) {
+      const ctx = await clientStudyContextService.getByClientId(activeClientId);
+      setActiveStudyContext(ctx);
+    }
+  };
+
   return (
-    <ActiveClientContext.Provider 
-      value={{ 
-        activeClientId, 
-        activeProfile, 
-        setActiveClientId, 
+    <ActiveClientContext.Provider
+      value={{
+        activeClientId,
+        activeProfile,
+        activeStudyContext,
+        setActiveClientId,
         refreshProfile,
-        isLoading
+        refreshStudyContext,
+        isLoading,
+        isClientMode: !!activeClientId,
       }}
     >
       {children}

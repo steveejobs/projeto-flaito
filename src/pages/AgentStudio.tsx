@@ -1,30 +1,55 @@
 import { useState, useEffect } from "react";
 import { useOfficeRole } from "@/hooks/useOfficeRole";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { 
-  Bot, 
-  Plus, 
-  Search, 
-  Settings2, 
-  MessageSquare, 
-  ShieldAlert, 
+import {
+  Bot,
+  Plus,
+  Search,
+  Settings2,
+  MessageSquare,
+  ShieldAlert,
   ChevronRight,
   MoreHorizontal,
   Power,
-  Zap
+  Zap,
+  Brain,
+  Database,
+  Globe,
+  BookOpen,
+  Cpu,
+  Thermometer,
+  FlaskConical,
+  Send,
+  Loader2,
+  Mic,
 } from "lucide-react";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { TestChatPanel } from "@/components/TestChatPanel";
+import { UnifiedAgent } from "@/types/agents";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,28 +65,157 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ReactMarkdown from "react-markdown";
 
-interface UnifiedAgent {
-  id: string;
-  slug?: string;
-  name: string;
-  role: string;
-  goal: string;
-  is_active: boolean;
-  system_prompt: string;
-  extra_instructions?: string;
-  tone: string;
-  fallback_message: string;
-  vertical: string;
-  origin: 'system' | 'custom';
-  provider?: string;
-  model?: string;
-  temperature?: number;
-  channel?: string;
+// ─────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────
+
+type ReasoningMode = "fast" | "standard" | "deep" | "maximum";
+
+
+const REASONING_MODES: { value: ReasoningMode; label: string; description: string; icon: string }[] = [
+  { value: "fast", label: "Rápido", description: "Respostas ágeis, menor custo", icon: "⚡" },
+  { value: "standard", label: "Padrão", description: "Equilíbrio entre qualidade e velocidade", icon: "⚖️" },
+  { value: "deep", label: "Profundo", description: "Análise completa, modelo superior", icon: "🔬" },
+  { value: "maximum", label: "Máximo", description: "Melhor resposta possível, maior custo", icon: "🧠" },
+];
+
+const PROVIDER_MODELS: Record<string, { label: string; models: { value: string; label: string }[] }> = {
+  google: {
+    label: "Google",
+    models: [
+      { value: "google/gemini-2.0-flash-exp", label: "Gemini 2.0 Flash" },
+      { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+      { value: "google/gemini-2.5-pro-exp-03-25", label: "Gemini 2.5 Pro" },
+    ]
+  },
+  openai: {
+    label: "OpenAI",
+    models: [
+      { value: "openai/gpt-4o-mini", label: "GPT-4o Mini" },
+      { value: "openai/gpt-4o", label: "GPT-4o" },
+    ]
+  },
+  anthropic: {
+    label: "Anthropic",
+    models: [
+      { value: "anthropic/claude-haiku-4-5-20251001", label: "Claude Haiku 4.5" },
+      { value: "anthropic/claude-sonnet-4-20250514", label: "Claude Sonnet 4" },
+    ]
+  },
+};
+
+// ─────────────────────────────────────────────────────────────
+// Test Chat Panel
+// ─────────────────────────────────────────────────────────────
+
+function TestChatPanel({ agent, onClose }: { agent: UnifiedAgent; onClose: () => void }) {
+  const [messages, setMessages] = useState<{ role: string; content: string; _debug?: any }[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const sendTestMessage = async () => {
+    if (!input.trim() || loading) return;
+    const msg = input.trim();
+    setInput("");
+    setMessages(prev => [...prev, { role: "user", content: msg }]);
+    setLoading(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data, error } = await supabase.functions.invoke("lexos-chat-assistant", {
+        body: {
+          message: msg,
+          mode: "chat",
+          module: "legal",
+          test_mode: true,
+          agent_slug: agent.slug,
+          context: {},
+        },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (error) throw error;
+
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: data?.message || data?.content || "Sem resposta",
+        _debug: data?._audit
+      }]);
+    } catch (err: any) {
+      setMessages(prev => [...prev, { role: "assistant", content: `Erro: ${err.message}` }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-6 border rounded-xl bg-muted/20 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 bg-muted/40 border-b">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <FlaskConical className="h-4 w-4 text-primary" />
+          Testar Agente — Mesmo runtime de produção
+        </div>
+        <Button variant="ghost" size="sm" onClick={onClose} className="h-7 text-xs">Fechar</Button>
+      </div>
+
+      <div className="max-h-64 overflow-y-auto p-4 space-y-3">
+        {messages.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-4">
+            Envie uma mensagem para testar o agente com as configurações atuais.
+          </p>
+        )}
+        {messages.map((m, i) => (
+          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm ${
+              m.role === "user"
+                ? "bg-primary text-primary-foreground"
+                : "bg-background border"
+            }`}>
+              <ReactMarkdown>{m.content}</ReactMarkdown>
+              {m._debug && (
+                <div className="mt-2 pt-2 border-t text-[10px] text-muted-foreground space-y-0.5">
+                  <div>Config: {m._debug.config_id?.slice(0, 8)}</div>
+                  <div>Source: {m._debug.source}</div>
+                  <div>Agent: {m._debug.agent_slug}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="bg-background border rounded-xl px-3 py-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-3 border-t flex gap-2">
+        <Input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && sendTestMessage()}
+          placeholder="Mensagem de teste..."
+          className="text-sm"
+          disabled={loading}
+        />
+        <Button size="icon" onClick={sendTestMessage} disabled={loading || !input.trim()}>
+          <Send className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
 }
+
+// ─────────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────────
 
 export default function AgentStudio() {
   const { officeId, module } = useOfficeRole();
@@ -71,6 +225,10 @@ export default function AgentStudio() {
   const [search, setSearch] = useState("");
   const [selectedAgent, setSelectedAgent] = useState<UnifiedAgent | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [showTestChat, setShowTestChat] = useState(false);
+  const [activeTab, setActiveTab] = useState("global"); // global | LEGAL | MEDICAL
+  const [searchParams] = useSearchParams();
+  const slugParam = searchParams.get('slug');
 
   useEffect(() => {
     if (officeId) {
@@ -81,12 +239,11 @@ export default function AgentStudio() {
   const fetchAgents = async () => {
     try {
       setLoading(true);
-      
+
       const { data: profiles, error: pErr } = await supabase
         .from("agent_profiles")
         .select("*")
-        .eq("office_id", officeId)
-        .eq("vertical", module);
+        .eq("office_id", officeId);
 
       if (pErr) throw pErr;
 
@@ -98,7 +255,7 @@ export default function AgentStudio() {
       if (cErr) throw cErr;
 
       const systemMap = new Map<string, any>();
-      
+
       configs?.filter(c => !c.office_id).forEach(c => {
         systemMap.set(c.slug, { ...c, is_override: false });
       });
@@ -125,7 +282,14 @@ export default function AgentStudio() {
           provider: c.provider,
           model: c.model,
           temperature: c.temperature,
-          channel: 'chat'
+          channel: 'chat',
+          reasoning_mode: c.reasoning_mode || 'standard',
+          use_system_context: c.use_system_context ?? true,
+          use_private_knowledge: c.use_private_knowledge ?? true,
+          use_web_knowledge: c.use_web_knowledge ?? false,
+          guardrails: c.guardrails || {},
+          test_mode: c.test_mode ?? false,
+          metadata: c.metadata || {},
         }));
 
       const unifiedCustomAgents: UnifiedAgent[] = (profiles || []).map(p => ({
@@ -144,8 +308,10 @@ export default function AgentStudio() {
 
       const finalAgents = [
         ...unifiedSystemAgents.filter(a => {
+          // Voice assistant is global now, but other system agents might be module-specific
+          if (a.slug === 'voice-assistant') return true;
           if (module === 'MEDICAL') {
-            return a.slug === 'voice-assistant';
+            return false; // medical-specific logic if needed
           }
           return true;
         }),
@@ -153,11 +319,18 @@ export default function AgentStudio() {
       ];
 
       setAgents(finalAgents);
+      
+      // Auto-open agent if slug is provided
+      if (slugParam && !selectedAgent) {
+        const targetAgent = finalAgents.find(a => a.slug === slugParam);
+        if (targetAgent) {
+          handleEditAgent(targetAgent);
+        }
+      }
 
-      // Auto-seeding: Se não houver agentes customizados na vertical, semeia automaticamente
-      if (unifiedCustomAgents.length === 0 && module && !loading) {
-        console.log(`[AgentStudio] Vertical ${module} sem agentes customizados. Iniciando auto-seed...`);
-        handleSeedAgents(true); 
+      if (unifiedCustomAgents.length === 0 && !loading) {
+        // Only seed if they are in a specific vertical, and we don't have agents for it
+        if (module) handleSeedAgents(true);
       }
 
     } catch (error: any) {
@@ -174,8 +347,8 @@ export default function AgentStudio() {
   const handleSeedAgents = async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      
-      const seeds = module === 'MEDICAL' 
+
+      const seeds = module === 'MEDICAL'
         ? [
           {
             name: 'Recepcionista Clínica',
@@ -234,7 +407,7 @@ export default function AgentStudio() {
           description: `Criamos ${seeds.length} agentes padrão para o módulo ${module}.`,
         });
       }
-      
+
       fetchAgents();
 
     } catch (error: any) {
@@ -261,16 +434,16 @@ export default function AgentStudio() {
       } else {
         const { error } = await supabase
           .from("ai_agent_configs" as any)
-          .upsert({ 
-            slug: agent.slug, 
+          .upsert({
+            slug: agent.slug,
             office_id: officeId,
-            is_active: !agent.is_active 
+            is_active: !agent.is_active
           }, { onConflict: 'office_id,slug' });
         if (error) throw error;
       }
-      
+
       fetchAgents();
-      
+
       toast({
         title: agent.is_active ? "Agente desativado" : "Agente ativado",
         description: `O agente ${agent.name} foi atualizado com sucesso.`,
@@ -285,13 +458,29 @@ export default function AgentStudio() {
   };
 
   const handleEditAgent = (agent: UnifiedAgent) => {
-    setSelectedAgent(agent);
+    let editAgent = { ...agent };
+    
+    // Context-aware editing: If editing a system agent inside a vertical tab, 
+    // load its specific vertical settings
+    if (agent.origin === "system" && (activeTab === "LEGAL" || activeTab === "MEDICAL")) {
+      const settingsKey = activeTab === "LEGAL" ? "legal_settings" : "medical_settings";
+      const verticalSettings = agent.metadata?.[settingsKey] || {};
+      
+      // Override the main settings with the vertical-specific ones for the UI
+      editAgent = {
+        ...editAgent,
+        ...verticalSettings
+      };
+    }
+    
+    setSelectedAgent(editAgent);
+    setShowTestChat(false);
     setIsSheetOpen(true);
   };
 
   const handleCreateAgent = () => {
     setSelectedAgent({
-      id: '', 
+      id: '',
       name: 'Novo Agente',
       role: 'Atendente',
       goal: '',
@@ -299,13 +488,13 @@ export default function AgentStudio() {
       system_prompt: '',
       tone: 'Profissional',
       fallback_message: 'Um momento, vou transferir para um especialista.',
-      vertical: module || 'LEGAL',
+      vertical: activeTab === 'global' ? (module || 'LEGAL') : activeTab,
       origin: 'custom',
       channel: 'whatsapp'
     } as UnifiedAgent);
+    setShowTestChat(false);
     setIsSheetOpen(true);
   };
-
 
   const handleSaveAgent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -321,28 +510,61 @@ export default function AgentStudio() {
           system_prompt: selectedAgent.system_prompt,
           tone: selectedAgent.tone,
           fallback_message: selectedAgent.fallback_message,
-          vertical: module || 'LEGAL',
+          vertical: activeTab === 'global' ? (module || 'LEGAL') : activeTab,
           channel: selectedAgent.id ? selectedAgent.channel : 'whatsapp',
           is_active: selectedAgent.id ? selectedAgent.is_active : true
         };
 
-        const { error } = selectedAgent.id 
+        const { error } = selectedAgent.id
           ? await supabase.from("agent_profiles").update(agentData).eq("id", selectedAgent.id)
           : await supabase.from("agent_profiles").insert(agentData);
 
         if (error) throw error;
       } else {
+        let settingsToUpdate: any = {};
+        let updatedMetadata = { ...(selectedAgent.metadata || {}) };
+
+        // Save into vertical metadata if edited from a vertical tab
+        if (activeTab === "LEGAL" || activeTab === "MEDICAL") {
+          const settingsKey = activeTab === "LEGAL" ? "legal_settings" : "medical_settings";
+          
+          settingsToUpdate = {
+            system_prompt: selectedAgent.system_prompt,
+            extra_instructions: selectedAgent.extra_instructions,
+            model: selectedAgent.model,
+            provider: selectedAgent.provider,
+            temperature: selectedAgent.temperature,
+            reasoning_mode: selectedAgent.reasoning_mode || 'standard',
+            use_system_context: selectedAgent.use_system_context ?? true,
+            use_private_knowledge: selectedAgent.use_private_knowledge ?? true,
+            use_web_knowledge: selectedAgent.use_web_knowledge ?? false,
+            guardrails: selectedAgent.guardrails || {},
+          };
+          updatedMetadata[settingsKey] = settingsToUpdate;
+        }
+
+        const basePayload = activeTab === "global" ? {
+            model: selectedAgent.model,
+            provider: selectedAgent.provider,
+            temperature: selectedAgent.temperature,
+            system_prompt: selectedAgent.system_prompt,
+            extra_instructions: selectedAgent.extra_instructions,
+            reasoning_mode: selectedAgent.reasoning_mode || 'standard',
+            use_system_context: selectedAgent.use_system_context ?? true,
+            use_private_knowledge: selectedAgent.use_private_knowledge ?? true,
+            use_web_knowledge: selectedAgent.use_web_knowledge ?? false,
+            guardrails: selectedAgent.guardrails || {},
+        } : {};
+
         const { error } = await supabase
           .from("ai_agent_configs" as any)
           .upsert({
             slug: selectedAgent.slug,
             office_id: officeId,
-            model: selectedAgent.model,
-            temperature: selectedAgent.temperature,
-            system_prompt: selectedAgent.system_prompt,
-            extra_instructions: selectedAgent.extra_instructions,
             friendly_name: selectedAgent.name,
-            is_active: selectedAgent.is_active
+            is_active: selectedAgent.is_active,
+            metadata: updatedMetadata,
+            ...basePayload
           }, { onConflict: 'office_id,slug' });
 
         if (error) throw error;
@@ -363,10 +585,26 @@ export default function AgentStudio() {
     }
   };
 
-  const filteredAgents = agents.filter(a => 
-    a.name.toLowerCase().includes(search.toLowerCase()) || 
-    a.role.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredAgents = agents.filter(a => {
+    const matchesSearch = a.name.toLowerCase().includes(search.toLowerCase()) ||
+      a.role.toLowerCase().includes(search.toLowerCase());
+    
+    if (!matchesSearch) return false;
+
+    if (activeTab === "global") return a.origin === "system";
+    if (activeTab === "LEGAL") return a.vertical === "LEGAL" || a.origin === "system";
+    if (activeTab === "MEDICAL") return a.vertical === "MEDICAL" || a.origin === "system";
+    
+    return true;
+  });
+
+  const getProviderFromModel = (model?: string): string => {
+    if (!model) return "google";
+    if (model.startsWith("google/")) return "google";
+    if (model.startsWith("openai/")) return "openai";
+    if (model.startsWith("anthropic/")) return "anthropic";
+    return "google";
+  };
 
   return (
     <div className="container mx-auto py-8 space-y-8 animate-in fade-in duration-500">
@@ -376,11 +614,11 @@ export default function AgentStudio() {
             Studio de Agentes
           </h1>
           <p className="text-muted-foreground mt-1 text-lg">
-            Configure a personalidade e o comportamento dos seus atendentes virtuais.
+            Configure a identidade, modelo, conhecimento e comportamento dos seus agentes IA.
           </p>
         </div>
-        <Button 
-          size="lg" 
+        <Button
+          size="lg"
           className="rounded-full shadow-lg hover:shadow-primary/20 transition-all gap-2 px-6"
           onClick={handleCreateAgent}
         >
@@ -392,18 +630,18 @@ export default function AgentStudio() {
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input 
-            placeholder="Buscar por nome ou papel..." 
+          <Input
+            placeholder="Buscar por nome ou papel..."
             className="pl-10 h-12 bg-background/50 border-border/50 focus-visible:ring-primary/20"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Tabs defaultValue="all" className="w-full sm:w-auto">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
           <TabsList className="h-12 p-1 bg-muted/30">
-            <TabsTrigger value="all" className="px-6 rounded-md">Todos</TabsTrigger>
-            <TabsTrigger value="active" className="px-6 rounded-md">Ativos</TabsTrigger>
-            <TabsTrigger value="inactive" className="px-6 rounded-md">Inativos</TabsTrigger>
+            <TabsTrigger value="global" className="px-6 rounded-md">Global</TabsTrigger>
+            <TabsTrigger value="LEGAL" className="px-6 rounded-md">Jurídico</TabsTrigger>
+            <TabsTrigger value="MEDICAL" className="px-6 rounded-md">Médico</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -423,7 +661,7 @@ export default function AgentStudio() {
             <Button onClick={handleCreateAgent} variant="outline" className="rounded-full">
               <Plus className="h-4 w-4 mr-2" /> Criar do Zero
             </Button>
-            <Button onClick={handleSeedAgents} className="rounded-full gap-2 shadow-lg shadow-primary/20">
+            <Button onClick={() => handleSeedAgents()} className="rounded-full gap-2 shadow-lg shadow-primary/20">
               <Zap className="h-4 w-4" /> Gerar Agentes Sugeridos ({module})
             </Button>
           </div>
@@ -447,11 +685,11 @@ export default function AgentStudio() {
                         <Settings2 className="h-4 w-4" /> Editar Perfil
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleToggleActive(agent)}
                         className={`gap-2 ${agent.is_active ? 'text-destructive' : 'text-primary'}`}
                       >
-                        <Power className="h-4 w-4" /> 
+                        <Power className="h-4 w-4" />
                         {agent.is_active ? 'Desativar Agente' : 'Ativar Agente'}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -490,12 +728,43 @@ export default function AgentStudio() {
                     {agent.goal || "Sem objetivo definido."}
                   </p>
                 </div>
-                <Button 
+
+                {/* Runtime badges for system agents */}
+                {agent.origin === 'system' && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {agent.reasoning_mode && agent.reasoning_mode !== 'standard' && (
+                      <Badge variant="outline" className="text-[10px] gap-1">
+                        <Brain className="h-3 w-3" />
+                        {REASONING_MODES.find(r => r.value === agent.reasoning_mode)?.label || agent.reasoning_mode}
+                      </Badge>
+                    )}
+                    {agent.model && (
+                      <Badge variant="outline" className="text-[10px] gap-1">
+                        <Cpu className="h-3 w-3" />
+                        {agent.model.split('/').pop()}
+                      </Badge>
+                    )}
+                    {agent.use_private_knowledge && (
+                      <Badge variant="outline" className="text-[10px] gap-1 text-emerald-600">
+                        <BookOpen className="h-3 w-3" />
+                        Conhecimento
+                      </Badge>
+                    )}
+                    {agent.use_web_knowledge && (
+                      <Badge variant="outline" className="text-[10px] gap-1 text-blue-600">
+                        <Globe className="h-3 w-3" />
+                        Web
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
+                <Button
                   onClick={() => handleEditAgent(agent)}
-                  variant="outline" 
+                  variant="outline"
                   className="w-full rounded-xl border-border/50 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all gap-2"
                 >
-                  Personalizar Atendimento
+                  Configurar Agente
                   <ChevronRight className="h-4 w-4 opacity-50 group-hover:translate-x-1" />
                 </Button>
               </CardContent>
@@ -504,25 +773,31 @@ export default function AgentStudio() {
         </div>
       )}
 
+      {/* ────────────────────────────────────────────── */}
+      {/* Agent Edit Sheet                              */}
+      {/* ────────────────────────────────────────────── */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="sm:max-w-xl overflow-y-auto">
+        <SheetContent className="sm:max-w-2xl overflow-y-auto">
           <SheetHeader className="pb-6 border-b">
             <SheetTitle className="text-2xl flex items-center gap-2">
               <Settings2 className="h-6 w-6 text-primary" />
-              Editar Agente
+              {selectedAgent?.origin === 'system' ? 'Configurar Agente de Sistema' : 'Editar Agente'}
             </SheetTitle>
             <SheetDescription>
-              Ajuste as diretrizes e a personalidade do seu atendente.
+              {selectedAgent?.origin === 'system'
+                ? 'Configure modelo, conhecimento e comportamento do agente.'
+                : 'Ajuste as diretrizes e a personalidade do seu atendente.'}
             </SheetDescription>
           </SheetHeader>
 
           <form onSubmit={handleSaveAgent} className="space-y-8 py-8">
+            {/* ── Identity Section ── */}
             <div className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome do Agente (Público)</Label>
-                <Input 
-                  id="name" 
-                  value={selectedAgent?.name || ""} 
+                <Input
+                  id="name"
+                  value={selectedAgent?.name || ""}
                   onChange={e => setSelectedAgent(prev => prev ? {...prev, name: e.target.value} : null)}
                   required
                 />
@@ -531,20 +806,20 @@ export default function AgentStudio() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="role">Papel / Título</Label>
-                  <Input 
-                    id="role" 
+                  <Input
+                    id="role"
                     placeholder="Ex: Concierge Jurídico"
-                    value={selectedAgent?.role || ""} 
+                    value={selectedAgent?.role || ""}
                     onChange={e => setSelectedAgent(prev => prev ? {...prev, role: e.target.value} : null)}
                     disabled={selectedAgent?.origin === 'system'}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="tone">Tom de Voz</Label>
-                  <Input 
-                    id="tone" 
+                  <Input
+                    id="tone"
                     placeholder="Ex: Profissional e Acolhedor"
-                    value={selectedAgent?.tone || ""} 
+                    value={selectedAgent?.tone || ""}
                     onChange={e => setSelectedAgent(prev => prev ? {...prev, tone: e.target.value} : null)}
                   />
                 </div>
@@ -552,22 +827,260 @@ export default function AgentStudio() {
 
               <div className="space-y-2">
                 <Label htmlFor="goal">Objetivo Principal (Resumo)</Label>
-                <Textarea 
-                  id="goal" 
+                <Textarea
+                  id="goal"
                   placeholder="O que este agente deve realizar?"
-                  value={selectedAgent?.goal || ""} 
+                  value={selectedAgent?.goal || ""}
                   onChange={e => setSelectedAgent(prev => prev ? {...prev, goal: e.target.value} : null)}
                   rows={2}
                 />
               </div>
+            </div>
+
+            {/* ── AI Runtime Section (System agents only) ── */}
+            {selectedAgent?.origin === 'system' && (
+              <>
+                <Separator />
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 text-lg font-semibold">
+                    <Cpu className="h-5 w-5 text-primary" />
+                    Runtime IA
+                  </div>
+
+                  {/* Reasoning Mode */}
+                  <div className="space-y-3">
+                    <Label>Modo de Raciocínio</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {REASONING_MODES.map(mode => (
+                        <button
+                          key={mode.value}
+                          type="button"
+                          onClick={() => setSelectedAgent(prev => prev ? {...prev, reasoning_mode: mode.value} : null)}
+                          className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                            selectedAgent?.reasoning_mode === mode.value
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border/50 hover:border-primary/30'
+                          }`}
+                        >
+                          <span className="text-xl">{mode.icon}</span>
+                          <div>
+                            <div className="font-medium text-sm">{mode.label}</div>
+                            <div className="text-xs text-muted-foreground">{mode.description}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Provider + Model */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Provedor</Label>
+                      <Select
+                        value={getProviderFromModel(selectedAgent?.model)}
+                        onValueChange={provider => {
+                          const firstModel = PROVIDER_MODELS[provider]?.models[0]?.value;
+                          setSelectedAgent(prev => prev ? {...prev, provider, model: firstModel || prev.model} : null);
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(PROVIDER_MODELS).map(([key, p]) => (
+                            <SelectItem key={key} value={key}>{p.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Modelo</Label>
+                      <Select
+                        value={selectedAgent?.model || ""}
+                        onValueChange={model => setSelectedAgent(prev => prev ? {...prev, model} : null)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecionar modelo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PROVIDER_MODELS[getProviderFromModel(selectedAgent?.model)]?.models.map(m => (
+                            <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Temperature */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="flex items-center gap-2">
+                        <Thermometer className="h-4 w-4" />
+                        Temperatura
+                      </Label>
+                      <span className="text-sm font-mono text-muted-foreground">
+                        {(selectedAgent?.temperature ?? 0.7).toFixed(1)}
+                      </span>
+                    </div>
+                    <Slider
+                      value={[selectedAgent?.temperature ?? 0.7]}
+                      onValueChange={([v]) => setSelectedAgent(prev => prev ? {...prev, temperature: v} : null)}
+                      min={0}
+                      max={2}
+                      step={0.1}
+                      className="py-2"
+                    />
+                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                      <span>Determinístico</span>
+                      <span>Criativo</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ── Voice Configuration Section (Only for voice-assistant) ── */}
+            {selectedAgent?.slug === 'voice-assistant' && (
+              <>
+                <Separator />
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 text-lg font-semibold">
+                    <Mic className="h-5 w-5 text-primary" />
+                    Configurações de Voz (Athena Voice)
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="voice_id">Voz (ElevenLabs)</Label>
+                      <Select 
+                        value={(selectedAgent?.metadata?.voice_id as string) || 'pNInz6obpgmqEba59W96'} 
+                        onValueChange={v => setSelectedAgent(prev => prev ? {...prev, metadata: {...prev.metadata, voice_id: v}} : null)}
+                      >
+                        <SelectTrigger id="voice_id">
+                          <SelectValue placeholder="Selecione uma voz" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pNInz6obpgmqEba59W96">Adam (Masculino)</SelectItem>
+                          <SelectItem value="21m00Tcm4TlvDq8ikWAM">Rachel (Feminino)</SelectItem>
+                          <SelectItem value="AZnzlk1Xhk61Mc87G8I2">Antoni (Nativo)</SelectItem>
+                          <SelectItem value="EXAVITQu4vr4xnSDxMaL">Bella (Suave)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="wake_word">Palavra de Ativação</Label>
+                      <Input
+                        id="wake_word"
+                        placeholder="Ex: athena"
+                        value={(selectedAgent?.metadata?.wake_word as string) || ""}
+                        onChange={e => setSelectedAgent(prev => prev ? {
+                          ...prev, 
+                          metadata: { ...prev.metadata, wake_word: e.target.value }
+                        } : null)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label>Estabilidade da Voz</Label>
+                        <span className="text-xs font-mono">{((selectedAgent?.metadata?.stability as number) || 0.5).toFixed(2)}</span>
+                      </div>
+                      <Slider 
+                        value={[(selectedAgent?.metadata?.stability as number) || 0.5]} 
+                        min={0} max={1} step={0.05}
+                        onValueChange={([v]) => setSelectedAgent(prev => prev ? {...prev, metadata: {...prev.metadata, stability: v}} : null)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label>Similaridade (Boost)</Label>
+                        <span className="text-xs font-mono">{((selectedAgent?.metadata?.similarity_boost as number) || 0.75).toFixed(2)}</span>
+                      </div>
+                      <Slider 
+                        value={[(selectedAgent?.metadata?.similarity_boost as number) || 0.75]} 
+                        min={0} max={1} step={0.05}
+                        onValueChange={([v]) => setSelectedAgent(prev => prev ? {...prev, metadata: {...prev.metadata, similarity_boost: v}} : null)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ── Knowledge Sources Section (System agents only) ── */}
+            {selectedAgent?.origin === 'system' && (
+              <>
+                <Separator />
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 text-lg font-semibold">
+                    <BookOpen className="h-5 w-5 text-primary" />
+                    Fontes de Conhecimento
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 rounded-xl border bg-muted/20">
+                      <div className="flex items-center gap-3">
+                        <Database className="h-5 w-5 text-blue-500" />
+                        <div>
+                          <div className="font-medium text-sm">Contexto do Sistema</div>
+                          <div className="text-xs text-muted-foreground">Clientes, casos, documentos, workflows</div>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={selectedAgent?.use_system_context ?? true}
+                        onCheckedChange={v => setSelectedAgent(prev => prev ? {...prev, use_system_context: v} : null)}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 rounded-xl border bg-muted/20">
+                      <div className="flex items-center gap-3">
+                        <BookOpen className="h-5 w-5 text-emerald-500" />
+                        <div>
+                          <div className="font-medium text-sm">Conhecimento Privado</div>
+                          <div className="text-xs text-muted-foreground">Livros, manuais, documentos internos (upload)</div>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={selectedAgent?.use_private_knowledge ?? true}
+                        onCheckedChange={v => setSelectedAgent(prev => prev ? {...prev, use_private_knowledge: v} : null)}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 rounded-xl border bg-muted/20">
+                      <div className="flex items-center gap-3">
+                        <Globe className="h-5 w-5 text-violet-500" />
+                        <div>
+                          <div className="font-medium text-sm">Conhecimento Web</div>
+                          <div className="text-xs text-muted-foreground">Busca na internet em tempo real</div>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={selectedAgent?.use_web_knowledge ?? false}
+                        onCheckedChange={v => setSelectedAgent(prev => prev ? {...prev, use_web_knowledge: v} : null)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ── Prompt Section ── */}
+            <Separator />
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 text-lg font-semibold">
+                <MessageSquare className="h-5 w-5 text-primary" />
+                Instruções
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="prompt">Instruções do Sistema (Prompt Principal)</Label>
-                <Textarea 
-                  id="prompt" 
+                <Textarea
+                  id="prompt"
                   className="font-mono text-xs"
                   placeholder="Diretrizes detalhadas de comportamento..."
-                  value={selectedAgent?.system_prompt || ""} 
+                  value={selectedAgent?.system_prompt || ""}
                   onChange={e => setSelectedAgent(prev => prev ? {...prev, system_prompt: e.target.value} : null)}
                   rows={8}
                 />
@@ -576,34 +1089,54 @@ export default function AgentStudio() {
               {selectedAgent?.origin === 'system' && (
                 <div className="space-y-2">
                   <Label htmlFor="extra">Instruções Adicionais (Office Override)</Label>
-                  <Textarea 
-                    id="extra" 
+                  <Textarea
+                    id="extra"
                     placeholder="Regras específicas do seu escritório que complementam o prompt..."
-                    value={selectedAgent?.extra_instructions || ""} 
+                    value={selectedAgent?.extra_instructions || ""}
                     onChange={e => setSelectedAgent(prev => prev ? {...prev, extra_instructions: e.target.value} : null)}
                     rows={4}
                   />
                 </div>
               )}
+            </div>
 
-              <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <ShieldAlert className="h-5 w-5 text-amber-500" />
-                    <span className="font-semibold text-sm">Controle de Fallback</span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fallback" className="text-xs">Mensagem de Transbordo (Humano/Erro)</Label>
-                  <Input 
-                    id="fallback" 
-                    placeholder="Aguarde um momento, passarei para um humano..."
-                    value={selectedAgent?.fallback_message || ""} 
-                    onChange={e => setSelectedAgent(prev => prev ? {...prev, fallback_message: e.target.value} : null)}
-                  />
+            {/* ── Fallback Section ── */}
+            <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5 text-amber-500" />
+                  <span className="font-semibold text-sm">Controle de Fallback</span>
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="fallback" className="text-xs">Mensagem de Transbordo (Humano/Erro)</Label>
+                <Input
+                  id="fallback"
+                  placeholder="Aguarde um momento, passarei para um humano..."
+                  value={selectedAgent?.fallback_message || ""}
+                  onChange={e => setSelectedAgent(prev => prev ? {...prev, fallback_message: e.target.value} : null)}
+                />
+              </div>
             </div>
+
+            {/* ── Test Chat (System agents only) ── */}
+            {selectedAgent?.origin === 'system' && selectedAgent?.slug && (
+              <>
+                {!showTestChat ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full gap-2 rounded-xl"
+                    onClick={() => setShowTestChat(true)}
+                  >
+                    <FlaskConical className="h-4 w-4" />
+                    Testar Agente (mesmo runtime de produção)
+                  </Button>
+                ) : (
+                  <TestChatPanel agent={selectedAgent} onClose={() => setShowTestChat(false)} />
+                )}
+              </>
+            )}
 
             <div className="flex gap-3 pt-4 sticky bottom-0 bg-background pb-4">
               <Button type="button" variant="outline" className="flex-1" onClick={() => setIsSheetOpen(false)}>

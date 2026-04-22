@@ -44,6 +44,12 @@ export function normalizeRole(role: string | null | undefined): OfficeRole {
 export function normalizeModule(type: string | null | undefined): OfficeModule {
   if (!type) return 'LEGAL'; 
   const lower = type.toLowerCase();
+
+  // Se o tipo for explicitamente híbrido ou contiver termos que indiquem ambos
+  if (lower === 'ambos' || lower === 'mixed' || lower === 'hybrid' || lower === 'full' || lower === 'hibrido') {
+    return 'LEGAL'; // Retornamos 'LEGAL' como base, mas o Guard permitirá ambos
+  }
+
   // Inclui termos comuns para clínicas/médicos
   if (lower.includes('medical') || lower.includes('medico') || lower.includes('clinica') || lower.includes('health')) {
     return 'MEDICAL';

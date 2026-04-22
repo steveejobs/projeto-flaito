@@ -24,6 +24,7 @@ import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 import { DevDiagnosticsPanel } from '@/components/DevDiagnosticsPanel';
 import { LegalClock } from '@/components/LegalClock';
 import { useActiveClient } from '@/contexts/ActiveClientContext';
+import { VoiceAgentLauncher } from '@/components/VoiceAgentLauncher';
 
 interface MedicalLayoutProps {
     children: ReactNode;
@@ -237,6 +238,9 @@ function MedicalLayoutInner({ children }: MedicalLayoutProps) {
                         )}
                     </main>
                 </div>
+
+                {/* Voice Launcher */}
+                <VoiceAgentLauncher />
 
                 {import.meta.env.DEV && devPanel.isOpen && (
                     <DevDiagnosticsPanel

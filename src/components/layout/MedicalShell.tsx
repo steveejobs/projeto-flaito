@@ -1,16 +1,10 @@
-import React from "react";
+import React, { memo } from "react";
 import { MedicalLayout } from "@/components/layout/MedicalLayout";
 import { Outlet } from "react-router-dom";
 import { RouteTransitionOverlay } from "@/components/RouteTransitionOverlay";
-import OperatorFeedbackButton from "@/components/layout/OperatorFeedbackButton";
-
-/**
- * MedicalShell - Persistent layout wrapper for authenticated medical routes
- * Styled with Apple/Google design principles (clean, light, teal accents)
- */
 import { MessagingProvider } from "@/contexts/MessagingContext";
 
-export default function MedicalShell() {
+function MedicalShell() {
     return (
         <MessagingProvider context="MEDICAL">
             <MedicalLayout>
@@ -18,7 +12,8 @@ export default function MedicalShell() {
                     <Outlet />
                 </RouteTransitionOverlay>
             </MedicalLayout>
-            <OperatorFeedbackButton module="MEDICAL" />
         </MessagingProvider>
     );
 }
+
+export default memo(MedicalShell);

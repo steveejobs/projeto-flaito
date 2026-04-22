@@ -532,21 +532,23 @@ export function CaptureDocumentScanStep({
           type="button"
           onClick={extractDataFromDocuments}
           disabled={extracting}
-          className="w-full gap-2 transition-all hover:scale-[1.01] active:scale-[0.99]"
-          style={{
-            backgroundColor: "var(--brand-primary)",
-            color: "#FFF", // Alterado de #000 para #FFF para melhor visibilidade
-          }}
+          className={cn(
+            "w-full gap-3 h-14 rounded-2xl transition-all duration-300",
+            "bg-gradient-to-r from-[var(--brand-primary)] to-[#818cf8]",
+            "hover:scale-[1.02] hover:shadow-xl hover:shadow-indigo-500/20 active:scale-[0.98]",
+            "border-none text-white font-bold text-base",
+            extracting ? "opacity-90" : "animate-pulse-subtle"
+          )}
         >
           {extracting ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Processando documentos...
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Processando...
             </>
           ) : (
             <>
-              <Sparkles className="w-4 h-4" />
-              Preencher Automático
+              <Sparkles className="w-5 h-5 fill-white/20" />
+              Extrair
             </>
           )}
         </Button>
@@ -554,7 +556,7 @@ export function CaptureDocumentScanStep({
 
       <p className="text-xs text-white/40 text-center">
         {hasDocuments
-          ? "Clique em 'Preencher Automático' para completar o formulário"
+          ? "Clique em 'Extrair' para ler os dados automaticamente"
           : "Opcional: você pode pular e digitar os dados manualmente"}
       </p>
 

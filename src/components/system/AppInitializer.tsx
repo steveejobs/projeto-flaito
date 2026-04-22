@@ -142,7 +142,7 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
         // Se temos dados e não está completo -> missing
         // Se NÃO temos dados (onboardingData é []), mas auth/office estão prontos, 
         // ainda aguardamos um pouco antes de assumir 'missing' (unknown)
-        newState.onboarding = hasData ? 'missing' : 'unknown';
+        newState.onboarding = 'missing';
       } else {
         newState.onboarding = 'ready'; // Fallback seguro para não travar o app
       }

@@ -321,27 +321,6 @@ export const FirstClientWizard: React.FC<FirstClientWizardProps> = ({ officeId, 
               />
             </div>
             
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                <div className="w-full border-t border-white/10"></div>
-              </div>
-              <div className="relative flex justify-center text-xs font-bold">
-                <span className="bg-slate-950 px-6 text-slate-500 uppercase tracking-widest">Alternativa</span>
-              </div>
-            </div>
-
-            <Button
-              onClick={() => handleSave(true)}
-              disabled={saving}
-              variant="outline"
-              className="w-full h-16 border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10 text-blue-300 gap-4 rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg group"
-            >
-              <LinkIcon className="h-5 w-5 text-blue-400 group-hover:rotate-12 transition-transform" />
-              <div className="text-left">
-                <span className="block font-bold text-sm">Enviar link para assinatura remota</span>
-                <span className="block text-[10px] text-blue-400/60 uppercase tracking-tighter">O cliente assina do próprio celular</span>
-              </div>
-            </Button>
           </div>
         </StepTransition>
       </div>

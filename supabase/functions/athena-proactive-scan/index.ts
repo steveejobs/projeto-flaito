@@ -306,6 +306,47 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════════════
+    // 7. ESCAVADOR — Clientes ativos sem processos vinculados
+    // ═══════════════════════════════════════════════════
+    try {
+      // Busca clientes criados recentemente (últimos 7 dias) que não tenham processos vinculados
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000).toISOString();
+      const { data: recentClients } = await supabase
+        .from("clients")
+        .select("id, full_name, document_id")
+        .eq("office_id", officeId)
+        .gte("created_at", sevenDaysAgo)
+        .limit(10);
+
+      if (recentClients && recentClients.length > 0) {
+        for (const client of recentClients) {
+          const { count } = await supabase
+            .from("client_processes")
+            .select("*", { count: "exact", head: true })
+            .eq("client_id", client.id);
+
+          if (count === 0) {
+            suggestions.push({
+              office_id: officeId,
+              user_id: user.id,
+              category: "legal",
+              priority: "medium",
+              title: `Consultar processos: ${client.full_name}`,
+              description: `Este cliente foi cadastrado recentemente mas não possui processos vinculados. Deseja realizar uma busca automática no Escavador?`,
+              action_type: "search_escavador_for_client",
+              action_payload: { client_id: client.id, query: client.document_id || client.full_name },
+              entity_type: "clients",
+              entity_id: client.id,
+              expires_at: expiresIn(5),
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.error("[ATHENA-SCAN] Escavador suggestions error:", e);
+    }
+
+    // ═══════════════════════════════════════════════════
     // Persiste sugestões (upsert para evitar duplicatas)
     // ═══════════════════════════════════════════════════
     if (suggestions.length > 0) {

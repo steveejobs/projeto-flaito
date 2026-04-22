@@ -6,6 +6,8 @@ import { getAutonomousDecision } from "./optimizer-client.ts";
 
 export type ResolutionLevel = "STAGE" | "OFFICE" | "GLOBAL";
 
+export type ReasoningMode = "fast" | "standard" | "deep" | "maximum";
+
 export interface ResolvedAgentConfig {
   id: string;
   slug: string;
@@ -18,6 +20,12 @@ export interface ResolvedAgentConfig {
   is_active: boolean;
   metadata: any;
   mode: "automatic" | "advanced";
+  reasoning_mode: ReasoningMode;
+  use_system_context: boolean;
+  use_private_knowledge: boolean;
+  use_web_knowledge: boolean;
+  guardrails: Record<string, unknown>;
+  test_mode: boolean;
   resolution: {
     config_id: string;
     version: number;
@@ -156,6 +164,12 @@ export async function getAgentConfig(
     is_active: selected.is_active,
     metadata: selected.metadata,
     mode: selected.mode,
+    reasoning_mode: selected.reasoning_mode || "standard",
+    use_system_context: selected.use_system_context ?? true,
+    use_private_knowledge: selected.use_private_knowledge ?? true,
+    use_web_knowledge: selected.use_web_knowledge ?? false,
+    guardrails: selected.guardrails || {},
+    test_mode: selected.test_mode ?? false,
     resolution: {
       config_id: selected.id,
       version: selected.version,

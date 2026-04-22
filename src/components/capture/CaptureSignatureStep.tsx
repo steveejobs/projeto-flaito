@@ -178,7 +178,7 @@ export function CaptureSignatureStep({
     <div className="space-y-5 capture-animate-in">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-semibold text-white tracking-tight">
-          Sua Assinatura
+          Assinatura do Cliente
         </h2>
         <p className="text-base text-white/50 mt-1">
           Assine no espaço abaixo com o dedo ou mouse
@@ -239,17 +239,6 @@ export function CaptureSignatureStep({
         </Button>
       </div>
 
-      {/* Preview */}
-      {signatureDataUrl && isSignatureValid && (
-        <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-          <p className="text-xs text-white/50 mb-2">Preview da assinatura:</p>
-          <img
-            src={signatureDataUrl}
-            alt="Preview"
-            className="h-20 w-auto mx-auto"
-          />
-        </div>
-      )}
 
       {/* LGPD checkbox */}
       <div className="flex items-start gap-3 p-4 rounded-xl bg-white/5 border border-white/10">

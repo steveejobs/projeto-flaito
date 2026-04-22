@@ -10,6 +10,11 @@ export function ModuleSwitcher({ className }: { className?: string }) {
   const collapsed = state === 'collapsed';
   const isMedical = location.pathname.startsWith('/medical');
 
+  const handleSwitch = (module: 'LEGAL' | 'MEDICAL', path: string) => {
+    sessionStorage.setItem('lexos_active_module', module);
+    navigate(path);
+  };
+
   return (
     <div className={cn("px-3 py-2", className)}>
       <div className={cn(
@@ -19,7 +24,7 @@ export function ModuleSwitcher({ className }: { className?: string }) {
       )}>
         {/* Jurídico tab */}
         <button
-          onClick={() => navigate('/dashboard')}
+          onClick={() => handleSwitch('LEGAL', '/dashboard')}
           type="button"
           title="Módulo Jurídico"
           className={cn(
@@ -39,7 +44,7 @@ export function ModuleSwitcher({ className }: { className?: string }) {
 
         {/* Medicina tab */}
         <button
-          onClick={() => navigate('/medical/dashboard')}
+          onClick={() => handleSwitch('MEDICAL', '/medical/dashboard')}
           type="button"
           title="Módulo Medicina"
           className={cn(

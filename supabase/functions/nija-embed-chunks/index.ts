@@ -141,6 +141,7 @@ serve(async (req) => {
               type: item.type,
               ramo: item.ramo,
               source: item.source_table,
+              source_type: item.source_table === 'office_knowledge' ? 'private_knowledge' : 'system_context',
               is_global: item.source_table === 'legal_documents'
             }
           });

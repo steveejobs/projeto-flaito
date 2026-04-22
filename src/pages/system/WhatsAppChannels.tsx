@@ -112,7 +112,7 @@ const WhatsAppChannels = () => {
             <Phone className="h-8 w-8 text-emerald-500" />
             Canais WhatsApp
           </h1>
-          <p className="text-muted-foreground">Gerencie suas conexões Z-API e defina a instância principal de atendimento do escritório.</p>
+          <p className="text-muted-foreground">Gerencie suas conexões WhatsApp e defina a instância principal de atendimento do escritório.</p>
         </div>
         <Button 
           onClick={() => {
@@ -144,7 +144,7 @@ const WhatsAppChannels = () => {
                 </div>
               </div>
               <CardTitle className="text-lg font-bold mt-2 text-white flex items-center gap-2">
-                 {inst.label || 'Instância Z-API'}
+                 {inst.label || 'Instância WhatsApp'}
                  {inst.is_primary && <Star className="h-4 w-4 fill-emerald-500 text-emerald-500" />}
               </CardTitle>
               <CardDescription className="font-mono text-xs opacity-60">ID: {inst.instance_id}</CardDescription>
@@ -177,7 +177,7 @@ const WhatsAppChannels = () => {
           <div className="col-span-full py-20 border-2 border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center text-muted-foreground">
              <Info className="h-10 w-10 mb-4 opacity-20" />
              <p className="uppercase text-xs tracking-widest font-bold">Nenhum canal configurado</p>
-             <p className="text-sm mt-1">Adicione uma instância Z-API para começar.</p>
+             <p className="text-sm mt-1">Conecte uma instância para começar.</p>
           </div>
         )}
       </div>
@@ -191,7 +191,7 @@ const WhatsAppChannels = () => {
                   <ShieldCheck className="h-6 w-6 text-emerald-500" />
                   {formData.id ? 'Editar Canal' : 'Configurar Novo Canal'}
                 </CardTitle>
-                <CardDescription>Insira as credenciais da sua instância Z-API. O token será mascarado após salvo.</CardDescription>
+                <CardDescription>Configure sua conexão WhatsApp oficial.</CardDescription>
               </CardHeader>
               <CardContent className="p-6 pt-0 space-y-5">
                 <div className="space-y-2">
@@ -219,7 +219,7 @@ const WhatsAppChannels = () => {
                       type="password"
                       value={formData.instance_token} 
                       onChange={e => setFormData({...formData, instance_token: e.target.value})}
-                      placeholder="Token Z-API"
+                      placeholder="Token da Instância"
                       className="bg-white/5 border-white/10"
                     />
                   </div>

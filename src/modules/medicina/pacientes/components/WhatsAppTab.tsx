@@ -235,7 +235,7 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
                 .insert({
                     office_id: officeId,
                     client_id: clientId,
-                    provider: providerType === 'META_OFFICIAL_PROVIDER' ? 'whatsapp_meta' : 'whatsapp_zapi',
+                    provider: 'whatsapp_meta',
                     direction: 'outbound',
                     channel: 'whatsapp',
                     content: newMessage || (attachment ? `Arquivo: ${attachment.name}` : ''),
@@ -304,11 +304,9 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
                         </div>
                     </div>
                 </div>
-                <div className="flex gap-2">
                     <Badge variant="outline" className={`bg-white/5 border-white/10 text-[10px] font-bold uppercase tracking-wider h-6`}>
-                        {providerType === 'META_OFFICIAL_PROVIDER' ? 'Meta API' : 'Z-API'}
+                        {providerType === 'META_OFFICIAL_PROVIDER' ? 'Meta API' : 'WhatsApp'}
                     </Badge>
-                </div>
             </div>
 
             <ScrollArea className="flex-1 p-6">

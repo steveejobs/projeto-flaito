@@ -1,40 +1,42 @@
 import { authenticateAndAuthorize } from "../_shared/auth.ts";
 import { resolveTTSConfig, synthesizeSpeech } from "../_shared/tts-provider.ts";
 import { transcribeAudio, STTResult } from "../_shared/whisper-provider.ts";
+import { getAgentConfig } from "../_shared/agent-resolver.ts";
 
 // ============================================================
-// OpenAI Provider Layer
+// AI Provider Layer
 // ============================================================
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-const OPENAI_MODELS = ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"] as const;
-const DEFAULT_MODEL = "gpt-4o-mini";
 
-interface OpenAIResponse {
+interface AIResponse {
   ok: boolean;
   data?: any;
   error?: string;
   status?: number;
 }
 
-async function callOpenAI(
+async function callAI(
   messages: any[],
-  model: string = DEFAULT_MODEL,
+  config: { provider: string; model: string; temperature: number },
   tools?: any[],
-  toolChoice?: string,
-  temperature: number = 0.1
-): Promise<OpenAIResponse> {
-  if (!OPENAI_API_KEY) {
-    return { ok: false, error: "Missing OPENAI_API_KEY", status: 500 };
+  toolChoice?: string
+): Promise<AIResponse> {
+  const apiKey = config.provider === 'openai' ? OPENAI_API_KEY : Deno.env.get(`${config.provider.toUpperCase()}_API_KEY`);
+  
+  if (!apiKey) {
+    return { ok: false, error: `Missing API Key for ${config.provider}`, status: 500 };
   }
 
-  const normalizedModel = model.replace("openai/", "").replace("google/", "");
-  const finalModel = OPENAI_MODELS.includes(normalizedModel as any) ? normalizedModel : DEFAULT_MODEL;
+  // Support for OpenAI-compatible and other providers via centralized gateway or direct
+  const url = config.provider === 'openai' 
+    ? "https://api.openai.com/v1/chat/completions"
+    : `https://api.gateway.lovable.dev/v1/chat/completions`; // Fallback for other providers
 
   const body: Record<string, unknown> = {
-    model: finalModel,
+    model: config.model.includes('/') ? config.model : `openai/${config.model}`,
     messages,
-    temperature,
+    temperature: config.temperature,
   };
 
   if (tools && tools.length > 0) {
@@ -42,17 +44,17 @@ async function callOpenAI(
     body.tool_choice = toolChoice || "auto";
   }
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const response = await fetch(url, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${OPENAI_API_KEY}`,
+      "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
   });
 
   if (!response.ok) {
-    return { ok: false, error: `OpenAI API error: ${response.status}`, status: response.status };
+    return { ok: false, error: `${config.provider} API error: ${response.status}`, status: response.status };
   }
 
   const data = await response.json();
@@ -75,103 +77,26 @@ const getCorsHeaders = (origin: string | null) => {
 };
 
 // ============================================================
-// Tool Definitions & Categorization
+// Tool Definitions (Synced with Athena)
 // ============================================================
 
 const TOOLS: any[] = [
+    { type: "function", function: { name: "search_escavador_for_client", description: "Busca processos judiciais no Escavador usando dados do cliente (Nome/CPF). Use quando precisar de dados processuais externos atualizados.", parameters: { type: "object", properties: { client_id: { type: "string", description: "ID do cliente no CRM" }, query: { type: "string", description: "Termo de busca (Nome ou CPF)" } }, required: ["query"] } } },
+    { type: "function", function: { name: "get_escavador_suggestions", description: "Recupera sugestões de processos de alta confiança já identificados para o cliente.", parameters: { type: "object", properties: { client_id: { type: "string" } }, required: ["client_id"] } } },
+    { type: "function", function: { name: "link_escavador_process", description: "Vincula formalmente um processo do Escavador ao prontuário do cliente no CRM. Ação de escrita.", parameters: { type: "object", properties: { client_id: { type: "string" }, cnj: { type: "string", description: "Número CNJ do processo" } }, required: ["client_id", "cnj"] } } },
     { type: "function", function: { name: "getAppointments", description: "Busca agendamentos na agenda médica.", parameters: { type: "object", properties: { date: { type: "string" } } } } },
     { type: "function", function: { name: "getCases", description: "Busca processos jurídicos ativos.", parameters: { type: "object", properties: { client_id: { type: "string" } } } } },
-    { type: "function", function: { name: "getClient", description: "Busca dados detalhados de um cliente ou paciente.", parameters: { type: "object", properties: { id: { type: "string" } }, required: ["id"] } } },
-    { type: "function", function: { name: "updateResource", description: "Edita ou atualiza dados de um recurso (cliente, paciente ou caso). Use para mudar status, nomes ou observações.", parameters: { type: "object", properties: { resource_type: { type: "string", enum: ["client", "case", "paciente"] }, resource_id: { type: "string" }, data: { type: "object", description: "Campos e valores a serem atualizados" } }, required: ["resource_type", "resource_id", "data"] } } },
-    { type: "function", function: { name: "triggerNijaAnalysis", description: "Dispara uma análise estratégica profunda do NIJA para um processo jurídico.", parameters: { type: "object", properties: { case_id: { type: "string" } }, required: ["case_id"] } } },
-    { type: "function", function: { name: "sendMessage", description: "Envia uma mensagem via WhatsApp.", parameters: { type: "object", properties: { client_id: { type: "string" }, content: { type: "string" } }, required: ["client_id", "content"] } } },
-    { type: "function", function: { name: "createAppointment", description: "Cria um novo agendamento na agenda.", parameters: { type: "object", properties: { patient_id: { type: "string" }, date: { type: "string" }, time: { type: "string" } }, required: ["patient_id", "date", "time"] } } },
-    { type: "function", function: { name: "generateDocument", description: "Gera um novo documento (petição, laudo ou contrato).", parameters: { type: "object", properties: { client_id: { type: "string" }, template_id: { type: "string" } }, required: ["client_id", "template_id"] } } },
-    { type: "function", function: { name: "sign_document", description: "Assina digitalmente um documento. Ação CRÍTICA.", parameters: { type: "object", properties: { document_id: { type: "string" } }, required: ["document_id"] } } },
-    { type: "function", function: { name: "searchEscavador", description: "Busca processos no Escavador por nome de cliente ou CNJ.", parameters: { type: "object", properties: { query: { type: "string" }, client_id: { type: "string" } }, required: ["query"] } } },
-    { type: "function", function: { name: "linkEscavadorProcess", description: "Vincula um processo encontrado ao cadastro do cliente no CRM.", parameters: { type: "object", properties: { cnj: { type: "string" }, client_id: { type: "string" } }, required: ["cnj", "client_id"] } } },
-    { type: "function", function: { name: "getEscavadorSuggestions", description: "Busca sugestões de processos de alta confiança para um cliente específico.", parameters: { type: "object", properties: { client_id: { type: "string" } }, required: ["client_id"] } } },
-    { type: "function", function: { name: "summarizeProcess", description: "Gera um resumo inteligente do processo jurídico.", parameters: { type: "object", properties: { cnj: { type: "string" } }, required: ["cnj"] } } }
+    { type: "function", function: { name: "getClient", description: "Busca dados detalhados de um cliente ou paciente.", parameters: { type: "object", properties: { id: { type: "string" } }, required: ["id"] } } }
 ];
 
-const CONSULTATION_TOOLS = ["getAppointments", "getCases", "getClient", "searchEscavador", "getEscavadorSuggestions", "summarizeProcess"];
-const LIGHT_CRITICAL_TOOLS = ["updateResource", "create_draft"];
-const STRONG_CRITICAL_TOOLS = ["sendMessage", "createAppointment", "generateDocument", "sign_document", "linkEscavadorProcess", "triggerNijaAnalysis"];
+const CONSULTATION_TOOLS = ["getAppointments", "getCases", "getClient", "search_escavador_for_client", "get_escavador_suggestions"];
+const STRONG_CRITICAL_TOOLS = ["link_escavador_process", "sendMessage", "createAppointment", "generateDocument", "sign_document"];
 
-type ToolCategory = "consultation" | "light" | "strong";
+type ToolCategory = "consultation" | "strong";
 
 function getToolCategory(name: string): ToolCategory {
   if (CONSULTATION_TOOLS.includes(name)) return "consultation";
-  if (LIGHT_CRITICAL_TOOLS.includes(name)) return "light";
   return "strong";
-}
-
-function canExecuteInMode(mode: string, toolCategory: ToolCategory): boolean {
-  if (mode === 'automatic' || mode === 'critical') return true;
-  if (mode === 'assisted') return toolCategory !== 'strong';
-  if (mode === 'consultation') return toolCategory === 'consultation';
-  return false;
-}
-
-// ============================================================
-// Stage 12: DB-backed Rate Limiting & Kill-Switch Helpers
-// (replaces in-memory token bucket which doesn't scale)
-// ============================================================
-
-async function checkVoiceRateLimit(adminClient: any, userId: string): Promise<{ allowed: boolean }> {
-  try {
-    const { data, error } = await adminClient.rpc("check_and_increment_rate_limit", {
-      p_scope_type:       "user",
-      p_scope_id:         userId,
-      p_action:           "voice_actions",
-      p_limit_per_window: 20,   // 20 voice actions per minute
-      p_window_minutes:   1,
-    });
-    if (error) {
-      console.warn(`[VoiceRateLimit] RATE_LIMIT_SYSTEM_DEGRADED: ${error.message}`);
-      return { allowed: true };  // fail-open
-    }
-    return { allowed: (data as Record<string, unknown>).allowed as boolean };
-  } catch (err) {
-    console.warn(`[VoiceRateLimit] RATE_LIMIT_SYSTEM_DEGRADED: ${(err as Error).message}`);
-    return { allowed: true };  // fail-open
-  }
-}
-
-async function isVoiceKillSwitchActive(adminClient: any, officeId: string): Promise<boolean> {
-  try {
-    // Check both global and office-scoped voice_actions switch
-    const { data } = await adminClient.rpc("is_kill_switch_active", {
-      p_switch_type: "voice_actions",
-      p_scope_id:    officeId,
-    });
-    return data as boolean ?? false;
-  } catch {
-    return false;  // fail-open
-  }
-}
-
-async function logVoiceAudit(supabase: any, params: any) {
-  try {
-    await supabase.from("voice_agent_audit_logs").insert({
-      user_id: params.user_id,
-      session_id: params.session_id,
-      transcript: params.transcript,
-      intent: params.intent,
-      mode_requested: params.mode_requested,
-      mode_effective: params.mode_effective,
-      tool_called: params.tool_called,
-      resource_type: params.resource_type,
-      resource_id: params.resource_id,
-      confirmation_required: !!params.pending_action_id,
-      stt_confidence: params.stt_confidence,
-      pending_action_id: params.pending_action_id,
-      action_status: params.action_status,
-      error_message: params.error_message
-    });
-  } catch (e) {
-    console.error("[audit][voice] Failed to write log:", e);
-  }
 }
 
 // ============================================================
@@ -198,22 +123,22 @@ Deno.serve(async (req: Request) => {
     const payload = await req.json();
     const officeId = membership.office_id;
     const sessionId = payload.sessionId || crypto.randomUUID();
+    const client_id = payload.client_id || null;
+    const client_study_context = payload.client_study_context || null;
 
-    // Stage 12: DB-backed rate limit (replaces in-memory token bucket)
-    const rl = await checkVoiceRateLimit(adminClient, user.uid);
-    if (!rl.allowed) {
-      return new Response(JSON.stringify({ action: "speak", response: "Você está rápido demais. Aguarde um momento." }), {
-        status: 429,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
+    // Resolve Unified Agent Config
+    const config = await getAgentConfig(adminClient, 'voice-assistant', { office_id: officeId });
+    if (!config || !config.is_active) {
+      return new Response(JSON.stringify({ action: "speak", response: "O agente de voz está desativado." }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
 
-    // Stage 12: Kill-switch check for voice_actions
-    const voiceKilled = await isVoiceKillSwitchActive(adminClient, officeId);
-    if (voiceKilled) {
-      return new Response(JSON.stringify({ action: "speak", response: "O agente de voz está temporariamente desativado." }), {
-        status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
+    // Rate Limiting
+    const rl = await checkVoiceRateLimit(adminClient, user.uid);
+    if (!rl.allowed) {
+      return new Response(JSON.stringify({ action: "speak", response: "Você está rápido demais. Aguarde um momento." }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
 
@@ -233,27 +158,13 @@ Deno.serve(async (req: Request) => {
         });
     }
 
-    const { data: voiceSettings } = await adminClient
-      .from("user_voice_settings")
-      .select("*")
-      .eq("user_id", user.uid)
-      .maybeSingle();
-
-    let effectiveMode = voiceSettings?.default_voice_mode || 'automatic';
-    const confidence = sttResult?.confidence || 1.0;
-
-    // Safety Gating
-    if (confidence < 0.7 && effectiveMode !== 'consultation') {
-        effectiveMode = 'assisted';
-    }
-
     let reply = "";
     let actionResult: any = { action: "speak" };
     let toolNameDetected = 'chat';
 
     // Handshake Confirmation Check
     const isPositive = /^(sim|claro|com certeza|confirma|pode|va em frente|positivo|ok|isso mesmo)/i.test(transcript);
-    
+
     if (payload.confirmActionId && isPositive) {
         const { data: pendingAction } = await adminClient
             .from("voice_pending_actions")
@@ -267,15 +178,15 @@ Deno.serve(async (req: Request) => {
                 .from("voice_pending_actions")
                 .update({ status: 'executed' })
                 .eq("id", pendingAction.id);
-            
-            if (pendingAction.intent === 'linkEscavadorProcess') {
-                // Specialized Link logic
+
+            // Execute the tool logic
+            if (pendingAction.intent === 'link_escavador_process') {
                 await adminClient.functions.invoke("escavador-api", {
                     body: { action: "link_process_to_client", payload: pendingAction.args }
                 });
             }
 
-            reply = `Confirmado. Executando ${pendingAction.intent} agora.`;
+            reply = `Confirmado. Realizei o vínculo do processo conforme solicitado.`;
             actionResult = { action: "success", response: reply };
             toolNameDetected = pendingAction.intent;
         } else {
@@ -283,21 +194,23 @@ Deno.serve(async (req: Request) => {
             actionResult = { action: "speak", response: reply };
         }
     } else {
-        const agentName = voiceSettings?.agent_name || 'Flaito';
-        const agentPersonality = voiceSettings?.agent_personality || 'Você é o Assistente Inteligente da Flaito. Fale em Português do Brasil.';
+        // Build System Prompt (Unified with Athena)
+        let systemPrompt = config.system_prompt || `Você é a ATHENA, assistente de voz inteligente.`;
+        systemPrompt += `\nFale de forma natural e humana. Evite termos técnicos desnecessários ao falar.`;
 
-        const systemPrompt = `Você é ${agentName}. ${agentPersonality}
-    Modo: ${effectiveMode}. Confiança: ${confidence}.
-    REGRA DE OURO: Use Markdown para qualquer informação estruturada (tabelas, listas, negrito).
-    ECONOMIA DE TOKENS: O sistema enviará dados do Escavador já formatados em Markdown. NÃO tente reformatar; apenas apresente os dados ou responda perguntas baseadas neles.
-    REGRA PROATIVA: Se houver processos sugeridos com confiança acima de 85%, sugira o vínculo imediatamente.`;
+        if (client_study_context) {
+          systemPrompt += `\n\n=== CONTEXTO DE ESTUDO DO CLIENTE ===`;
+          for (const [k, v] of Object.entries(client_study_context)) {
+            systemPrompt += `\n${k}: ${v}`;
+          }
+        }
 
-        const aiRes = await callOpenAI([
+        const aiRes = await callAI([
           { role: "system", content: systemPrompt },
           { role: "user", content: transcript }
-        ], DEFAULT_MODEL, TOOLS);
+        ], config, TOOLS);
 
-        if (!aiRes.ok) throw new Error("AI connection failed");
+        if (!aiRes.ok) throw new Error(`AI error: ${aiRes.error}`);
 
         const choice = aiRes.data.choices[0];
         reply = choice.message.content || "";
@@ -310,10 +223,7 @@ Deno.serve(async (req: Request) => {
           const toolCategory = getToolCategory(toolName);
           toolNameDetected = toolName;
 
-          if (!canExecuteInMode(effectiveMode, toolCategory)) {
-            reply = `Ação "${toolName}" não é permitida no modo ${effectiveMode}.`;
-            actionResult = { action: "speak", response: reply };
-          } else if (toolCategory !== 'consultation') {
+          if (toolCategory === 'strong') {
             const { data: pendingAction } = await adminClient
                 .from("voice_pending_actions")
                 .insert({
@@ -327,7 +237,8 @@ Deno.serve(async (req: Request) => {
                 .select()
                 .single();
 
-            reply = `Entendido. Você confirma a execução de ${toolName}?`;
+            const toolLabel = toolName === 'link_escavador_process' ? 'vincular este processo' : toolName;
+            reply = `Entendido. Você confirma que deseja ${toolLabel}?`;
             actionResult = { 
                 action: "require_confirmation", 
                 response: reply,
@@ -335,15 +246,17 @@ Deno.serve(async (req: Request) => {
                 intent: toolName
             };
           } else {
-            reply = `Localizando informações para ${toolName}...`;
+            // Consultation tools execute immediately and summarize via text
+            // In a real voice flow, we would call the tool here and then call LLM again to speak the result
+            reply = `Localizando informações sobre ${toolName}...`;
           }
         }
     }
 
     const ttsConfig = resolveTTSConfig({
-      voiceId: voiceSettings?.voice_id || '21m00Tcm4TlvDq8ikWAM',
-      stability: voiceSettings?.stability || 0.5,
-      similarity_boost: voiceSettings?.similarity_boost || 0.75
+      voiceId: config.guardrails?.voice_id || '21m00Tcm4TlvDq8ikWAM',
+      stability: (config.guardrails?.voice_stability as number) || 0.5,
+      similarity_boost: 0.75
     });
     const ttsResult = await synthesizeSpeech(reply, ttsConfig);
 
@@ -352,9 +265,9 @@ Deno.serve(async (req: Request) => {
       session_id: sessionId,
       transcript,
       intent: toolNameDetected,
-      mode_requested: voiceSettings?.default_voice_mode,
-      mode_effective: effectiveMode,
-      stt_confidence: confidence,
+      mode_requested: 'unified',
+      mode_effective: 'unified',
+      stt_confidence: sttResult?.confidence || 1.0,
       pending_action_id: actionResult.pendingActionId,
       action_status: actionResult.action === 'require_confirmation' ? 'pending' : (actionResult.action === 'success' ? 'executed' : 'success')
     });

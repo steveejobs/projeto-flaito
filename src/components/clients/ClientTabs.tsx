@@ -2,7 +2,7 @@ import React from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
-export type TabValue = "dados" | "casos" | "kit" | "arquivos" | "timeline" | "timeline_360" | "whatsapp" | "agente";
+export type TabValue = "dados" | "casos" | "kit" | "arquivos" | "timeline" | "timeline_360" | "contexto_ia" | "whatsapp" | "agente";
 
 type Props = {
   value: TabValue;
@@ -75,6 +75,13 @@ export function ClientTabs({
           Histórico 360
         </TabsTrigger>
         
+        <TabsTrigger
+          value="contexto_ia"
+          className="px-1 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:font-semibold text-sm flex items-center text-teal-600 dark:text-teal-400"
+        >
+          Contexto IA
+        </TabsTrigger>
+
         <TabsTrigger
           value="whatsapp"
           className="px-1 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:font-semibold text-sm flex items-center text-emerald-600 dark:text-emerald-400"

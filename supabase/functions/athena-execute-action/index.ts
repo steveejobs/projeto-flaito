@@ -200,6 +200,20 @@ serve(async (req) => {
           break;
         }
 
+        // Busca no Escavador para cliente
+        case "search_escavador_for_client": {
+          const { client_id, query } = action_payload as { client_id: string, query: string };
+          if (!client_id) throw new Error("ID do cliente é obrigatório.");
+
+          // Aqui apenas retornamos para o frontend navegar ou abrir o chat com a pergunta pronta
+          result = {
+            navigate_to: `/clientes/${client_id}`,
+            open_chat_with: `Busque processos no Escavador para o termo: ${query}`,
+            message: `Iniciando busca no Escavador para o cliente selecionado.`,
+          };
+          break;
+        }
+
         // Revisão de laudos (ação de navegação)
         case "review_reports": {
           result = { navigate_to: "/medico/relatorios", message: "Abrindo laudos para revisão." };

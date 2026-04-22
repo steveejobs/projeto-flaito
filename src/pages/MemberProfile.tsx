@@ -29,7 +29,6 @@ import {
 } from "lucide-react";
 import { isMemberProfileComplete, getMissingProfileFields } from "@/lib/lawyerIdentification";
 import { AvatarUpload } from "@/components/AvatarUpload";
-import { VoiceSettingsCard } from "@/components/VoiceSettingsCard";
 
 interface MemberData {
   id: string;
@@ -664,7 +663,6 @@ export default function MemberProfile() {
         </CardContent>
       </Card>
 
-      <VoiceSettingsCard />
 
       {/* Save Button */}
       <div className="flex justify-end">

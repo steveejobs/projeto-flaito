@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
+import { useActiveClient } from './ActiveClientContext';
+import { useAuth } from './AuthContext';
+import { useOfficeSession } from '@/hooks/useOfficeSession';
+import { UnifiedAgent } from '@/types/agents';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -72,6 +76,7 @@ const VoiceAgentContext = createContext<VoiceAgentContextType | undefined>(undef
 // ============================================================
 
 export const VoiceAgentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -113,29 +118,34 @@ export const VoiceAgentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Settings & DB Sync
   // ============================================================
 
-  const loadSettingsAndSync = useCallback(async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  const { activeProfile } = useActiveClient();
+  const { officeId } = useOfficeSession(user?.id);
+  const [agentConfig, setAgentConfig] = useState<Partial<UnifiedAgent> | null>(null);
 
-      const { data: settings } = await supabase
-        .from('user_voice_settings')
+  const loadSettingsAndSync = useCallback(async () => {
+    if (!officeId) return;
+    
+    try {
+      // Fetch centralized config from Agent Studio (ai_agent_configs)
+      const { data, error } = await supabase
+        .from('ai_agent_configs')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('slug', 'voice-assistant')
+        .or(`office_id.eq.${officeId},office_id.is.null`)
+        .order('office_id', { ascending: false }) // office-specific first
+        .limit(1)
         .maybeSingle();
 
-      if (settings) {
-        if (settings.wake_word) setWakeWordState(settings.wake_word);
-        if (settings.default_voice_mode) setModeState(settings.default_voice_mode as VoiceMode);
-        if (settings.tts_stability !== undefined) {
-           // Podemos guardar mais coisas no estado se necessário
-        }
-        addLog('Configurações sincronizadas com o servidor.');
+      if (data) {
+        setAgentConfig(data);
+        const meta = data.metadata || {};
+        if (meta.wake_word) setWakeWordState(meta.wake_word);
+        addLog(`Configuração '${data.name}' carregada.`);
       }
     } catch (e) {
       console.warn('[VoiceAgent] Sync failed:', e);
     }
-  }, [addLog]);
+  }, [officeId, addLog]);
 
   const setMode = useCallback(async (newMode: VoiceMode) => {
     setModeState(newMode);
@@ -266,7 +276,12 @@ export const VoiceAgentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         command: text,
         currentPath: location.pathname,
         confirmActionId: pendingAction?.actionId,
-        mode
+        mode,
+        // Context Awareness (Parity with LexosChatAssistant)
+        activeClientId: activeProfile?.id,
+        vertical: location.pathname.includes('/medical') ? 'MEDICAL' : 'LEGAL',
+        // Configuration Overrides
+        voiceSettings: agentConfig?.metadata || {}
       };
 
       if (blob) {
